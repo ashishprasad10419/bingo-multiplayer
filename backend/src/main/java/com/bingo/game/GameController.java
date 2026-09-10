@@ -27,6 +27,16 @@ public class GameController {
         return ResponseEntity.ok(game);
     }
 
+    @GetMapping("/games/room/{roomCode}")
+    @Operation(summary = "Get active game state by roomCode (for page refresh/reconnect from /game/:roomCode)")
+    public ResponseEntity<Game> getGameByRoom(
+            @PathVariable String roomCode,
+            @AuthenticationPrincipal String userId
+    ) {
+        Game game = gameService.getGameByRoomCode(roomCode, userId);
+        return ResponseEntity.ok(game);
+    }
+
     @PostMapping("/games/{id}/call")
     @Operation(summary = "Call a number (REST fallback for WebSocket)")
     public ResponseEntity<Game> callNumber(

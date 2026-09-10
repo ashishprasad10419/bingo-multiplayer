@@ -11,5 +11,7 @@ public interface GameRepository extends MongoRepository<Game, String> {
 
     Optional<Game> findByRoomCodeAndStatus(String roomCode, GameStatus status);
 
+    Optional<Game> findFirstByRoomCodeOrderByStartedAtDesc(String roomCode);
+
     List<Game> findByStatus(GameStatus status);
 }

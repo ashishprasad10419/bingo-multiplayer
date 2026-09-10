@@ -22,6 +22,7 @@ interface GameState {
   setSelectedPos: (pos: { row: number; column: number } | null) => void;
   fetchRoom: (code: string) => Promise<Room>;
   fetchGame: (gameId: string) => Promise<Game>;
+  syncGameByRoomCode: (roomCode: string, currentUserId: string) => Promise<Game>;
   initSocketListeners: (roomCode: string, currentUserId: string) => void;
   leaveCurrentRoom: () => Promise<void>;
   resetGame: () => void;
@@ -71,6 +72,32 @@ export const useGameStore = create<GameState>((set, get) => ({
       return game;
     } catch (err: any) {
       set({ isLoading: false, error: err.response?.data?.message || 'Failed to fetch game' });
+      throw err;
+    }
+  },
+
+  syncGameByRoomCode: async (roomCode: string, currentUserId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const game = await gameApi.getGameByRoom(roomCode);
+      const myPlayer = game.players.find((p) => p.userId === currentUserId);
+      const newMap: Record<number, string> = {};
+      if (game.moves) {
+        game.moves.forEach((m) => {
+          newMap[m.number] = m.calledByUserId;
+        });
+      }
+      set({
+        game,
+        board: myPlayer?.board || null,
+        lineCount: myPlayer?.lineCount || 0,
+        lastCalledNumber: game.calledNumbers.length > 0 ? game.calledNumbers[game.calledNumbers.length - 1] : null,
+        calledByMap: newMap,
+        isLoading: false,
+      });
+      return game;
+    } catch (err: any) {
+      set({ isLoading: false, error: err.response?.data?.message || 'Failed to sync game state' });
       throw err;
     }
   },
@@ -191,9 +218,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         case 'TURN_CHANGED':
           if (game) {
+            const updatedCalled = event.data.calledNumbers || game.calledNumbers;
+            const updatedMap = { ...calledByMap };
+            if (event.data.moves && Array.isArray(event.data.moves)) {
+              event.data.moves.forEach((m: any) => {
+                updatedMap[m.number] = m.calledByUserId;
+              });
+            }
             set({
+              calledByMap: updatedMap,
               game: {
                 ...game,
+                calledNumbers: updatedCalled,
                 currentTurnUserId: event.data.currentTurnUserId,
               },
             });

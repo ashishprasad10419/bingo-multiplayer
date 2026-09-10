@@ -113,6 +113,10 @@ export const gameApi = {
     const res = await apiClient.get<Game>(`/games/${gameId}`);
     return res.data;
   },
+  getGameByRoom: async (roomCode: string): Promise<Game> => {
+    const res = await apiClient.get<Game>(`/games/room/${roomCode.toUpperCase()}`);
+    return res.data;
+  },
   callNumber: async (gameId: string, number: number): Promise<Game> => {
     const res = await apiClient.post<Game>(`/games/${gameId}/call?number=${number}`);
     return res.data;

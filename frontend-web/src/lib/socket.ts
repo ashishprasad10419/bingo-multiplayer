@@ -7,12 +7,15 @@ const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || '/ws';
 class SocketService {
   private client: Client | null = null;
   private currentRoomCode: string | null = null;
+  private subscribedRoomCode: string | null = null;
+  private currentSubscription: any = null;
   private listeners: ((event: GameEventEnvelope) => void)[] = [];
   private isConnected = false;
 
   public connect(roomCode: string, onEvent: (event: GameEventEnvelope) => void) {
     this.currentRoomCode = roomCode;
-    this.listeners.push(onEvent);
+    // Replace with single store listener to prevent duplicate event execution
+    this.listeners = [onEvent];
 
     if (this.client && this.isConnected) {
       this.subscribe(roomCode);
@@ -38,6 +41,8 @@ class SocketService {
       },
       onDisconnect: () => {
         this.isConnected = false;
+        this.currentSubscription = null;
+        this.subscribedRoomCode = null;
       },
       onStompError: (frame) => {
         console.error('Broker reported error: ' + frame.headers['message']);
@@ -50,9 +55,22 @@ class SocketService {
 
   private subscribe(roomCode: string) {
     if (!this.client || !this.isConnected) return;
+    if (this.subscribedRoomCode === roomCode && this.currentSubscription) {
+      return;
+    }
+
+    if (this.currentSubscription) {
+      try {
+        this.currentSubscription.unsubscribe();
+      } catch (e) {
+        // ignore
+      }
+      this.currentSubscription = null;
+    }
 
     const topic = `/topic/rooms/${roomCode}`;
-    this.client.subscribe(topic, (message: IMessage) => {
+    this.subscribedRoomCode = roomCode;
+    this.currentSubscription = this.client.subscribe(topic, (message: IMessage) => {
       try {
         const envelope: GameEventEnvelope = JSON.parse(message.body);
         this.listeners.forEach((listener) => listener(envelope));
@@ -80,12 +98,21 @@ class SocketService {
   }
 
   public disconnect() {
+    if (this.currentSubscription) {
+      try {
+        this.currentSubscription.unsubscribe();
+      } catch (e) {
+        // ignore
+      }
+      this.currentSubscription = null;
+    }
     if (this.client) {
       this.client.deactivate();
       this.client = null;
       this.isConnected = false;
       this.listeners = [];
       this.currentRoomCode = null;
+      this.subscribedRoomCode = null;
     }
   }
 }

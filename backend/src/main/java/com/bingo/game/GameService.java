@@ -110,6 +110,25 @@ public class GameService {
                 .orElseThrow(() -> new IllegalArgumentException("Game not found: " + gameId));
     }
 
+    public Game getGameByRoomCode(String roomCode, String userId) {
+        // Try currently playing game first
+        Game game = gameRepository.findByRoomCodeAndStatus(roomCode.toUpperCase(), GameStatus.PLAYING)
+                .orElseGet(() -> gameRepository.findFirstByRoomCodeOrderByStartedAtDesc(roomCode.toUpperCase())
+                        .orElseThrow(() -> new IllegalArgumentException("No game found for room: " + roomCode)));
+
+        if (userId != null) {
+            GamePlayer player = game.findPlayer(userId);
+            if (player != null) {
+                player.setConnectionStatus(ConnectionStatus.CONNECTED);
+                gameRepository.save(game);
+                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "PLAYER_RECONNECTED", Map.of(
+                        "userId", userId
+                ));
+            }
+        }
+        return game;
+    }
+
     public Game handlePlayerReconnect(String gameId, String userId) {
         Game game = getGameById(gameId);
         GamePlayer player = game.findPlayer(userId);

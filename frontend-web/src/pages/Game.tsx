@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../state/gameStore';
 import { useAuthStore } from '../state/authStore';
-import { gameApi, roomApi } from '../lib/api';
+import { gameApi } from '../lib/api';
 import { socketService } from '../lib/socket';
 import { BoardGrid } from '../components/BoardGrid';
 import { CalledNumbersTicker } from '../components/CalledNumbersTicker';
@@ -21,6 +21,7 @@ export const Game: React.FC = () => {
     lastCalledNumber,
     calledByMap,
     initSocketListeners,
+    syncGameByRoomCode,
     winnerInfo,
   } = useGameStore();
 
@@ -31,11 +32,15 @@ export const Game: React.FC = () => {
     if (code && user) {
       initSocketListeners(code, user.id);
 
-      if (!game) {
-        roomApi.getRoom(code).catch(() => {});
+      // Restore full game and board state if refreshing or missing
+      if (!game || !board) {
+        syncGameByRoomCode(code, user.id).catch((err) => {
+          console.error('Failed to sync game state on refresh:', err);
+          setError(err.response?.data?.message || 'Could not load match state. Please return to lobby.');
+        });
       }
     }
-  }, [code, user, game, initSocketListeners]);
+  }, [code, user?.id]);
 
   // Navigate to winner screen when game is finished
   useEffect(() => {
@@ -45,7 +50,7 @@ export const Game: React.FC = () => {
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [winnerInfo, game, navigate]);
+  }, [winnerInfo, game?.id, navigate]);
 
   if (!user || !game || !board) {
     return (
@@ -76,8 +81,12 @@ export const Game: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to call number');
+      // If turn collision or race condition occurred, resync match immediately
+      if (code && user?.id) {
+        syncGameByRoomCode(code, user.id).catch(() => {});
+      }
     } finally {
-      setTimeout(() => setCalling(false), 500);
+      setTimeout(() => setCalling(false), 200);
     }
   };
 
