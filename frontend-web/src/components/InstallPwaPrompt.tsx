@@ -13,7 +13,6 @@ export const usePwaInstall = () => {
   const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
-    // Detect standalone mode
     const checkStandalone = () => {
       const isStandaloneMode =
         window.matchMedia('(display-mode: standalone)').matches ||
@@ -64,12 +63,12 @@ export const usePwaInstall = () => {
   };
 };
 
-export const InstallModal: React.FC<{ isOpen: boolean; onClose: () => void; isIOS: boolean; isAndroid: boolean }> = ({
-  isOpen,
-  onClose,
-  isIOS,
-  isAndroid,
-}) => {
+export const InstallModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  isIOS: boolean;
+  isAndroid: boolean;
+}> = ({ isOpen, onClose, isIOS, isAndroid }) => {
   if (!isOpen) return null;
 
   return (
@@ -101,7 +100,7 @@ export const InstallModal: React.FC<{ isOpen: boolean; onClose: () => void; isIO
             </div>
             <div className="flex items-start space-x-2.5">
               <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-[10px] mt-0.5">1</span>
-              <span>Tap the <strong>Share</strong> button <Share className="w-3.5 h-3.5 inline mx-1 text-blue-400" /> at bottom of Safari</span>
+              <span>Tap the <strong>Share</strong> button <Share className="w-3.5 h-3.5 inline mx-1 text-blue-400" /> at the bottom</span>
             </div>
             <div className="flex items-start space-x-2.5">
               <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-[10px] mt-0.5">2</span>
@@ -131,7 +130,7 @@ export const InstallModal: React.FC<{ isOpen: boolean; onClose: () => void; isIO
             </div>
             <div className="flex items-start space-x-2.5">
               <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-[10px] mt-0.5">1</span>
-              <span>Click the <strong>Install icon</strong> in your browser address bar</span>
+              <span>Click the <strong>Install / Open in app</strong> icon in the address bar</span>
             </div>
             <div className="flex items-start space-x-2.5">
               <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-[10px] mt-0.5">2</span>
@@ -151,19 +150,17 @@ export const InstallModal: React.FC<{ isOpen: boolean; onClose: () => void; isIO
   );
 };
 
-export const InstallPwaCard: React.FC = () => {
+// Subtle button for Login screen footer
+export const InstallPwaInline: React.FC = () => {
   const { canInstall, isStandalone, isIOS, isAndroid, hasNativePrompt, triggerInstall } = usePwaInstall();
   const [showModal, setShowModal] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
 
-  if (isStandalone || !canInstall || dismissed) return null;
+  if (isStandalone || !canInstall) return null;
 
   const handleClick = async () => {
     if (hasNativePrompt) {
       const accepted = await triggerInstall();
-      if (!accepted) {
-        setShowModal(true);
-      }
+      if (!accepted) setShowModal(true);
     } else {
       setShowModal(true);
     }
@@ -171,38 +168,14 @@ export const InstallPwaCard: React.FC = () => {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/25 to-blue-700/20 border border-blue-500/40 rounded-3xl p-4 shadow-xl shadow-blue-500/10">
-        <button
-          onClick={() => setDismissed(true)}
-          className="absolute top-3 right-3 p-1 text-slate-400 hover:text-white rounded-lg transition"
-          aria-label="Dismiss"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="flex items-center space-x-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center flex-shrink-0 text-white shadow-lg shadow-blue-500/30">
-            <Download className="w-5 h-5 animate-bounce" />
-          </div>
-          <div className="flex-1 min-w-0 pr-3">
-            <div className="text-sm font-black text-white flex items-center space-x-1.5">
-              <span>Install Bingo App</span>
-              <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded-full border border-blue-500/30">
-                PWA
-              </span>
-            </div>
-            <div className="text-xs text-blue-200/80 mt-0.5 truncate">
-              Play fullscreen on phone or desktop
-            </div>
-          </div>
-          <button
-            onClick={handleClick}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold transition shadow-lg shadow-blue-500/30 flex-shrink-0"
-          >
-            Install
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={handleClick}
+        className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-400 hover:text-slate-200 text-xs transition"
+      >
+        <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+        <span>Install App on your device</span>
+      </button>
 
       <InstallModal
         isOpen={showModal}
@@ -214,7 +187,8 @@ export const InstallPwaCard: React.FC = () => {
   );
 };
 
-export const InstallNavbarButton: React.FC = () => {
+// Clean settings row for Profile screen
+export const InstallProfileCard: React.FC = () => {
   const { canInstall, isStandalone, isIOS, isAndroid, hasNativePrompt, triggerInstall } = usePwaInstall();
   const [showModal, setShowModal] = useState(false);
 
@@ -223,9 +197,7 @@ export const InstallNavbarButton: React.FC = () => {
   const handleClick = async () => {
     if (hasNativePrompt) {
       const accepted = await triggerInstall();
-      if (!accepted) {
-        setShowModal(true);
-      }
+      if (!accepted) setShowModal(true);
     } else {
       setShowModal(true);
     }
@@ -233,14 +205,23 @@ export const InstallNavbarButton: React.FC = () => {
 
   return (
     <>
-      <button
-        onClick={handleClick}
-        className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-extrabold shadow-lg shadow-blue-500/20 transition transform active:scale-95"
-        title="Install App"
-      >
-        <Download className="w-3.5 h-3.5 animate-pulse" />
-        <span>Install App</span>
-      </button>
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-xl flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <Download className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-sm font-bold text-white">Install Bingo App</div>
+            <div className="text-xs text-slate-400">Add to Home Screen for fullscreen play</div>
+          </div>
+        </div>
+        <button
+          onClick={handleClick}
+          className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-md shadow-blue-500/20"
+        >
+          Install
+        </button>
+      </div>
 
       <InstallModal
         isOpen={showModal}

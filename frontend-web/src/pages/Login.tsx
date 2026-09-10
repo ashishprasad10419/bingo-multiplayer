@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authApi } from '../lib/api';
 import { useAuthStore } from '../state/authStore';
 import { Lock, User as UserIcon, Mail, ArrowRight } from 'lucide-react';
+import { InstallPwaInline } from '../components/InstallPwaPrompt';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -205,6 +206,11 @@ export const Login: React.FC = () => {
               )}
             </button>
           </form>
+        </div>
+
+        {/* Subtle install link on login page */}
+        <div className="mt-5 text-center">
+          <InstallPwaInline />
         </div>
       </div>
     </div>

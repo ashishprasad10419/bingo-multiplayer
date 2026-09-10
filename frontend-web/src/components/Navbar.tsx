@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../state/authStore';
 import { Trophy, LogOut, Flame } from 'lucide-react';
-import { InstallNavbarButton } from './InstallPwaPrompt';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore();
@@ -27,9 +26,7 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Right Stats & Controls */}
-        <div className="flex items-center space-x-2.5">
-          {/* Install PWA App Button */}
-          <InstallNavbarButton />
+        <div className="flex items-center space-x-3">
 
           {/* Win Streak Pill */}
           {user.stats?.currentWinStreak > 0 && (

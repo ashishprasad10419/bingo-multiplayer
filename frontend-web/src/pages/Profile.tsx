@@ -4,6 +4,7 @@ import { useAuthStore } from '../state/authStore';
 import { authApi, publicApi } from '../lib/api';
 import { Badge, GameHistory, UserBadge } from '../lib/types';
 import { ArrowLeft, Trophy, Award, Clock } from 'lucide-react';
+import { InstallProfileCard } from '../components/InstallPwaPrompt';
 
 export const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -94,6 +95,9 @@ export const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* PWA App Installation Option */}
+      <InstallProfileCard />
 
       {/* Badges Section */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl">

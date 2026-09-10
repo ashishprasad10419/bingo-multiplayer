@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../state/authStore';
 import { PlusCircle, LogIn, Trophy, Flame, Shield, HelpCircle } from 'lucide-react';
-import { InstallPwaCard } from '../components/InstallPwaPrompt';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -63,9 +62,6 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Install PWA Prompt Banner */}
-      <InstallPwaCard />
 
       {/* Primary Actions */}
       <div className="space-y-3">
