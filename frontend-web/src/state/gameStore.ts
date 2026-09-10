@@ -22,7 +22,7 @@ interface GameState {
   setSelectedPos: (pos: { row: number; column: number } | null) => void;
   fetchRoom: (code: string) => Promise<Room>;
   fetchGame: (gameId: string) => Promise<Game>;
-  syncGameByRoomCode: (roomCode: string, currentUserId: string) => Promise<Game>;
+  syncGameByRoomCode: (roomCode: string, currentUserId: string, silent?: boolean) => Promise<Game>;
   initSocketListeners: (roomCode: string, currentUserId: string) => void;
   leaveCurrentRoom: () => Promise<void>;
   resetGame: () => void;
@@ -44,7 +44,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   setRoom: (room) => set({ room }),
   setGame: (game) => set({ game }),
   setBoard: (board) => set({ board }),
-  setSelectedPos: (pos) => set({ selectedPos: pos }),
+  setSelectedPos: (selectedPos) => set({ selectedPos }),
 
   fetchRoom: async (code: string) => {
     set({ isLoading: true, error: null });
@@ -76,8 +76,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  syncGameByRoomCode: async (roomCode: string, currentUserId: string) => {
-    set({ isLoading: true, error: null });
+  syncGameByRoomCode: async (roomCode: string, currentUserId: string, silent = false) => {
+    if (!silent) set({ isLoading: true, error: null });
     try {
       const game = await gameApi.getGameByRoom(roomCode);
       const myPlayer = game.players.find((p) => p.userId === currentUserId);
@@ -87,17 +87,31 @@ export const useGameStore = create<GameState>((set, get) => ({
           newMap[m.number] = m.calledByUserId;
         });
       }
-      set({
+
+      const updates: any = {
         game,
         board: myPlayer?.board || null,
         lineCount: myPlayer?.lineCount || 0,
         lastCalledNumber: game.calledNumbers.length > 0 ? game.calledNumbers[game.calledNumbers.length - 1] : null,
         calledByMap: newMap,
-        isLoading: false,
-      });
+      };
+
+      if (!silent) {
+        updates.isLoading = false;
+      }
+
+      if (game.status === 'FINISHED') {
+        const winningPlayer = game.players.find((p) => p.userId === game.winnerId);
+        updates.winnerInfo = winningPlayer || null;
+        updates.hasWon = game.winnerId === currentUserId;
+      }
+
+      set(updates);
       return game;
     } catch (err: any) {
-      set({ isLoading: false, error: err.response?.data?.message || 'Failed to sync game state' });
+      if (!silent) {
+        set({ isLoading: false, error: err.response?.data?.message || 'Failed to sync game state' });
+      }
       throw err;
     }
   },

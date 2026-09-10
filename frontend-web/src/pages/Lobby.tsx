@@ -30,12 +30,23 @@ export const Lobby: React.FC = () => {
     }
   }, [code, user?.id]);
 
+  // Periodic poll in lobby to catch player joins and game start even if socket drops
+  useEffect(() => {
+    if (!code) return;
+    const interval = setInterval(() => {
+      fetchRoom(code).catch(() => {});
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [code, fetchRoom]);
+
   // Navigate when game starts for this exact room
   useEffect(() => {
-    if (game && game.status === 'PLAYING' && game.roomCode?.toUpperCase() === code?.toUpperCase()) {
+    const isGamePlaying = game && game.status === 'PLAYING' && game.roomCode?.toUpperCase() === code?.toUpperCase();
+    const isRoomPlaying = room && room.status === 'PLAYING' && room.roomCode?.toUpperCase() === code?.toUpperCase();
+    if (isGamePlaying || isRoomPlaying) {
       navigate(`/game/${code}`);
     }
-  }, [game?.status, game?.roomCode, code, navigate]);
+  }, [game?.status, game?.roomCode, room?.status, room?.roomCode, code, navigate]);
 
   if (!room || !user) {
     return (

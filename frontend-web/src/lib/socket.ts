@@ -10,14 +10,17 @@ class SocketService {
   private subscribedRoomCode: string | null = null;
   private currentSubscription: any = null;
   private listeners: ((event: GameEventEnvelope) => void)[] = [];
-  private isConnected = false;
+
+  public get connected(): boolean {
+    return !!(this.client && this.client.connected);
+  }
 
   public connect(roomCode: string, onEvent: (event: GameEventEnvelope) => void) {
     this.currentRoomCode = roomCode;
     // Replace with single store listener to prevent duplicate event execution
     this.listeners = [onEvent];
 
-    if (this.client && this.isConnected) {
+    if (this.client && this.client.connected) {
       this.subscribe(roomCode);
       return;
     }
@@ -30,23 +33,23 @@ class SocketService {
       debug: () => {
         // debug logging
       },
-      reconnectDelay: 3000,
+      reconnectDelay: 2000,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       onConnect: () => {
-        this.isConnected = true;
-        if (this.currentRoomCode) {
+        if (this.currentRoomCode && this.client && this.client.connected) {
           this.subscribe(this.currentRoomCode);
         }
       },
       onDisconnect: () => {
-        this.isConnected = false;
         this.currentSubscription = null;
         this.subscribedRoomCode = null;
       },
       onStompError: (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
+        console.warn('Broker reported error: ' + frame.headers['message']);
+      },
+      onWebSocketClose: () => {
+        this.currentSubscription = null;
       },
     });
 
@@ -54,7 +57,7 @@ class SocketService {
   }
 
   private subscribe(roomCode: string) {
-    if (!this.client || !this.isConnected) return;
+    if (!this.client || !this.client.connected) return;
     if (this.subscribedRoomCode === roomCode && this.currentSubscription) {
       return;
     }
@@ -70,27 +73,38 @@ class SocketService {
 
     const topic = `/topic/rooms/${roomCode}`;
     this.subscribedRoomCode = roomCode;
-    this.currentSubscription = this.client.subscribe(topic, (message: IMessage) => {
-      try {
-        const envelope: GameEventEnvelope = JSON.parse(message.body);
-        this.listeners.forEach((listener) => listener(envelope));
-      } catch (e) {
-        console.error('Failed to parse STOMP message', e);
-      }
-    });
+
+    try {
+      this.currentSubscription = this.client.subscribe(topic, (message: IMessage) => {
+        try {
+          const envelope: GameEventEnvelope = JSON.parse(message.body);
+          this.listeners.forEach((listener) => listener(envelope));
+        } catch (e) {
+          console.error('Failed to parse STOMP message', e);
+        }
+      });
+    } catch (err) {
+      console.warn('Subscription attempt failed, will retry on reconnect:', err);
+      this.currentSubscription = null;
+      this.subscribedRoomCode = null;
+    }
   }
 
   public callNumber(gameId: string, number: number) {
-    if (!this.client || !this.isConnected) {
-      console.warn('STOMP not connected, cannot call number via WebSocket');
+    if (!this.client || !this.client.connected) {
       return false;
     }
 
-    this.client.publish({
-      destination: '/app/game/call-number',
-      body: JSON.stringify({ gameId, number }),
-    });
-    return true;
+    try {
+      this.client.publish({
+        destination: '/app/game/call-number',
+        body: JSON.stringify({ gameId, number }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP publish failed, falling back to REST:', e);
+      return false;
+    }
   }
 
   public removeListener(listener: (event: GameEventEnvelope) => void) {
@@ -109,7 +123,6 @@ class SocketService {
     if (this.client) {
       this.client.deactivate();
       this.client = null;
-      this.isConnected = false;
       this.listeners = [];
       this.currentRoomCode = null;
       this.subscribedRoomCode = null;

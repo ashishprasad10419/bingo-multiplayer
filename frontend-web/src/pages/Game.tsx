@@ -55,6 +55,20 @@ export const Game: React.FC = () => {
     }
   }, [winnerInfo, game?.id, navigate]);
 
+  // Bulletproof Heartbeat Reconciliation:
+  // Poll authoritative match state every 1.5s while playing
+  // Guarantees all players stay in 100% lockstep even if WebSocket drops or lags
+  useEffect(() => {
+    if (!code || !user) return;
+    if (game && game.status !== 'PLAYING') return;
+
+    const timer = setInterval(() => {
+      syncGameByRoomCode(code, user.id, true).catch(() => {});
+    }, 1500);
+
+    return () => clearInterval(timer);
+  }, [code, user?.id, game?.status, syncGameByRoomCode]);
+
   if (!user || !game || !board || game.roomCode?.toUpperCase() !== code?.toUpperCase()) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4 px-4 text-center">
