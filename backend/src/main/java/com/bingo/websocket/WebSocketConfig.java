@@ -48,12 +48,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .toArray(String[]::new);
 
         registry.addEndpoint("/ws")
-                .setAllowedOrigins(origins)
+                .setAllowedOriginPatterns(origins)
                 .withSockJS();
 
         // Also plain WebSocket endpoint without SockJS for native mobile clients
         registry.addEndpoint("/ws")
-                .setAllowedOrigins(origins);
+                .setAllowedOriginPatterns(origins);
     }
 
     @Override

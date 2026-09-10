@@ -6,7 +6,7 @@ spring:
     name: bingo-backend
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/bingo_db}
+      uri: ${MONGODB_URI:mongodb+srv://ashishprasad10419_db_user:dvuJFI6fSN8vGWvg@cluster0.uujxfcc.mongodb.net/bingo_db?retryWrites=true&w=majority&appName=Cluster0}
       auto-index-creation: true
 
 jwt:
@@ -15,7 +15,7 @@ jwt:
   cookie-name: token
 
 cors:
-  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173,https://bingoplay.vercel.app}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173,https://bingoplay.vercel.app,https://*.ngrok-free.app,https://*.ngrok.app,https://*.vercel.app}
 
 game:
   board-size: 5
