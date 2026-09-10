@@ -41,6 +41,9 @@ public class Game {
     @Builder.Default
     private List<Integer> calledNumbers = new ArrayList<>();
 
+    @Builder.Default
+    private List<com.bingo.game.dto.CalledNumberRecord> moves = new ArrayList<>();
+
     private String currentTurnUserId;
 
     @Builder.Default

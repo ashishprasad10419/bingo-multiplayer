@@ -19,6 +19,7 @@ export const Game: React.FC = () => {
     board,
     lineCount,
     lastCalledNumber,
+    calledByMap,
     initSocketListeners,
     winnerInfo,
   } = useGameStore();
@@ -83,7 +84,7 @@ export const Game: React.FC = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-4 space-y-3.5">
       {/* B-I-N-G-O Progress Banner */}
-      <BingoAnimation lineCount={lineCount} />
+      <BingoAnimation lineCount={lineCount} targetLines={game.winningLines || 5} />
 
       {/* Turn Indicator Banner */}
       <div
@@ -121,11 +122,13 @@ export const Game: React.FC = () => {
         </div>
       )}
 
-      {/* 5x5 Live Board */}
+      {/* Live Board Grid */}
       <BoardGrid
         board={board}
         mode="game"
         calledNumbers={game.calledNumbers}
+        calledByMap={calledByMap}
+        currentUserId={user.id}
         onCellClick={handleCellClick}
         isMyTurn={isMyTurn}
         disabled={calling || game.status !== 'PLAYING'}
@@ -135,6 +138,9 @@ export const Game: React.FC = () => {
       <CalledNumbersTicker
         calledNumbers={game.calledNumbers}
         lastNumber={lastCalledNumber}
+        totalNumbers={game.boardSize * game.boardSize}
+        calledByMap={calledByMap}
+        currentUserId={user.id}
       />
 
       {/* Match Players Status */}

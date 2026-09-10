@@ -47,8 +47,8 @@ public class RoomService {
         }
 
         String roomCode = generateUniqueRoomCode();
-        int boardSize = (request.getBoardSize() != null && request.getBoardSize() == 5) ? 5 : 5;
-        int winningLines = (request.getWinningLines() != null && request.getWinningLines() > 0) ? request.getWinningLines() : 5;
+        int boardSize = (request.getBoardSize() != null && request.getBoardSize() >= 5 && request.getBoardSize() <= 10) ? request.getBoardSize() : 5;
+        int winningLines = (request.getWinningLines() != null && request.getWinningLines() > 0 && request.getWinningLines() <= boardSize) ? request.getWinningLines() : boardSize;
         int maxPlayers = (request.getMaxPlayers() != null && request.getMaxPlayers() >= 2 && request.getMaxPlayers() <= 6) ? request.getMaxPlayers() : 6;
 
         RoomPlayer hostPlayer = RoomPlayer.builder()

@@ -10,6 +10,7 @@ interface GameState {
   selectedPos: { row: number; column: number } | null;
   lineCount: number;
   lastCalledNumber: number | null;
+  calledByMap: Record<number, string>; // number -> calledByUserId
   winnerInfo: { username: string; avatar?: string } | null;
   hasWon: boolean;
   isLoading: boolean;
@@ -33,6 +34,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   selectedPos: null,
   lineCount: 0,
   lastCalledNumber: null,
+  calledByMap: {},
   winnerInfo: null,
   hasWon: false,
   isLoading: false,
@@ -59,7 +61,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const game = await gameApi.getGame(gameId);
-      set({ game, isLoading: false });
+      const newMap: Record<number, string> = {};
+      if (game.moves) {
+        game.moves.forEach((m) => {
+          newMap[m.number] = m.calledByUserId;
+        });
+      }
+      set({ game, calledByMap: newMap, isLoading: false });
       return game;
     } catch (err: any) {
       set({ isLoading: false, error: err.response?.data?.message || 'Failed to fetch game' });
@@ -70,7 +78,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   initSocketListeners: (roomCode: string, currentUserId: string) => {
     socketService.connect(roomCode, (event: GameEventEnvelope) => {
       // console.log('Socket event received in store:', event);
-      const { room, game } = get();
+      const { room, game, calledByMap } = get();
 
       switch (event.type) {
         case 'PLAYER_JOINED':
@@ -140,10 +148,17 @@ export const useGameStore = create<GameState>((set, get) => ({
           if (event.data.gameId) {
             gameApi.getGame(event.data.gameId).then((fullGame) => {
               const myPlayer = fullGame.players.find((p) => p.userId === currentUserId);
+              const newMap: Record<number, string> = {};
+              if (fullGame.moves) {
+                fullGame.moves.forEach((m) => {
+                  newMap[m.number] = m.calledByUserId;
+                });
+              }
               set({
                 game: fullGame,
                 board: myPlayer?.board || null,
                 lineCount: myPlayer?.lineCount || 0,
+                calledByMap: newMap,
               });
             });
           }
@@ -152,8 +167,19 @@ export const useGameStore = create<GameState>((set, get) => ({
         case 'NUMBER_CALLED':
           if (game) {
             const updatedCalled = event.data.calledNumbers || [...game.calledNumbers, event.data.number];
+            const callerUserId = event.data.calledBy?.userId;
+            const updatedMap = { ...calledByMap };
+            if (callerUserId && event.data.number) {
+              updatedMap[event.data.number] = callerUserId;
+            }
+            if (event.data.moves && Array.isArray(event.data.moves)) {
+              event.data.moves.forEach((m: any) => {
+                updatedMap[m.number] = m.calledByUserId;
+              });
+            }
             set({
               lastCalledNumber: event.data.number,
+              calledByMap: updatedMap,
               game: {
                 ...game,
                 calledNumbers: updatedCalled,
@@ -222,6 +248,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       selectedPos: null,
       lineCount: 0,
       lastCalledNumber: null,
+      calledByMap: {},
       winnerInfo: null,
       hasWon: false,
       error: null,

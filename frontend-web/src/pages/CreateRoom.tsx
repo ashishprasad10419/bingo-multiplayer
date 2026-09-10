@@ -8,17 +8,27 @@ export const CreateRoom: React.FC = () => {
   const navigate = useNavigate();
   const { setRoom } = useGameStore();
 
+  const [boardSize, setBoardSize] = useState(5);
+  const [winningLines, setWinningLines] = useState(5);
   const [maxPlayers, setMaxPlayers] = useState(6);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSizeChange = (newSize: number) => {
+    setBoardSize(newSize);
+    // Keep winning lines valid for the chosen size
+    if (winningLines > newSize) {
+      setWinningLines(newSize);
+    }
+  };
 
   const handleCreate = async () => {
     setLoading(true);
     setError(null);
     try {
       const room = await roomApi.createRoom({
-        boardSize: 5,
-        winningLines: 5,
+        boardSize,
+        winningLines,
         maxPlayers,
       });
       setRoom(room);
@@ -29,6 +39,8 @@ export const CreateRoom: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const totalCells = boardSize * boardSize;
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
@@ -47,7 +59,7 @@ export const CreateRoom: React.FC = () => {
           </div>
           <h2 className="text-xl font-black text-white">Create Room</h2>
           <p className="text-xs text-slate-400 mt-1">
-            Host a real-time 5x5 Bingo room
+            Host a real-time {boardSize}x{boardSize} Bingo room
           </p>
         </div>
 
@@ -58,32 +70,65 @@ export const CreateRoom: React.FC = () => {
         )}
 
         <div className="space-y-4 mb-6">
-          <div className="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Grid className="w-5 h-5 text-indigo-400" />
-              <div>
-                <div className="text-xs font-bold text-white">Board Grid</div>
-                <div className="text-[11px] text-slate-400">5x5 (Numbers 1–25)</div>
+          {/* Board Grid Size Selector */}
+          <div className="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-800 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Grid className="w-5 h-5 text-indigo-400" />
+                <div>
+                  <div className="text-xs font-bold text-white">Board Grid Size</div>
+                  <div className="text-[11px] text-slate-400">
+                    {boardSize}x{boardSize} (Numbers 1–{totalCells})
+                  </div>
+                </div>
               </div>
+              <span className="text-xs font-bold px-2.5 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-lg">
+                {boardSize}x{boardSize}
+              </span>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg">
-              Fixed
-            </span>
+
+            {/* Quick Size Select Buttons 5x5 to 10x10 */}
+            <div className="grid grid-cols-6 gap-1.5 pt-1">
+              {[5, 6, 7, 8, 9, 10].map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => handleSizeChange(size)}
+                  className={`py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    boardSize === size
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 scale-105 ring-1 ring-blue-400'
+                      : 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/50'
+                  }`}
+                >
+                  {size}x{size}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* Winning Lines Rule */}
           <div className="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Trophy className="w-5 h-5 text-amber-400" />
               <div>
                 <div className="text-xs font-bold text-white">Winning Rule</div>
-                <div className="text-[11px] text-slate-400">Complete any 5 lines</div>
+                <div className="text-[11px] text-slate-400">Lines needed to win</div>
               </div>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
-              5 Lines
-            </span>
+            <select
+              value={winningLines}
+              onChange={(e) => setWinningLines(parseInt(e.target.value))}
+              className="bg-slate-800 border border-amber-500/30 text-amber-300 text-xs font-bold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            >
+              {Array.from({ length: boardSize - 4 }, (_, i) => i + 5).map((lines) => (
+                <option key={lines} value={lines} className="bg-slate-900 text-white">
+                  {lines} Lines
+                </option>
+              ))}
+            </select>
           </div>
 
+          {/* Max Players Slider */}
           <div className="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-800">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2 text-xs font-bold text-white">

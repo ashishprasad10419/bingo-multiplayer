@@ -122,7 +122,7 @@ export const BoardSetup: React.FC = () => {
 
       <div className="text-center">
         <h2 className="text-xl font-black text-white">
-          {isLocked ? 'Your Locked Board' : 'Customize 5x5 Board'}
+          {isLocked ? 'Your Locked Board' : `Customize ${room?.boardSize || 5}x${room?.boardSize || 5} Board`}
         </h2>
         <p className="text-xs text-slate-400 mt-1">
           {isLocked

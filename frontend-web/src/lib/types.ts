@@ -54,6 +54,12 @@ export interface GamePlayer {
   connectionStatus: ConnectionStatus;
 }
 
+export interface CalledNumberRecord {
+  number: number;
+  calledByUserId: string;
+  calledByUsername?: string;
+}
+
 export interface Game {
   id: string;
   roomCode: string;
@@ -62,6 +68,7 @@ export interface Game {
   status: 'PLAYING' | 'FINISHED' | 'ABANDONED';
   players: GamePlayer[];
   calledNumbers: number[];
+  moves?: CalledNumberRecord[];
   currentTurnUserId: string;
   currentPlayerIndex: number;
   moveNumber: number;

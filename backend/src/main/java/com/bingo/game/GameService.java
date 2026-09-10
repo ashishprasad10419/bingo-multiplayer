@@ -39,11 +39,21 @@ public class GameService {
             throw new IllegalArgumentException("Number " + number + " has already been called");
         }
 
-        // 2. Append called number
+        // 2. Append called number and move record
         game.getCalledNumbers().add(number);
         game.setMoveNumber(game.getMoveNumber() + 1);
 
         GamePlayer caller = game.findPlayer(senderUserId);
+        String callerUsername = caller != null ? caller.getUsername() : "Player";
+
+        if (game.getMoves() == null) {
+            game.setMoves(new ArrayList<>());
+        }
+        game.getMoves().add(com.bingo.game.dto.CalledNumberRecord.builder()
+                .number(number)
+                .calledByUserId(senderUserId)
+                .calledByUsername(callerUsername)
+                .build());
 
         // 3. Recalculate lineCount for every player
         GamePlayer potentialWinner = null;
@@ -80,10 +90,11 @@ public class GameService {
                 "number", number,
                 "calledBy", Map.of(
                         "userId", senderUserId,
-                        "username", caller != null ? caller.getUsername() : "Player"
+                        "username", callerUsername
                 ),
                 "nextTurn", game.getCurrentTurnUserId(),
-                "calledNumbers", game.getCalledNumbers()
+                "calledNumbers", game.getCalledNumbers(),
+                "moves", game.getMoves()
         ));
 
         // Also broadcast TURN_CHANGED
