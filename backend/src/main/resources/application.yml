@@ -1,11 +1,12 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: bingo-backend
   data:
     mongodb:
+      database: ${MONGO_DATABASE:bingo_db}
       uri: ${MONGODB_URI:mongodb+srv://ashishprasad10419_db_user:dvuJFI6fSN8vGWvg@cluster0.uujxfcc.mongodb.net/bingo_db?retryWrites=true&w=majority&appName=Cluster0}
       auto-index-creation: true
 
