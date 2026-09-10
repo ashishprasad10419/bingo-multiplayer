@@ -1,0 +1,230 @@
+import { create } from 'zustand';
+import { Room, Game, GameEventEnvelope } from '../lib/types';
+import { roomApi, gameApi } from '../lib/api';
+import { socketService } from '../lib/socket';
+
+interface GameState {
+  room: Room | null;
+  game: Game | null;
+  board: number[][] | null;
+  selectedPos: { row: number; column: number } | null;
+  lineCount: number;
+  lastCalledNumber: number | null;
+  winnerInfo: { username: string; avatar?: string } | null;
+  hasWon: boolean;
+  isLoading: boolean;
+  error: string | null;
+
+  setRoom: (room: Room | null) => void;
+  setGame: (game: Game | null) => void;
+  setBoard: (board: number[][] | null) => void;
+  setSelectedPos: (pos: { row: number; column: number } | null) => void;
+  fetchRoom: (code: string) => Promise<Room>;
+  fetchGame: (gameId: string) => Promise<Game>;
+  initSocketListeners: (roomCode: string, currentUserId: string) => void;
+  leaveCurrentRoom: () => Promise<void>;
+  resetGame: () => void;
+}
+
+export const useGameStore = create<GameState>((set, get) => ({
+  room: null,
+  game: null,
+  board: null,
+  selectedPos: null,
+  lineCount: 0,
+  lastCalledNumber: null,
+  winnerInfo: null,
+  hasWon: false,
+  isLoading: false,
+  error: null,
+
+  setRoom: (room) => set({ room }),
+  setGame: (game) => set({ game }),
+  setBoard: (board) => set({ board }),
+  setSelectedPos: (pos) => set({ selectedPos: pos }),
+
+  fetchRoom: async (code: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const room = await roomApi.getRoom(code);
+      set({ room, isLoading: false });
+      return room;
+    } catch (err: any) {
+      set({ isLoading: false, error: err.response?.data?.message || 'Failed to fetch room' });
+      throw err;
+    }
+  },
+
+  fetchGame: async (gameId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const game = await gameApi.getGame(gameId);
+      set({ game, isLoading: false });
+      return game;
+    } catch (err: any) {
+      set({ isLoading: false, error: err.response?.data?.message || 'Failed to fetch game' });
+      throw err;
+    }
+  },
+
+  initSocketListeners: (roomCode: string, currentUserId: string) => {
+    socketService.connect(roomCode, (event: GameEventEnvelope) => {
+      // console.log('Socket event received in store:', event);
+      const { room, game } = get();
+
+      switch (event.type) {
+        case 'PLAYER_JOINED':
+          if (room) {
+            const exists = room.players.some((p) => p.userId === event.data.userId);
+            if (!exists) {
+              set({
+                room: {
+                  ...room,
+                  players: [
+                    ...room.players,
+                    {
+                      userId: event.data.userId,
+                      username: event.data.username,
+                      avatar: event.data.avatar,
+                      isGuest: event.data.isGuest,
+                      ready: false,
+                      boardLocked: false,
+                    },
+                  ],
+                },
+              });
+            }
+          }
+          break;
+
+        case 'PLAYER_LEFT':
+          if (room) {
+            set({
+              room: {
+                ...room,
+                hostId: event.data.newHostId || room.hostId,
+                players: room.players.filter((p) => p.userId !== event.data.userId),
+              },
+            });
+          }
+          break;
+
+        case 'PLAYER_READY':
+        case 'PLAYER_NOT_READY':
+          if (room) {
+            set({
+              room: {
+                ...room,
+                players: room.players.map((p) =>
+                  p.userId === event.data.userId ? { ...p, ready: event.data.ready } : p
+                ),
+              },
+            });
+          }
+          break;
+
+        case 'BOARD_LOCKED':
+          if (room) {
+            set({
+              room: {
+                ...room,
+                players: room.players.map((p) =>
+                  p.userId === event.data.userId ? { ...p, boardLocked: true, ready: true } : p
+                ),
+              },
+            });
+          }
+          break;
+
+        case 'GAME_STARTED':
+          if (event.data.gameId) {
+            gameApi.getGame(event.data.gameId).then((fullGame) => {
+              const myPlayer = fullGame.players.find((p) => p.userId === currentUserId);
+              set({
+                game: fullGame,
+                board: myPlayer?.board || null,
+                lineCount: myPlayer?.lineCount || 0,
+              });
+            });
+          }
+          break;
+
+        case 'NUMBER_CALLED':
+          if (game) {
+            const updatedCalled = event.data.calledNumbers || [...game.calledNumbers, event.data.number];
+            set({
+              lastCalledNumber: event.data.number,
+              game: {
+                ...game,
+                calledNumbers: updatedCalled,
+                currentTurnUserId: event.data.nextTurn,
+              },
+            });
+          }
+          break;
+
+        case 'TURN_CHANGED':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                currentTurnUserId: event.data.currentTurnUserId,
+              },
+            });
+          }
+          break;
+
+        case 'LINE_COMPLETED':
+          if (event.data.userId === currentUserId) {
+            set({ lineCount: event.data.lineCount });
+          }
+          if (game) {
+            set({
+              game: {
+                ...game,
+                players: game.players.map((p) =>
+                  p.userId === event.data.userId ? { ...p, lineCount: event.data.lineCount } : p
+                ),
+              },
+            });
+          }
+          break;
+
+        case 'GAME_FINISHED':
+          set({
+            winnerInfo: event.data.winner,
+            hasWon: event.data.winner?.userId === currentUserId,
+            game: game ? { ...game, status: 'FINISHED' } : null,
+          });
+          break;
+      }
+    });
+  },
+
+  leaveCurrentRoom: async () => {
+    const { room } = get();
+    if (room) {
+      try {
+        await roomApi.leaveRoom(room.roomCode);
+      } catch (e) {
+        // ignore
+      }
+    }
+    socketService.disconnect();
+    get().resetGame();
+  },
+
+  resetGame: () => {
+    set({
+      room: null,
+      game: null,
+      board: null,
+      selectedPos: null,
+      lineCount: 0,
+      lastCalledNumber: null,
+      winnerInfo: null,
+      hasWon: false,
+      error: null,
+    });
+  },
+}));

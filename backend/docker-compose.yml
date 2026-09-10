@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: bingo-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=bingo_db
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bingo-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/bingo_db
+      - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      - ALLOWED_ORIGINS=http://localhost:5173,https://bingoplay.vercel.app
+
+volumes:
+  mongo-data:
