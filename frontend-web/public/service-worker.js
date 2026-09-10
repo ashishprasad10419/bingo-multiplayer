@@ -1,6 +1,9 @@
-const CACHE_NAME = 'bingo-pwa-v2';
+const CACHE_NAME = 'bingo-pwa-v3';
 
-self.addEventListener('install', () => {
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/index.html']))
+  );
   self.skipWaiting();
 });
 
@@ -28,7 +31,11 @@ self.addEventListener('fetch', (event) => {
   // Network-first for navigation/HTML requests so new deployments take effect immediately
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
+      fetch(event.request).catch(async () => {
+        const cached = await caches.match('/index.html');
+        if (cached) return cached;
+        return fetch('/');
+      })
     );
     return;
   }

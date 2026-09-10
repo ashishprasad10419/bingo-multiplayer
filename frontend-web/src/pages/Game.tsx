@@ -32,11 +32,14 @@ export const Game: React.FC = () => {
     if (code && user) {
       initSocketListeners(code, user.id);
 
-      // Restore full game and board state if refreshing or missing
-      if (!game || !board) {
+      // Restore full game and board state if refreshing, missing, or room code mismatch
+      if (!game || !board || game.roomCode?.toUpperCase() !== code.toUpperCase()) {
         syncGameByRoomCode(code, user.id).catch((err) => {
           console.error('Failed to sync game state on refresh:', err);
           setError(err.response?.data?.message || 'Could not load match state. Please return to lobby.');
+          if (err.response?.status === 404 || err.response?.data?.message?.includes('No game found')) {
+            navigate(`/lobby/${code}`);
+          }
         });
       }
     }
@@ -52,11 +55,25 @@ export const Game: React.FC = () => {
     }
   }, [winnerInfo, game?.id, navigate]);
 
-  if (!user || !game || !board) {
+  if (!user || !game || !board || game.roomCode?.toUpperCase() !== code?.toUpperCase()) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-3">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-xs text-slate-400">Syncing live match state...</p>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4 px-4 text-center">
+        {error ? (
+          <div className="space-y-3">
+            <p className="text-sm text-red-400 font-semibold">{error}</p>
+            <button
+              onClick={() => navigate(`/lobby/${code}`)}
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-lg shadow-blue-500/20"
+            >
+              Return to Lobby
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-xs text-slate-400">Syncing live match state...</p>
+          </>
+        )}
       </div>
     );
   }

@@ -51,7 +51,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Public auth routes
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/guest").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Allow error dispatch without 401 interception
+                        .requestMatchers("/error").permitAll()
                         // Public endpoints
                         .requestMatchers(HttpMethod.GET, "/api/leaderboard", "/api/badges").permitAll()
                         // WebSockets

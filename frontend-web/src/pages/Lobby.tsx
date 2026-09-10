@@ -10,7 +10,7 @@ export const Lobby: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { room, fetchRoom, initSocketListeners, leaveCurrentRoom, game } = useGameStore();
+  const { room, fetchRoom, initSocketListeners, leaveCurrentRoom, game, resetGame } = useGameStore();
 
   const [copied, setCopied] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -18,19 +18,24 @@ export const Lobby: React.FC = () => {
 
   useEffect(() => {
     if (code && user) {
+      // Purge any stale game from a different room
+      if (game && game.roomCode?.toUpperCase() !== code.toUpperCase()) {
+        resetGame();
+      }
+
       fetchRoom(code).catch((err) => {
         console.error(err);
       });
       initSocketListeners(code, user.id);
     }
-  }, [code, user, fetchRoom, initSocketListeners]);
+  }, [code, user?.id]);
 
-  // Navigate when game starts
+  // Navigate when game starts for this exact room
   useEffect(() => {
-    if (game && game.status === 'PLAYING') {
+    if (game && game.status === 'PLAYING' && game.roomCode?.toUpperCase() === code?.toUpperCase()) {
       navigate(`/game/${code}`);
     }
-  }, [game, code, navigate]);
+  }, [game?.status, game?.roomCode, code, navigate]);
 
   if (!room || !user) {
     return (

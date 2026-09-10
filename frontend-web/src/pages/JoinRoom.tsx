@@ -6,7 +6,7 @@ import { ArrowLeft, LogIn, Hash } from 'lucide-react';
 
 export const JoinRoom: React.FC = () => {
   const navigate = useNavigate();
-  const { setRoom } = useGameStore();
+  const { setRoom, resetGame } = useGameStore();
 
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,6 +24,7 @@ export const JoinRoom: React.FC = () => {
     setError(null);
 
     try {
+      resetGame();
       const room = await roomApi.joinRoom(cleanCode);
       setRoom(room);
       navigate(`/lobby/${cleanCode}`);

@@ -6,7 +6,7 @@ import { ArrowLeft, Users, Grid, Trophy, Sparkles } from 'lucide-react';
 
 export const CreateRoom: React.FC = () => {
   const navigate = useNavigate();
-  const { setRoom } = useGameStore();
+  const { setRoom, resetGame } = useGameStore();
 
   const [boardSize, setBoardSize] = useState(5);
   const [winningLines, setWinningLines] = useState(5);
@@ -26,6 +26,7 @@ export const CreateRoom: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      resetGame();
       const room = await roomApi.createRoom({
         boardSize,
         winningLines,
