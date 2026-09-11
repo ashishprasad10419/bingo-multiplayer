@@ -16,12 +16,43 @@ import { Leaderboard } from './pages/Leaderboard';
 
 // Protected Route Guard
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, logout } = useAuthStore();
+  const [slowServerNotice, setSlowServerNotice] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isLoading) {
+      setSlowServerNotice(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setSlowServerNotice(true);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 p-4 text-center space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-xl shadow-blue-500/20 mb-2">
+          B
+        </div>
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-white">Connecting to Bingo...</p>
+          {slowServerNotice && (
+            <p className="text-xs text-slate-400 max-w-xs animate-in fade-in">
+              Server is waking up from idle sleep. This takes a few seconds on free tier.
+            </p>
+          )}
+        </div>
+        {slowServerNotice && (
+          <button
+            onClick={() => logout()}
+            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition mt-2"
+          >
+            Continue as Guest
+          </button>
+        )}
       </div>
     );
   }

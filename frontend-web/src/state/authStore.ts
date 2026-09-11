@@ -17,10 +17,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
 
   initAuth: async () => {
+    const token = localStorage.getItem('bingo_token');
+    if (!token) {
+      set({ user: null, isAuthenticated: false, isLoading: false });
+      return;
+    }
+
     try {
       const user = await authApi.getMe();
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (e) {
+      // If token is invalid or server request failed, clear stale token and unblock
+      localStorage.removeItem('bingo_token');
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },
