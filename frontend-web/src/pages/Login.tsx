@@ -15,7 +15,17 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [guestName, setGuestName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowNotice, setSlowNotice] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!loading) {
+      setSlowNotice(false);
+      return;
+    }
+    const timer = setTimeout(() => setSlowNotice(true), 3000);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +52,11 @@ export const Login: React.FC = () => {
         navigate('/');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Authentication failed');
+      let msg = err.response?.data?.message || err.message || 'Authentication failed';
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout') || err.message?.includes('Network Error')) {
+        msg = 'Game server is waking up on free tier (~30-50s). Please tap Sign In again.';
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -205,6 +219,13 @@ export const Login: React.FC = () => {
                 </>
               )}
             </button>
+
+            {slowNotice && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-blue-800 text-xs font-semibold flex items-center justify-center space-x-2 animate-in fade-in">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                <span>Waking up free-tier server (~30s)... hang tight!</span>
+              </div>
+            )}
           </form>
         </div>
 

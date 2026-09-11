@@ -83,6 +83,10 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     initAuth();
+    // Proactively ping server in background to initiate cold-start wakeup immediately
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
+    const healthUrl = apiBase.replace(/\/api\/?$/, '/actuator/health');
+    fetch(healthUrl, { method: 'GET', mode: 'no-cors' }).catch(() => {});
   }, [initAuth]);
 
   return (
