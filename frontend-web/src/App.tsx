@@ -32,23 +32,23 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-sky-50/40 to-indigo-50/30 p-4 text-center space-y-4">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-xl shadow-blue-500/20 mb-2">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#d9d2fa] via-[#e8e2fc] to-[#fde2ea] p-4 text-center space-y-4 font-sans">
+        <div className="w-16 h-16 rounded-[22px] bg-gradient-to-tr from-[#f8788a] via-[#e271a5] to-[#8b7fe8] flex items-center justify-center font-extrabold text-3xl text-white shadow-[0_10px_25px_rgba(240,115,145,0.35)] mb-2">
           B
         </div>
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-3 border-[#8b7fe8] border-t-transparent rounded-full animate-spin"></div>
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-slate-800">Connecting to Bingo...</p>
+          <p className="text-base font-bold text-[#2a2050]">Connecting to Bingo...</p>
           {slowServerNotice && (
-            <p className="text-xs text-slate-500 max-w-xs animate-in fade-in">
-              Server is waking up from idle sleep. This takes a few seconds on free tier.
+            <p className="text-xs text-[#7e749c] max-w-xs animate-in fade-in">
+              Waking up free-tier server... Just a moment!
             </p>
           )}
         </div>
         {slowServerNotice && (
           <button
             onClick={() => logout()}
-            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold shadow-sm transition mt-2"
+            className="btn-pill-outline text-xs px-5 py-2.5 mt-2"
           >
             Continue as Guest
           </button>
@@ -71,7 +71,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/30 to-indigo-50/20 text-slate-800 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-[#d9d2fa] via-[#e8e2fc] to-[#fde2ea] text-[#2a2050] flex flex-col font-sans selection:bg-[#8b7fe8]/20">
       {!hideNavbar && <Navbar />}
       <main className="flex-1 pb-10">{children}</main>
     </div>

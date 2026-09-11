@@ -122,29 +122,29 @@ export const Game: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-4">
+    <div className="max-w-5xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-4 font-sans">
       {/* Match Header Bar */}
       <div className="flex items-center justify-between pb-1">
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-semibold text-slate-500">Match Room:</span>
-          <span className="px-2.5 py-1 rounded-xl bg-indigo-50 border border-indigo-200/80 font-mono font-black text-xs text-indigo-700 tracking-wider">
+          <span className="text-xs font-semibold text-[#7e749c]">Match Room:</span>
+          <span className="px-3 py-1 rounded-full bg-[#f0ecfc] border border-[#e0d6f8] font-mono font-extrabold text-xs text-[#6d5ebd] tracking-wider">
             {code}
           </span>
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="text-xs px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 font-bold">
+          <span className="text-xs px-3 py-1 rounded-full bg-[#fef5db] border border-[#fde7ad] text-[#b45309] font-extrabold">
             Target: {game.winningLines || 5} Lines
           </span>
-          <span className="text-xs px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold">
+          <span className="text-xs px-3 py-1 rounded-full bg-[#e6f7ef] border border-[#c3eed7] text-[#047857] font-extrabold">
             {game.status}
           </span>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center space-x-2 p-3 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold shadow-2xs">
-          <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600" />
+        <div className="flex items-center space-x-2 p-3.5 bg-[#fee8ea] border border-[#fcd3d7] rounded-2xl text-[#dc2626] text-xs font-semibold shadow-2xs">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-[#f8788a]" />
           <span>{error}</span>
         </div>
       )}
@@ -158,25 +158,25 @@ export const Game: React.FC = () => {
 
           {/* Turn Indicator Banner */}
           <div
-            className={`w-full max-w-[560px] p-3.5 sm:p-4 rounded-2xl border text-center transition-all ${
+            className={`w-full max-w-[560px] p-3.5 sm:p-4 rounded-[24px] border text-center transition-all ${
               isMyTurn
-                ? 'bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-500 ring-4 ring-blue-300/40 shadow-md'
-                : 'bg-white border-slate-200 shadow-xs'
+                ? 'bg-[#f0ecfc] border-2 border-[#8b7fe8] ring-4 ring-[#8b7fe8]/20 shadow-[0_8px_24px_rgba(139,127,232,0.25)]'
+                : 'card-clay shadow-2xs'
             }`}
           >
             {isMyTurn ? (
               <div className="flex items-center justify-center space-x-2">
-                <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
-                <div className="text-sm font-black text-blue-950">
-                  IT'S YOUR TURN! Pick a number on your board
+                <Sparkles className="w-5 h-5 text-[#f59e0b] animate-pulse" />
+                <div className="text-sm font-extrabold text-[#2a2050]">
+                  IT'S YOUR TURN! Tap a number on your board
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center space-x-2 text-xs font-bold text-slate-600">
-                <Clock className="w-4 h-4 text-slate-400 animate-spin" />
+              <div className="flex items-center justify-center space-x-2 text-xs font-bold text-[#7e749c]">
+                <Clock className="w-4 h-4 text-[#8b7fe8] animate-spin" />
                 <span>
                   Waiting for{' '}
-                  <strong className="text-slate-900 font-black">
+                  <strong className="text-[#2a2050] font-extrabold">
                     {currentTurnPlayer?.username || 'player'}
                   </strong>{' '}
                   to pick a number...
@@ -217,11 +217,11 @@ export const Game: React.FC = () => {
           />
 
           {/* Match Quick Guide */}
-          <div className="bg-white/80 border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs text-xs text-slate-600 space-y-2">
-            <div className="font-bold text-slate-800 flex items-center space-x-1.5">
+          <div className="card-clay p-4 sm:p-5 text-xs text-[#524872] space-y-2">
+            <div className="font-extrabold text-[#2a2050] flex items-center space-x-1.5">
               <span>🎯 How to Win:</span>
             </div>
-            <p className="text-[11px] leading-relaxed text-slate-500">
+            <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
               Complete {game.winningLines || 5} horizontal rows, vertical columns, or diagonal lines before your opponents. Each number called marks that tile for every player in the room!
             </p>
           </div>

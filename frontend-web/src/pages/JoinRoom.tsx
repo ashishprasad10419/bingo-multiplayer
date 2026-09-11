@@ -36,47 +36,47 @@ export const JoinRoom: React.FC = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto px-4 sm:px-6 py-6">
+    <div className="max-w-lg mx-auto px-4 sm:px-6 py-6 font-sans">
       <button
         onClick={() => navigate('/')}
-        className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs transition mb-6"
+        className="btn-pill-outline text-xs px-4 py-2 space-x-1.5 cursor-pointer mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to Home</span>
       </button>
 
-      <div className="bg-white/95 border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md">
+      <div className="card-clay p-6 sm:p-8">
         <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center mx-auto mb-3 text-indigo-600 shadow-xs">
-            <LogIn className="w-7 h-7" />
+          <div className="w-16 h-16 rounded-[24px] bg-[#f0ecfc] border border-[#e0d6f8] flex items-center justify-center mx-auto mb-3 text-[#8b7fe8] shadow-xs">
+            <LogIn className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Join Room</h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2a2050] tracking-tight">Join Room</h2>
+          <p className="text-xs sm:text-sm font-medium text-[#7e749c] mt-1">
             Enter the 6-character room code from your friend to jump in
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold text-center">
+          <div className="mb-4 p-3.5 bg-[#fee8ea] border border-[#fcd3d7] rounded-2xl text-[#dc2626] text-xs font-semibold text-center">
             {error}
           </div>
         )}
 
         <form onSubmit={handleJoin} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-2">
-              Room Code
+            <label className="block text-xs font-extrabold text-[#2a2050] mb-2 text-center uppercase tracking-wider">
+              6-Character Room Code
             </label>
             <div className="relative">
-              <Hash className="w-5 h-5 text-slate-400 absolute left-3.5 top-4" />
+              <Hash className="w-5 h-5 text-[#8b7fe8] absolute left-4 top-4" />
               <input
                 type="text"
                 required
                 maxLength={6}
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="e.g. B7K4P2"
-                className="w-full bg-slate-50 border border-slate-300 rounded-2xl pl-11 pr-4 py-3.5 text-center text-2xl font-mono font-black tracking-widest text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 uppercase transition"
+                placeholder="B7K4P2"
+                className="input-clay pl-12 text-center text-2xl font-mono font-extrabold tracking-widest text-[#2a2050] placeholder-[#b8aee0] uppercase"
               />
             </div>
           </div>
@@ -84,7 +84,7 @@ export const JoinRoom: React.FC = () => {
           <button
             type="submit"
             disabled={loading || code.trim().length !== 6}
-            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-3.5 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
+            className="btn-gradient w-full py-4 text-base cursor-pointer disabled:opacity-50"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

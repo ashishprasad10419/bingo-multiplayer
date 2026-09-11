@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../lib/api';
 import { useAuthStore } from '../state/authStore';
-import { Lock, User as UserIcon, Mail, ArrowRight } from 'lucide-react';
+import { Lock, User as UserIcon, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { InstallPwaInline } from '../components/InstallPwaPrompt';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
 
-  const [mode, setMode] = useState<'login' | 'register' | 'guest'>('guest');
+  const [mode, setMode] = useState<'login' | 'register' | 'guest'>('login');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [loading, setLoading] = useState(false);
   const [slowNotice, setSlowNotice] = useState(false);
@@ -54,7 +55,7 @@ export const Login: React.FC = () => {
     } catch (err: any) {
       let msg = err.response?.data?.message || err.message || 'Authentication failed';
       if (err.code === 'ECONNABORTED' || err.message?.includes('timeout') || err.message?.includes('Network Error')) {
-        msg = 'Game server is waking up on free tier (~30-50s). Please tap Sign In again.';
+        msg = 'Game server is waking up on free tier (~30-50s). Please tap button again.';
       }
       setError(msg);
     } finally {
@@ -63,43 +64,35 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/50 to-indigo-50/40 flex flex-col justify-center items-center px-4 py-8">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex w-16 h-16 rounded-3xl bg-gradient-to-tr from-blue-600 to-indigo-600 items-center justify-center font-black text-3xl text-white shadow-lg shadow-blue-500/25 mb-3">
+    <div className="min-h-screen bg-gradient-to-br from-[#c8c0f7] via-[#e2d5f8] to-[#fed4e2] flex flex-col justify-center items-center px-4 py-10 font-sans">
+      <div className="w-full max-w-[430px]">
+        {/* Floating Clay Tablet (Image 2 style) */}
+        <div className="card-clay p-7 sm:p-9 text-center relative shadow-[0_20px_60px_rgba(130,110,210,0.22)]">
+          {/* Top Brand Pill Icon */}
+          <div className="inline-flex w-16 h-16 rounded-[24px] bg-gradient-to-tr from-[#f8788a] via-[#e271a5] to-[#8b7fe8] items-center justify-center font-extrabold text-3xl text-white shadow-[0_10px_25px_rgba(240,115,145,0.38)] mb-4">
             B
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Welcome to Bingo
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Real-time multiplayer Bingo matches with friends
-          </p>
-        </div>
 
-        {/* Card */}
-        <div className="bg-white/95 border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-sm backdrop-blur-md">
-          {/* Mode Switcher Tabs */}
-          <div className="grid grid-cols-3 gap-1 bg-slate-100/90 p-1 rounded-2xl mb-6 text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => { setMode('guest'); setError(null); }}
-              className={`py-2 rounded-xl transition ${
-                mode === 'guest'
-                  ? 'bg-white text-blue-700 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Guest Play
-            </button>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2a2050] tracking-tight">
+            {mode === 'login' ? 'Welcome Back!' : mode === 'register' ? 'Create Account' : 'Play as Guest'}
+          </h1>
+          <p className="text-xs sm:text-sm font-medium text-[#7e749c] mt-1 mb-6">
+            {mode === 'login'
+              ? 'Login to continue your games'
+              : mode === 'register'
+              ? 'Join the multiplayer fun'
+              : 'Jump straight into a match with no sign-in'}
+          </p>
+
+          {/* Pill Mode Switcher */}
+          <div className="flex bg-[#f4effc] p-1 rounded-full mb-6 text-xs font-bold">
             <button
               type="button"
               onClick={() => { setMode('login'); setError(null); }}
-              className={`py-2 rounded-xl transition ${
+              className={`flex-1 py-2 rounded-full transition-all ${
                 mode === 'login'
-                  ? 'bg-white text-blue-700 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-white text-[#2a2050] shadow-sm'
+                  : 'text-[#7e749c] hover:text-[#2a2050]'
               }`}
             >
               Login
@@ -107,59 +100,61 @@ export const Login: React.FC = () => {
             <button
               type="button"
               onClick={() => { setMode('register'); setError(null); }}
-              className={`py-2 rounded-xl transition ${
+              className={`flex-1 py-2 rounded-full transition-all ${
                 mode === 'register'
-                  ? 'bg-white text-blue-700 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-white text-[#2a2050] shadow-sm'
+                  : 'text-[#7e749c] hover:text-[#2a2050]'
               }`}
             >
-              Register
+              Sign Up
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode('guest'); setError(null); }}
+              className={`flex-1 py-2 rounded-full transition-all ${
+                mode === 'guest'
+                  ? 'bg-white text-[#2a2050] shadow-sm'
+                  : 'text-[#7e749c] hover:text-[#2a2050]'
+              }`}
+            >
+              Guest
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold text-center">
+            <div className="mb-4 p-3 bg-[#fee8ea] border border-[#fcd3d7] rounded-2xl text-[#dc2626] text-xs font-semibold text-center animate-in fade-in">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3.5 text-left">
             {mode === 'guest' && (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Guest Nickname
-                </label>
                 <div className="relative">
-                  <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <UserIcon className="w-4 h-4 text-[#8b7fe8] absolute left-4 top-4" />
                   <input
                     type="text"
                     required
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
-                    placeholder="e.g. Alex"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    placeholder="Guest Nickname (e.g. Alex)"
+                    className="input-clay pl-11"
                   />
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1.5">
-                  No account required! Jump straight into games.
-                </p>
               </div>
             )}
 
             {(mode === 'login' || mode === 'register') && (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Username
-                </label>
                 <div className="relative">
-                  <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <UserIcon className="w-4 h-4 text-[#8b7fe8] absolute left-4 top-4" />
                   <input
                     type="text"
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter username"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    placeholder="Username"
+                    className="input-clay pl-11"
                   />
                 </div>
               </div>
@@ -167,18 +162,15 @@ export const Login: React.FC = () => {
 
             {mode === 'register' && (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Email Address
-                </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <Mail className="w-4 h-4 text-[#8b7fe8] absolute left-4 top-4" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    placeholder="Email Address"
+                    className="input-clay pl-11"
                   />
                 </div>
               </div>
@@ -186,50 +178,91 @@ export const Login: React.FC = () => {
 
             {(mode === 'login' || mode === 'register') && (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Password
-                </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <Lock className="w-4 h-4 text-[#8b7fe8] absolute left-4 top-4" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    placeholder="Password"
+                    className="input-clay pl-11 pr-11"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-4 text-[#7e749c] hover:text-[#2a2050] transition"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
             )}
 
+            {/* Signature Gradient Button from Image 2 */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-3 rounded-2xl shadow-md shadow-blue-500/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
+              className="btn-gradient w-full py-3.5 text-base mt-2 shadow-[0_10px_25px_rgba(240,115,145,0.38)] cursor-pointer"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>
-                  <span>
-                    {mode === 'guest' ? 'Play as Guest' : mode === 'login' ? 'Sign In' : 'Create Account'}
-                  </span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                <span className="flex items-center space-x-2">
+                  <span>{mode === 'guest' ? 'Play Now' : mode === 'login' ? 'Login' : 'Sign Up'}</span>
+                  <ArrowRight className="w-4 h-4 ml-1 stroke-[2.5]" />
+                </span>
               )}
             </button>
 
             {slowNotice && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-blue-800 text-xs font-semibold flex items-center justify-center space-x-2 animate-in fade-in">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+              <div className="p-3 bg-[#f0ecfc] border border-[#e0d6f8] rounded-2xl text-[#6d5ebd] text-xs font-semibold flex items-center justify-center space-x-2 animate-in fade-in">
+                <div className="w-2 h-2 rounded-full bg-[#8b7fe8] animate-ping" />
                 <span>Waking up free-tier server (~30s)... hang tight!</span>
               </div>
             )}
           </form>
+
+          {/* Alternate action prompt */}
+          <div className="mt-6 pt-5 border-t border-[#ede8f8] text-center text-xs text-[#7e749c] font-medium">
+            {mode === 'login' ? (
+              <p>
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => { setMode('register'); setError(null); }}
+                  className="font-bold text-[#8b7fe8] hover:text-[#7b6edc] hover:underline ml-1"
+                >
+                  Sign Up
+                </button>
+              </p>
+            ) : mode === 'register' ? (
+              <p>
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => { setMode('login'); setError(null); }}
+                  className="font-bold text-[#8b7fe8] hover:text-[#7b6edc] hover:underline ml-1"
+                >
+                  Login
+                </button>
+              </p>
+            ) : (
+              <p>
+                Want to save your stats?{' '}
+                <button
+                  type="button"
+                  onClick={() => { setMode('register'); setError(null); }}
+                  className="font-bold text-[#8b7fe8] hover:text-[#7b6edc] hover:underline ml-1"
+                >
+                  Create Account
+                </button>
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Subtle install link on login page */}
+        {/* PWA Install Button */}
         <div className="mt-5 text-center">
           <InstallPwaInline />
         </div>

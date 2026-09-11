@@ -85,25 +85,25 @@ export const Lobby: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6 font-sans">
       {/* Header controls */}
       <div className="flex items-center justify-between">
         <button
           onClick={handleLeave}
-          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 text-xs font-bold text-slate-600 hover:text-rose-600 shadow-2xs transition"
+          className="btn-pill-outline text-xs px-4 py-2 space-x-1.5 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Leave Lobby</span>
         </button>
 
-        <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 uppercase tracking-wider">
+        <span className="text-xs font-extrabold px-3.5 py-1.5 rounded-full bg-[#f0ecfc] border border-[#e0d6f8] text-[#6d5ebd] uppercase tracking-wider">
           {room.status}
         </span>
       </div>
 
       {error && (
-        <div className="flex items-center space-x-2 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold shadow-2xs">
-          <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600" />
+        <div className="flex items-center space-x-2 p-3.5 bg-[#fee8ea] border border-[#fcd3d7] rounded-2xl text-[#dc2626] text-xs font-semibold shadow-2xs">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-[#f8788a]" />
           <span>{error}</span>
         </div>
       )}
@@ -113,41 +113,41 @@ export const Lobby: React.FC = () => {
         {/* Left Column: Room Code, Board Setup & Match Settings */}
         <div className="lg:col-span-6 space-y-4">
           {/* Room Code Card */}
-          <div className="bg-white/90 border border-slate-200/90 rounded-3xl p-6 shadow-sm backdrop-blur-md text-center">
-            <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Room Code</div>
-            <div className="text-4xl sm:text-5xl font-mono font-black tracking-widest text-slate-900 mt-2 select-all">
+          <div className="card-clay p-6 text-center">
+            <div className="text-xs text-[#7e749c] font-bold uppercase tracking-wider">Room Code</div>
+            <div className="text-4xl sm:text-5xl font-mono font-black tracking-widest text-[#2a2050] mt-2 select-all">
               {room.roomCode}
             </div>
 
             <div className="flex items-center justify-center space-x-2 mt-4">
               <button
                 onClick={handleCopyCode}
-                className="flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 shadow-2xs transition active:scale-95 cursor-pointer"
+                className="btn-pill-outline px-4 py-2 text-xs font-bold space-x-1.5 cursor-pointer"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-[#10b981]" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? 'Copied to Clipboard!' : 'Copy Code'}</span>
               </button>
             </div>
           </div>
 
           {/* Board Setup CTA */}
-          <div className={`p-5 rounded-3xl border transition ${
+          <div className={`p-5 rounded-[28px] border transition-all ${
             isMyBoardLocked
-              ? 'bg-emerald-50/90 border-emerald-200 shadow-xs'
-              : 'bg-amber-50/90 border-2 border-amber-400 shadow-sm ring-4 ring-amber-300/30 animate-pulse-fast'
+              ? 'bg-[#e6f7ef] border-[#c3eed7] shadow-2xs'
+              : 'bg-[#fef5db] border-2 border-[#f59e0b] shadow-md ring-4 ring-[#f59e0b]/20'
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3.5">
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-xs ${
-                  isMyBoardLocked ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs ${
+                  isMyBoardLocked ? 'bg-[#10b981] text-white' : 'bg-[#f59e0b] text-white'
                 }`}>
                   <Grid className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="text-sm font-black text-slate-900">
+                  <div className="text-sm font-extrabold text-[#2a2050]">
                     {isMyBoardLocked ? 'Board Locked & Ready' : 'Customize Your Board'}
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5">
+                  <div className="text-xs text-[#7e749c] mt-0.5 font-medium">
                     {isMyBoardLocked
                       ? 'Waiting for host to start match'
                       : `Arrange and lock your ${room.boardSize || 5}x${room.boardSize || 5} numbers`}
@@ -157,10 +157,10 @@ export const Lobby: React.FC = () => {
 
               <button
                 onClick={() => navigate(`/setup/${room.roomCode}`)}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition shadow-xs ${
+                className={`px-4 py-2 rounded-full text-xs font-extrabold transition shadow-xs cursor-pointer ${
                   isMyBoardLocked
-                    ? 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/30'
+                    ? 'btn-pill-outline'
+                    : 'btn-gradient'
                 }`}
               >
                 {isMyBoardLocked ? 'View Board' : 'Set Up Now'}
@@ -169,18 +169,18 @@ export const Lobby: React.FC = () => {
           </div>
 
           {/* Room Settings Details */}
-          <div className="bg-white/80 border border-slate-200/90 rounded-3xl p-5 shadow-xs grid grid-cols-3 gap-3 text-center">
-            <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200/70">
-              <div className="text-[10px] text-slate-400 font-semibold uppercase">Size</div>
-              <div className="text-sm font-black text-slate-800 mt-0.5">{room.boardSize || 5}x{room.boardSize || 5}</div>
+          <div className="card-clay p-5 grid grid-cols-3 gap-3 text-center">
+            <div className="p-3 bg-[#f0ecfc] rounded-2xl border border-[#e0d6f8]">
+              <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Size</div>
+              <div className="text-base font-extrabold text-[#2a2050] mt-0.5">{room.boardSize || 5}x{room.boardSize || 5}</div>
             </div>
-            <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200/70">
-              <div className="text-[10px] text-slate-400 font-semibold uppercase">Goal</div>
-              <div className="text-sm font-black text-amber-600 mt-0.5">{room.winningLines || 5} Lines</div>
+            <div className="p-3 bg-[#fef5db] rounded-2xl border border-[#fde7ad]">
+              <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Goal</div>
+              <div className="text-base font-extrabold text-[#b45309] mt-0.5">{room.winningLines || 5} Lines</div>
             </div>
-            <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200/70">
-              <div className="text-[10px] text-slate-400 font-semibold uppercase">Players</div>
-              <div className="text-sm font-black text-blue-600 mt-0.5">{room.players.length}/{room.maxPlayers || 6}</div>
+            <div className="p-3 bg-[#e3f2fd] rounded-2xl border border-[#c7e5fc]">
+              <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Players</div>
+              <div className="text-base font-extrabold text-[#0284c7] mt-0.5">{room.players.length}/{room.maxPlayers || 6}</div>
             </div>
           </div>
         </div>
@@ -198,26 +198,26 @@ export const Lobby: React.FC = () => {
             <button
               onClick={handleStartGame}
               disabled={!allLocked || starting}
-              className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-4 rounded-3xl shadow-xl shadow-emerald-500/25 flex items-center justify-center space-x-2.5 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="btn-gradient w-full py-4 text-base cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {starting ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>
+                <span className="flex items-center space-x-2">
                   <Play className="w-5 h-5 fill-white" />
-                  <span className="text-sm">
+                  <span>
                     {room.players.length < 2
                       ? 'Need at least 2 players to start'
                       : !allLocked
                       ? 'Waiting for all players to lock board'
                       : 'Start Bingo Game!'}
                   </span>
-                </>
+                </span>
               )}
             </button>
           ) : (
-            <div className="p-4 bg-white/90 rounded-3xl border border-slate-200 text-center text-xs font-bold text-slate-600 shadow-xs flex items-center justify-center space-x-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
+            <div className="card-clay p-4 text-center text-xs font-bold text-[#7e749c] flex items-center justify-center space-x-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#8b7fe8] animate-ping" />
               <span>Waiting for host to start the game...</span>
             </div>
           )}

@@ -142,9 +142,9 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
     <div
       onTouchMove={mode === 'setup' ? handleTouchMove : undefined}
       onTouchEnd={mode === 'setup' ? handleTouchEnd : undefined}
-      className="w-full max-w-[560px] aspect-square mx-auto p-2.5 sm:p-3.5 md:p-4 bg-white/95 rounded-3xl border border-slate-200/90 shadow-xl backdrop-blur-md flex flex-col justify-between transition-all"
+      className="w-full max-w-[560px] aspect-square mx-auto p-3 sm:p-4 md:p-5 card-clay flex flex-col justify-between transition-all"
     >
-      <div className={`grid ${currentGridClass} gap-1.5 sm:gap-2 w-full h-full`}>
+      <div className={`grid ${currentGridClass} gap-2 sm:gap-2.5 w-full h-full`}>
         {board.map((row, r) =>
           row.map((val, c) => {
             const isSelected = selectedPos?.row === r && selectedPos?.column === c;
@@ -157,41 +157,41 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
             const isMyPick = isCalled && currentUserId && callerId === currentUserId;
             const isOpponentPick = isCalled && currentUserId && callerId && callerId !== currentUserId;
 
-            // Eye-friendly Light Mode Styling
-            let bgStyle = 'bg-white hover:bg-indigo-50/70 text-slate-800 border-slate-200 shadow-2xs hover:border-indigo-300';
+            // 3D Pastel Clay Styling
+            let bgStyle = 'bg-white hover:bg-[#faf7fe] text-[#2a2050] border border-[#ede8f8] shadow-[0_3px_10px_rgba(140,120,205,0.08)]';
             let extraGlow = '';
 
             if (mode === 'setup') {
               if (isDragging) {
-                bgStyle = 'bg-indigo-100/70 border-2 border-dashed border-indigo-500 text-indigo-800 opacity-50 scale-95';
+                bgStyle = 'bg-[#ede8fc] border-2 border-dashed border-[#8b7fe8] text-[#8b7fe8] opacity-50 scale-95';
               } else if (isHoveredTarget) {
-                bgStyle = 'bg-emerald-50 border-2 border-emerald-500 text-emerald-900 scale-105 shadow-lg';
-                extraGlow = 'ring-4 ring-emerald-300/60 z-20';
+                bgStyle = 'bg-[#e6f7ef] border-2 border-[#10b981] text-[#047857] scale-105 shadow-md';
+                extraGlow = 'ring-4 ring-[#10b981]/30 z-20';
               } else if (isSelected) {
-                bgStyle = 'bg-amber-50 border-2 border-amber-500 text-amber-900 scale-[1.03] shadow-md';
-                extraGlow = 'ring-4 ring-amber-300/60 z-10';
+                bgStyle = 'bg-[#fef5db] border-2 border-[#f59e0b] text-[#b45309] scale-[1.03] shadow-md';
+                extraGlow = 'ring-4 ring-[#f59e0b]/30 z-10';
               } else if (!disabled) {
-                bgStyle = 'bg-white hover:bg-indigo-50/80 text-slate-800 border-slate-200 hover:border-indigo-400 hover:scale-[1.02] active:scale-95 shadow-2xs cursor-grab active:cursor-grabbing';
+                bgStyle = 'bg-white hover:bg-[#fbf9fe] text-[#2a2050] border border-[#ede8f8] hover:border-[#8b7fe8] hover:scale-[1.03] active:scale-95 shadow-[0_3px_10px_rgba(140,120,205,0.08)] cursor-grab active:cursor-grabbing';
               }
             } else if (mode === 'game') {
               if (isCalled) {
                 if (isOpponentPick) {
-                  // Opponent pick: Vibrant soft Rose / Red
-                  bgStyle = 'bg-gradient-to-br from-rose-500 to-red-600 border-rose-600 text-white scale-[0.98] shadow-sm';
-                  extraGlow = 'ring-2 ring-rose-300/60';
+                  // Opponent pick: Pastel Rose / Coral Gradient
+                  bgStyle = 'bg-gradient-to-br from-[#f8788a] to-[#e11d48] border-transparent text-white scale-[0.98] shadow-[0_6px_16px_rgba(248,120,138,0.32)]';
+                  extraGlow = 'ring-2 ring-[#fecdd3]';
                 } else if (isMyPick) {
-                  // Player's pick: Refreshing Emerald / Teal
-                  bgStyle = 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-600 text-white scale-[0.98] shadow-sm';
-                  extraGlow = 'ring-2 ring-emerald-300/60';
+                  // Player's pick: Fresh Mint / Emerald Gradient
+                  bgStyle = 'bg-gradient-to-br from-[#10b981] to-[#059669] border-transparent text-white scale-[0.98] shadow-[0_6px_16px_rgba(16,185,129,0.32)]';
+                  extraGlow = 'ring-2 ring-[#a7f3d0]';
                 } else {
-                  // Fallback
-                  bgStyle = 'bg-gradient-to-br from-indigo-500 to-blue-600 border-indigo-600 text-white scale-[0.98]';
-                  extraGlow = 'ring-2 ring-indigo-300/40';
+                  // Neutral / Fallback
+                  bgStyle = 'bg-gradient-to-br from-[#8b7fe8] to-[#6d5ebd] border-transparent text-white scale-[0.98] shadow-[0_6px_16px_rgba(139,127,232,0.32)]';
+                  extraGlow = 'ring-2 ring-[#ddd6fe]';
                 }
               } else if (isMyTurn && !disabled) {
-                bgStyle = 'bg-white hover:bg-blue-50/90 hover:border-blue-400 text-slate-800 hover:text-blue-700 cursor-pointer hover:scale-[1.03] active:scale-95 transition-all border-slate-200 shadow-2xs';
+                bgStyle = 'bg-white hover:bg-[#f4effc] border-2 border-[#e2d8f8] hover:border-[#8b7fe8] text-[#2a2050] hover:text-[#8b7fe8] cursor-pointer hover:scale-[1.04] active:scale-95 transition-all shadow-[0_4px_14px_rgba(140,120,205,0.12)]';
               } else {
-                bgStyle = 'bg-slate-100/70 text-slate-400 border-slate-200/60 cursor-default';
+                bgStyle = 'bg-[#f5f1fc]/80 text-[#9f96ba] border border-[#ede8f8] cursor-default';
               }
             }
 
@@ -213,16 +213,16 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
                 onClick={() => onCellClick && onCellClick(r, c, val)}
                 className={`relative flex flex-col items-center justify-center border transition-all duration-150 select-none ${cellTypeClass} ${bgStyle} ${extraGlow}`}
               >
-                <span>{val}</span>
+                <span className="font-extrabold">{val}</span>
 
                 {mode === 'game' && isCalled && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     {isOpponentPick ? (
-                      <div className={`${badgeSizeClass} rounded-full bg-white/20 border border-white/60 flex items-center justify-center text-white animate-in fade-in zoom-in duration-150 shadow-xs`}>
+                      <div className={`${badgeSizeClass} rounded-full bg-white/25 border border-white/70 flex items-center justify-center text-white animate-in fade-in zoom-in duration-150 shadow-xs`}>
                         <Flame className={iconClass} />
                       </div>
                     ) : (
-                      <div className={`${badgeSizeClass} rounded-full bg-white/20 border border-white/60 flex items-center justify-center text-white animate-in fade-in zoom-in duration-150 shadow-xs`}>
+                      <div className={`${badgeSizeClass} rounded-full bg-white/25 border border-white/70 flex items-center justify-center text-white animate-in fade-in zoom-in duration-150 shadow-xs`}>
                         <Check className={iconClass} />
                       </div>
                     )}
@@ -236,14 +236,14 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
 
       {/* Live Color Legend during Game Mode */}
       {mode === 'game' && (
-        <div className="pt-2.5 mt-2 border-t border-slate-200 flex items-center justify-center space-x-6 text-xs font-bold text-slate-600">
-          <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-300"></span>
-            <span className="text-emerald-700">Your Pick</span>
+        <div className="pt-3 mt-2 border-t border-[#ede8f8] flex items-center justify-center space-x-4 sm:space-x-6 text-xs font-bold text-[#524872]">
+          <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#e6f7ef] border border-[#c3eed7] shadow-2xs">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] ring-2 ring-[#a7f3d0]"></span>
+            <span className="text-[#047857]">Your Pick</span>
           </div>
-          <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-200">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-rose-300"></span>
-            <span className="text-rose-700">Opponent Pick</span>
+          <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#fee8ea] border border-[#fcd3d7] shadow-2xs">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#f8788a] ring-2 ring-[#fecdd3]"></span>
+            <span className="text-[#dc2626]">Opponent Pick</span>
           </div>
         </div>
       )}

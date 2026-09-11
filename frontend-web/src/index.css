@@ -4,23 +4,51 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 min-h-screen overflow-x-hidden font-sans antialiased;
+    @apply bg-[#ece7f9] text-[#2a2050] min-h-screen overflow-x-hidden font-sans antialiased;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
-/* Custom scrollbars */
+/* Custom soft pastel scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #ebe5fa;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #c9bcf3;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a996ea;
+}
+
+/* 3D Claymorphic Utility Classes */
+@layer components {
+  /* Image 2 Signature Gradient Pill Button */
+  .btn-gradient {
+    @apply inline-flex items-center justify-center font-bold text-white rounded-full bg-gradient-to-r from-[#f8788a] via-[#e271a5] to-[#8b7fe8] shadow-[0_8px_22px_rgba(240,115,145,0.32)] hover:shadow-[0_12px_28px_rgba(240,115,145,0.44)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* Soft Lavender/Clay Button */
+  .btn-purple {
+    @apply inline-flex items-center justify-center font-semibold text-white rounded-full bg-[#8b7fe8] shadow-[0_6px_18px_rgba(139,127,232,0.3)] hover:bg-[#7b6edc] hover:shadow-[0_8px_24px_rgba(139,127,232,0.42)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* Pastel Outline / Pill Button */
+  .btn-pill-outline {
+    @apply inline-flex items-center justify-center font-semibold text-[#524872] rounded-full bg-white/90 border-2 border-[#ede8fa] shadow-sm hover:border-[#8b7fe8] hover:text-[#2a2050] hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200;
+  }
+
+  /* Pill Input (Image 2 style) */
+  .input-clay {
+    @apply w-full rounded-full px-5 py-3.5 bg-[#f4effc] text-[#2a2050] placeholder-[#9f96ba] border-2 border-transparent focus:border-[#8b7fe8] focus:bg-white focus:ring-4 focus:ring-[#8b7fe8]/15 outline-none transition-all duration-200 font-medium text-sm sm:text-base;
+  }
+
+  /* Elevated Clay Card Surface (Images 1 & 2) */
+  .card-clay {
+    @apply bg-white rounded-[28px] sm:rounded-[32px] shadow-[0_14px_36px_rgba(135,115,215,0.12),0_2px_8px_rgba(135,115,215,0.06)] border border-[#ede8f8]/60;
+  }
 }

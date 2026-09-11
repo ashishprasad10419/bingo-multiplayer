@@ -130,27 +130,27 @@ export const BoardSetup: React.FC = () => {
   const size = room?.boardSize || 5;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6 font-sans">
       {/* Top Bar */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate(`/lobby/${code}`)}
-          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs transition"
+          className="btn-pill-outline text-xs px-4 py-2 space-x-1.5 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Lobby</span>
         </button>
 
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-semibold text-slate-500">Room Code:</span>
-          <span className="px-2.5 py-1 rounded-xl bg-indigo-50 border border-indigo-200/80 font-mono font-black text-xs text-indigo-700 tracking-wider">
+          <span className="text-xs font-semibold text-[#7e749c]">Room Code:</span>
+          <span className="px-3 py-1 rounded-full bg-[#f0ecfc] border border-[#e0d6f8] font-mono font-extrabold text-xs text-[#6d5ebd] tracking-wider">
             {code}
           </span>
         </div>
       </div>
 
       {error && (
-        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold text-center shadow-2xs">
+        <div className="p-3.5 bg-[#fee8ea] border border-[#fcd3d7] rounded-2xl text-[#dc2626] text-xs font-semibold text-center shadow-2xs">
           {error}
         </div>
       )}
@@ -158,12 +158,12 @@ export const BoardSetup: React.FC = () => {
       {/* Main Responsive Layout: Stacks on mobile, 2 columns on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         {/* Left Column: Interactive Board */}
-        <div className="lg:col-span-7 flex flex-col items-center space-y-3">
+        <div className="lg:col-span-7 flex flex-col items-center space-y-3.5">
           <div className="text-center w-full">
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2a2050] tracking-tight">
               {isLocked ? 'Your Locked Board' : `Customize ${size}x${size} Board`}
             </h2>
-            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+            <p className="text-xs sm:text-sm font-medium text-[#7e749c] mt-1 max-w-md mx-auto">
               {isLocked
                 ? 'Your board is locked and ready for the match!'
                 : 'Drag and drop any number to swap positions, or tap two numbers.'}
@@ -180,23 +180,23 @@ export const BoardSetup: React.FC = () => {
               disabled={isLocked || loading}
             />
           ) : (
-            <div className="w-full max-w-[500px] aspect-square mx-auto flex items-center justify-center bg-white rounded-3xl border border-slate-200 shadow-lg">
-              <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+            <div className="w-full max-w-[500px] aspect-square mx-auto flex items-center justify-center card-clay">
+              <RefreshCw className="w-8 h-8 text-[#8b7fe8] animate-spin" />
             </div>
           )}
         </div>
 
         {/* Right Column: Setup Studio & Control Actions */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white/90 border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-md space-y-5">
+          <div className="card-clay p-5 sm:p-6 space-y-5">
             <div>
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-bold uppercase tracking-wider mb-2">
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#f0ecfc] border border-[#e0d6f8] text-[#6d5ebd] text-[11px] font-extrabold uppercase tracking-wider mb-2">
                 <span>Setup Studio</span>
               </div>
-              <h3 className="text-lg font-black text-slate-900">
+              <h3 className="text-lg font-extrabold text-[#2a2050]">
                 {isLocked ? 'Ready for Battle' : 'Board Arrangement'}
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-[#7e749c] mt-0.5 font-medium">
                 {isLocked
                   ? 'Your board configuration is locked. Head to the lobby when all players are ready.'
                   : 'Customize your layout for winning rows, columns, and diagonals.'}
@@ -205,36 +205,36 @@ export const BoardSetup: React.FC = () => {
 
             {/* Match Info Pills */}
             <div className="grid grid-cols-2 gap-2.5">
-              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                <div className="text-[11px] font-semibold text-slate-500">Board Size</div>
-                <div className="text-sm font-black text-slate-900 mt-0.5">
+              <div className="p-3.5 bg-[#f0ecfc] border border-[#e0d6f8] rounded-2xl">
+                <div className="text-[11px] font-semibold text-[#7e749c]">Board Size</div>
+                <div className="text-base font-extrabold text-[#2a2050] mt-0.5">
                   {size}x{size} Grid
                 </div>
-                <div className="text-[10px] text-slate-400">Numbers 1 to {size * size}</div>
+                <div className="text-[10px] text-[#8b7fe8] font-medium">Numbers 1 to {size * size}</div>
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                <div className="text-[11px] font-semibold text-slate-500">Goal to Win</div>
-                <div className="text-sm font-black text-amber-700 mt-0.5">
+              <div className="p-3.5 bg-[#fef5db] border border-[#fde7ad] rounded-2xl">
+                <div className="text-[11px] font-semibold text-[#7e749c]">Goal to Win</div>
+                <div className="text-base font-extrabold text-[#b45309] mt-0.5">
                   {room?.winningLines || 5} Lines
                 </div>
-                <div className="text-[10px] text-slate-400">Rows, cols, diags</div>
+                <div className="text-[10px] text-[#b45309] font-medium">Rows, cols, diags</div>
               </div>
             </div>
 
             {/* Quick Tips */}
             {!isLocked && (
-              <div className="p-3.5 bg-indigo-50/60 border border-indigo-100 rounded-2xl space-y-2 text-xs text-indigo-900">
-                <div className="font-bold flex items-center space-x-1.5 text-indigo-800">
+              <div className="p-4 bg-[#e3f2fd] border border-[#c7e5fc] rounded-2xl space-y-2 text-xs text-[#0284c7]">
+                <div className="font-extrabold flex items-center space-x-1.5 text-[#0369a1]">
                   <span>✨ How to Customize:</span>
                 </div>
-                <div className="space-y-1.5 text-[11px] text-slate-600">
+                <div className="space-y-1.5 text-[11px] text-[#475569] font-medium">
                   <div className="flex items-center space-x-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#8b7fe8]"></span>
                     <span><strong>Drag & Drop:</strong> Drag any number onto another to swap.</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#8b7fe8]"></span>
                     <span><strong>Tap to Swap:</strong> Click tile 1, then click tile 2.</span>
                   </div>
                 </div>
@@ -248,18 +248,18 @@ export const BoardSetup: React.FC = () => {
                   <button
                     onClick={handleShuffle}
                     disabled={loading || locking}
-                    className="py-3 px-4 bg-slate-100 hover:bg-slate-200/80 text-slate-800 border border-slate-200 rounded-2xl text-xs font-bold flex items-center justify-center space-x-2 shadow-2xs transition disabled:opacity-50"
+                    className="btn-pill-outline py-2.5 px-4 text-xs font-bold space-x-2 disabled:opacity-50 cursor-pointer"
                   >
-                    <Shuffle className="w-4 h-4 text-indigo-600" />
+                    <Shuffle className="w-4 h-4 text-[#8b7fe8]" />
                     <span>Shuffle</span>
                   </button>
 
                   <button
                     onClick={handleGenerate}
                     disabled={loading || locking}
-                    className="py-3 px-4 bg-slate-100 hover:bg-slate-200/80 text-slate-800 border border-slate-200 rounded-2xl text-xs font-bold flex items-center justify-center space-x-2 shadow-2xs transition disabled:opacity-50"
+                    className="btn-pill-outline py-2.5 px-4 text-xs font-bold space-x-2 disabled:opacity-50 cursor-pointer"
                   >
-                    <RefreshCw className={`w-4 h-4 text-emerald-600 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-4 h-4 text-[#10b981] ${loading ? 'animate-spin' : ''}`} />
                     <span>Reset Random</span>
                   </button>
                 </div>
@@ -267,28 +267,28 @@ export const BoardSetup: React.FC = () => {
                 <button
                   onClick={handleLockBoard}
                   disabled={loading || locking}
-                  className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-3.5 rounded-2xl shadow-lg shadow-emerald-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
+                  className="btn-gradient w-full py-3.5 text-sm cursor-pointer"
                 >
                   {locking ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <>
+                    <span className="flex items-center space-x-2">
                       <Lock className="w-4 h-4" />
                       <span>Lock Board & Ready Up</span>
-                    </>
+                    </span>
                   )}
                 </button>
               </div>
             ) : (
               <div className="space-y-3 pt-1">
-                <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-bold flex items-center justify-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="p-3.5 bg-[#e6f7ef] border border-[#c3eed7] rounded-full text-[#047857] text-xs font-bold flex items-center justify-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#10b981]" />
                   <span>Board locked! Ready for the match.</span>
                 </div>
 
                 <button
                   onClick={() => navigate(`/lobby/${code}`)}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl shadow-md transition"
+                  className="btn-purple w-full py-3.5 text-sm cursor-pointer"
                 >
                   Return to Lobby
                 </button>
