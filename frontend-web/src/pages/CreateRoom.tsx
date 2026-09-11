@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { roomApi } from '../lib/api';
 import { useGameStore } from '../state/gameStore';
 import { GameType } from '../lib/types';
-import { ArrowLeft, Users, Grid, Trophy, Sparkles } from 'lucide-react';
+import { GameVisualIcon } from '../components/games/GameVisualIcon';
+import { ArrowLeft, Users, Grid, Trophy } from 'lucide-react';
 
 export const CreateRoom: React.FC = () => {
   const navigate = useNavigate();
@@ -45,6 +46,41 @@ export const CreateRoom: React.FC = () => {
       setBingoWinningLines(newSize);
     }
   };
+
+  const getGameMeta = (type: GameType) => {
+    switch (type) {
+      case 'TIC_TAC_TOE':
+        return {
+          title: 'Create Tic-Tac-Toe Room',
+          subtitle: 'Choose your grid dimension & challenge a friend to a 1v1 duel',
+          badge: '❌ 1v1 Turn Duel',
+          badgeStyle: 'bg-[#fee8ea] border-[#fcd3d7] text-[#dc2626]',
+          buttonLabel: 'Create Tic-Tac-Toe Room',
+          iconGradient: 'from-[#8b7fe8] via-[#a78bfa] to-[#ec4899]',
+        };
+      case 'DOTS_AND_BOXES':
+        return {
+          title: 'Create Dots & Boxes Room',
+          subtitle: 'Choose your dot matrix size & battle to capture territory',
+          badge: '📦 Strategy Territory',
+          badgeStyle: 'bg-[#e6f7ef] border-[#c3eed7] text-[#047857]',
+          buttonLabel: 'Create Dots & Boxes Room',
+          iconGradient: 'from-[#10b981] via-[#059669] to-[#0284c7]',
+        };
+      case 'BINGO':
+      default:
+        return {
+          title: 'Create Bingo Room',
+          subtitle: 'Configure board size, winning lines & invite players',
+          badge: '🎯 Classic Multiplayer',
+          badgeStyle: 'bg-[#f0ecfc] border-[#e0d6f8] text-[#6d5ebd]',
+          buttonLabel: 'Create Bingo Room',
+          iconGradient: 'from-[#f8788a] via-[#e271a5] to-[#8b7fe8]',
+        };
+    }
+  };
+
+  const meta = getGameMeta(gameType);
 
   const handleCreate = async () => {
     setLoading(true);
@@ -89,12 +125,15 @@ export const CreateRoom: React.FC = () => {
 
       <div className="card-clay p-6 sm:p-8">
         <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-[24px] bg-[#f0ecfc] border border-[#e0d6f8] flex items-center justify-center mx-auto mb-3 text-[#8b7fe8] shadow-xs">
-            <Sparkles className="w-8 h-8" />
+          <div className={`w-20 h-20 rounded-[26px] bg-gradient-to-tr ${meta.iconGradient} flex items-center justify-center mx-auto mb-3 shadow-[0_8px_20px_rgba(139,127,232,0.25)] p-2`}>
+            <GameVisualIcon type={gameType} size="xl" />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2a2050] tracking-tight">Create Game Room</h2>
+          <div className={`inline-block px-3 py-1 rounded-full border text-xs font-extrabold mb-2 shadow-2xs ${meta.badgeStyle}`}>
+            {meta.badge}
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2a2050] tracking-tight">{meta.title}</h2>
           <p className="text-xs sm:text-sm font-medium text-[#7e749c] mt-1">
-            Configure rules and host a private match with friends
+            {meta.subtitle}
           </p>
         </div>
 
@@ -103,45 +142,6 @@ export const CreateRoom: React.FC = () => {
             {error}
           </div>
         )}
-
-        {/* Game Type Switcher Tabs */}
-        <div className="mb-6 bg-[#faf7fe] p-1.5 rounded-2xl border border-[#ede8f8] flex items-center space-x-1">
-          <button
-            type="button"
-            onClick={() => setGameType('BINGO')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center space-x-1.5 ${
-              gameType === 'BINGO'
-                ? 'bg-gradient-to-r from-[#f8788a] to-[#8b7fe8] text-white shadow-sm'
-                : 'text-[#524872] hover:bg-white/60'
-            }`}
-          >
-            <span>🎯 Bingo</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setGameType('TIC_TAC_TOE')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center space-x-1.5 ${
-              gameType === 'TIC_TAC_TOE'
-                ? 'bg-gradient-to-r from-[#8b7fe8] to-[#ec4899] text-white shadow-sm'
-                : 'text-[#524872] hover:bg-white/60'
-            }`}
-          >
-            <span>❌ Tic-Tac-Toe</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setGameType('DOTS_AND_BOXES')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center space-x-1.5 ${
-              gameType === 'DOTS_AND_BOXES'
-                ? 'bg-gradient-to-r from-[#10b981] to-[#0284c7] text-white shadow-sm'
-                : 'text-[#524872] hover:bg-white/60'
-            }`}
-          >
-            <span>📦 Dots & Boxes</span>
-          </button>
-        </div>
 
         {/* Game Specific Configurations */}
         <div className="space-y-4 mb-6">
@@ -356,7 +356,7 @@ export const CreateRoom: React.FC = () => {
           {loading ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
           ) : (
-            <span>Create & Enter Lobby</span>
+            <span>{meta.buttonLabel} & Enter Lobby</span>
           )}
         </button>
       </div>

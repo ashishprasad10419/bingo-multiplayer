@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../state/authStore';
 import { GameType } from '../lib/types';
-import { Trophy, Shield, Plus, LogIn, Sparkles, Grid } from 'lucide-react';
+import { GameVisualIcon } from '../components/games/GameVisualIcon';
+import { Trophy, Shield, Plus, LogIn, Sparkles } from 'lucide-react';
 
 interface GameCardDef {
   type: GameType;
@@ -12,8 +13,6 @@ interface GameCardDef {
   description: string;
   playersText: string;
   gradient: string;
-  iconBg: string;
-  icon: React.ReactNode;
   tags: string[];
 }
 
@@ -27,36 +26,30 @@ export const GameHub: React.FC = () => {
       title: 'Bingo Multiplayer',
       badge: 'Classic',
       badgeColor: 'bg-[#f0ecfc] text-[#6d5ebd] border-[#e0d6f8]',
-      description: 'Race to complete rows, columns, and diagonals. Custom 5x5 to 10x10 boards with drag-and-drop setup.',
+      description: 'Match numbers & race to complete 5 lines with friends!',
       playersText: '2–6 Players',
       gradient: 'from-[#f8788a] via-[#e271a5] to-[#8b7fe8]',
-      iconBg: 'bg-white/20',
-      icon: <span className="font-black text-3xl text-white">B</span>,
-      tags: ['5x5 – 10x10 Grids', 'Custom Setup', 'Emotes & Sounds'],
+      tags: ['5x5 Grids', 'Emotes & Sounds'],
     },
     {
       type: 'TIC_TAC_TOE',
       title: 'Tic-Tac-Toe Duel',
       badge: 'Fast 1v1',
       badgeColor: 'bg-[#fee8ea] text-[#dc2626] border-[#fcd3d7]',
-      description: 'Classic quick-turn duel of X vs O. Play standard 3x3 or challenge your friends on expanded 4x4 and 5x5 grids.',
+      description: 'Quick-turn duel of X vs O on 3x3 to 5x5 boards!',
       playersText: '2 Players (1v1)',
       gradient: 'from-[#8b7fe8] via-[#a78bfa] to-[#ec4899]',
-      iconBg: 'bg-white/20',
-      icon: <span className="font-black text-2xl text-white tracking-widest">XO</span>,
-      tags: ['3x3, 4x4, 5x5', 'Instant Play', 'Rapid Turns'],
+      tags: ['Classic 3x3', 'Rapid Turns'],
     },
     {
       type: 'DOTS_AND_BOXES',
       title: 'Dots & Boxes',
       badge: 'Strategy',
       badgeColor: 'bg-[#fef5db] text-[#b45309] border-[#fde7ad]',
-      description: 'Connect dots to draw lines. Complete the 4th side of any box to claim it and earn an immediate bonus turn!',
+      description: 'Connect dots, capture boxes & claim your territory!',
       playersText: '2–4 Players',
       gradient: 'from-[#10b981] via-[#059669] to-[#0284c7]',
-      iconBg: 'bg-white/20',
-      icon: <Grid className="w-8 h-8 text-white" />,
-      tags: ['Box Capture', 'Bonus Turns', 'Live Territory'],
+      tags: ['Box Capture', 'Bonus Turns'],
     },
   ];
 
@@ -145,33 +138,37 @@ export const GameHub: React.FC = () => {
             className="card-clay p-6 flex flex-col justify-between group hover:border-[#8b7fe8] transition-all transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(139,127,232,0.08)]"
           >
             <div>
-              {/* Card Banner with Gradient & Icon */}
-              <div className={`w-full h-28 rounded-2xl bg-gradient-to-r ${g.gradient} flex items-center justify-between p-5 mb-4 shadow-md`}>
-                <div className={`w-14 h-14 rounded-2xl ${g.iconBg} flex items-center justify-center shadow-inner`}>
-                  {g.icon}
+              {/* Card Banner with Gradient & Friendly 3D Icon */}
+              <div className={`w-full h-28 rounded-2xl bg-gradient-to-r ${g.gradient} flex items-center justify-between p-4 mb-4 shadow-md relative overflow-hidden`}>
+                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+                
+                {/* Friendly 3D Game Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shadow-inner border border-white/30 p-1.5 transition-transform group-hover:scale-105">
+                  <GameVisualIcon type={g.type} size="lg" />
                 </div>
-                <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-white/90 text-[#2a2050] shadow-2xs`}>
-                  {g.badge}
-                </span>
+
+                <div className="flex flex-col items-end space-y-1 z-10">
+                  <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full bg-white/95 text-[#2a2050] shadow-2xs">
+                    {g.badge}
+                  </span>
+                  <span className="text-[11px] font-bold text-white/95 drop-shadow-xs">
+                    {g.playersText}
+                  </span>
+                </div>
               </div>
 
-              {/* Title & Player Count */}
-              <div className="flex items-center justify-between mb-1.5">
-                <h3 className="text-lg font-black text-[#2a2050] tracking-tight">{g.title}</h3>
-              </div>
-              <div className="text-[11px] font-extrabold text-[#8b7fe8] mb-2">{g.playersText}</div>
-
-              {/* Description */}
-              <p className="text-xs text-[#7e749c] leading-relaxed font-medium mb-4">
+              {/* Title & Short Description */}
+              <h3 className="text-lg font-black text-[#2a2050] tracking-tight mb-1">{g.title}</h3>
+              <p className="text-xs text-[#7e749c] leading-relaxed font-medium mb-3 min-h-[32px]">
                 {g.description}
               </p>
 
               {/* Feature Tags */}
-              <div className="flex flex-wrap gap-1.5 mb-5">
+              <div className="flex flex-wrap gap-1.5 mb-4">
                 {g.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4effc] text-[#6d5ebd] border border-[#ede8f8]"
+                    className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#f4effc] text-[#6d5ebd] border border-[#ede8f8]"
                   >
                     {tag}
                   </span>
