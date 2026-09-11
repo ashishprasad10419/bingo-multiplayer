@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
 import '../core/api/api_client.dart';
 import '../providers/auth_provider.dart';
 import '../providers/game_provider.dart';
@@ -37,10 +38,16 @@ class _LobbyScreenState extends State<LobbyScreen> {
     setState(() => _starting = true);
     try {
       await ApiClient().startGame(widget.roomCode);
-    } catch (e: any) {
+    } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.response?.data?['message'] ?? 'Failed to start game')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to start game')),
         );
       }
     } finally {

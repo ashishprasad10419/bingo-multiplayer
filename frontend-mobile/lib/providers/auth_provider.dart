@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../core/api/api_client.dart';
 import '../models/user.dart';
 
@@ -43,9 +44,14 @@ class AuthProvider extends ChangeNotifier {
       _user = User.fromJson(res['user']);
       _isLoading = false;
       notifyListeners();
-    } catch (e: any) {
+    } on DioException catch (e) {
       _isLoading = false;
       _error = e.response?.data?['message'] ?? 'Login failed. Check credentials.';
+      notifyListeners();
+      rethrow;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'An unexpected error occurred';
       notifyListeners();
       rethrow;
     }
@@ -61,9 +67,14 @@ class AuthProvider extends ChangeNotifier {
       _user = User.fromJson(res['user']);
       _isLoading = false;
       notifyListeners();
-    } catch (e: any) {
+    } on DioException catch (e) {
       _isLoading = false;
       _error = e.response?.data?['message'] ?? 'Registration failed.';
+      notifyListeners();
+      rethrow;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'An unexpected error occurred';
       notifyListeners();
       rethrow;
     }
@@ -79,9 +90,14 @@ class AuthProvider extends ChangeNotifier {
       _user = User.fromJson(res['user']);
       _isLoading = false;
       notifyListeners();
-    } catch (e: any) {
+    } on DioException catch (e) {
       _isLoading = false;
       _error = e.response?.data?['message'] ?? 'Guest login failed.';
+      notifyListeners();
+      rethrow;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'An unexpected error occurred';
       notifyListeners();
       rethrow;
     }

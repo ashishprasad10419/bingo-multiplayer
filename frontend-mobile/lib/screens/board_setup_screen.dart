@@ -1,6 +1,6 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
 import '../core/api/api_client.dart';
 import '../providers/auth_provider.dart';
 import '../providers/game_provider.dart';
@@ -101,10 +101,16 @@ class _BoardSetupScreenState extends State<BoardSetupScreen> {
       await gameProv.fetchRoom(widget.roomCode);
       if (!mounted) return;
       Navigator.of(context).pop();
-    } catch (e: any) {
+    } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.response?.data?['message'] ?? 'Failed to lock board')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to lock board')),
         );
       }
     } finally {

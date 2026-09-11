@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../core/api/api_client.dart';
 import '../models/user.dart';
 import '../core/theme/clay_theme.dart';
-import '../widgets/clay_card.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});

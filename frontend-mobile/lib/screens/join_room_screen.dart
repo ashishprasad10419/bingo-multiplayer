@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
 import '../core/api/api_client.dart';
 import '../providers/auth_provider.dart';
 import '../providers/game_provider.dart';
@@ -41,10 +42,16 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => LobbyScreen(roomCode: room.roomCode)),
       );
-    } catch (e: any) {
+    } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.response?.data?['message'] ?? 'Room not found or game already started')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to join room')),
         );
       }
     } finally {

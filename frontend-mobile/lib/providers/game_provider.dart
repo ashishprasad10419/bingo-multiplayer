@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../core/api/api_client.dart';
 import '../core/socket/stomp_socket_service.dart';
 import '../models/room.dart';
@@ -66,9 +67,14 @@ class GameProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return _room!;
-    } catch (e: any) {
+    } on DioException catch (e) {
       _isLoading = false;
       _error = e.response?.data?['message'] ?? 'Failed to load room';
+      notifyListeners();
+      rethrow;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to load room';
       notifyListeners();
       rethrow;
     }
@@ -268,7 +274,7 @@ class GameProvider extends ChangeNotifier {
     if (!socketSent) {
       try {
         _game = await _api.callNumber(_game!.id, value);
-      } catch (e: any) {
+      } catch (e) {
         if (!e.toString().contains('already')) {
           _error = 'Failed to call number';
           _pendingPick = null;
