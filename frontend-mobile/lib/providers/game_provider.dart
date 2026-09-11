@@ -32,7 +32,7 @@ class GameProvider extends ChangeNotifier {
   int _lineCount = 0;
   int? _pendingPick;
   bool _calling = false;
-  Map<int, String> _calledByMap = {};
+  final Map<int, String> _calledByMap = {};
   final List<ActiveMobileEmote> _activeEmotes = [];
   String? _winnerUsername;
   bool _hasWon = false;

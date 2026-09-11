@@ -16,7 +16,7 @@ class EmotePickerWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: Colors.white.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(50),
         border: Border.all(color: const Color(0xFFEDE8F8)),
         boxShadow: const [

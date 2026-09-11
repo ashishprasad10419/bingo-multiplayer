@@ -149,7 +149,7 @@ class BoardGridWidget extends StatelessWidget {
               textColor = ClayColors.textDark;
             } else {
               tileDecoration = BoxDecoration(
-                color: const Color(0xFFF5F1FC).withOpacity(0.8),
+                color: const Color(0xFFF5F1FC).withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFEDE8F8), width: 1),
               );
@@ -183,7 +183,7 @@ class BoardGridWidget extends StatelessWidget {
                           top: 4,
                           child: Icon(
                             isMyPick || isPendingThis ? Icons.check : Icons.star,
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                             size: size > 7 ? 10 : 13,
                           ),
                         ),

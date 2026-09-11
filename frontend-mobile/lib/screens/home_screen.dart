@@ -228,10 +228,10 @@ class HomeScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: textColor.withOpacity(0.2), width: 1),
+        border: Border.all(color: textColor.withValues(alpha: 0.2), width: 1),
         boxShadow: [
           BoxShadow(
-            color: textColor.withOpacity(0.08),
+            color: textColor.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

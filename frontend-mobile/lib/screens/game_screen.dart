@@ -81,7 +81,7 @@ class GameScreen extends StatelessWidget {
                             color: (pendingPick != null
                                     ? const Color(0xFF10B981)
                                     : (isMyTurn ? ClayColors.periwinkle : const Color(0xFF8773D7)))
-                                .withOpacity(0.18),
+                                .withValues(alpha: 0.18),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
@@ -264,7 +264,7 @@ class GameScreen extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: (isCompleted ? ClayColors.coral : const Color(0xFF8773D7)).withOpacity(0.2),
+                color: (isCompleted ? ClayColors.coral : const Color(0xFF8773D7)).withValues(alpha: 0.2),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),

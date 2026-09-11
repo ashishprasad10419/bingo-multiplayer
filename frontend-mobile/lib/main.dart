@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/clay_theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/game_provider.dart';
-import 'screens/splash_screen.dart';
+import 'screens/web_game_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +38,7 @@ class BingoApp extends StatelessWidget {
       title: 'Bingo Multiplayer',
       debugShowCheckedModeBanner: false,
       theme: ClayTheme.theme,
-      home: const SplashScreen(),
+      home: const WebGameScreen(),
     );
   }
 }

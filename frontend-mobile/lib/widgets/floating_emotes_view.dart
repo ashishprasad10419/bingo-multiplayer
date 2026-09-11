@@ -29,7 +29,7 @@ class FloatingEmotesView extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.95),
+                color: Colors.white.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(50),
                 border: Border.all(color: const Color(0xFFEDE8F8)),
                 boxShadow: const [
