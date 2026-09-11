@@ -85,120 +85,144 @@ export const Lobby: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-5 space-y-5">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Header controls */}
       <div className="flex items-center justify-between">
         <button
           onClick={handleLeave}
-          className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-red-400 transition"
+          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 text-xs font-bold text-slate-600 hover:text-rose-600 shadow-2xs transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Leave Lobby</span>
         </button>
 
-        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400">
+        <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 uppercase tracking-wider">
           {room.status}
         </span>
       </div>
 
-      {/* Room Code Card */}
-      <div className="bg-gradient-to-br from-slate-900 via-indigo-950/30 to-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl text-center">
-        <div className="text-xs text-slate-400 font-medium">Room Code</div>
-        <div className="text-4xl font-mono font-black tracking-widest text-white mt-1">
-          {room.roomCode}
-        </div>
-
-        <div className="flex items-center justify-center space-x-2 mt-4">
-          <button
-            onClick={handleCopyCode}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200 transition active:scale-95"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Copied!' : 'Copy Code'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Board Setup CTA */}
-      <div className={`p-4 rounded-2xl border transition ${
-        isMyBoardLocked
-          ? 'bg-emerald-950/20 border-emerald-500/30'
-          : 'bg-amber-950/20 border-amber-500/30 ring-1 ring-amber-500/30 animate-pulse-fast'
-      }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              isMyBoardLocked ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
-            }`}>
-              <Grid className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-sm font-bold text-white">
-                {isMyBoardLocked ? 'Board Locked & Ready' : 'Customize Your Board'}
-              </div>
-              <div className="text-xs text-slate-400">
-                {isMyBoardLocked
-                  ? 'Waiting for host to start match'
-                  : 'Arrange and lock your 5x5 numbers'}
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={() => navigate(`/setup/${room.roomCode}`)}
-            className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-              isMyBoardLocked
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-                : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/30'
-            }`}
-          >
-            {isMyBoardLocked ? 'View Board' : 'Set Up Now'}
-          </button>
-        </div>
-      </div>
-
-      {/* Player List */}
-      <PlayerList
-        roomPlayers={room.players}
-        hostId={room.hostId}
-        currentUserId={user.id}
-      />
-
       {error && (
-        <div className="flex items-center space-x-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="flex items-center space-x-2 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold shadow-2xs">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Host Action / Waiting indicator */}
-      {isHost ? (
-        <button
-          onClick={handleStartGame}
-          disabled={!allLocked || starting}
-          className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3.5 rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center justify-center space-x-2 transition disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {starting ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <>
-              <Play className="w-5 h-5 fill-white" />
-              <span>
-                {room.players.length < 2
-                  ? 'Need at least 2 players'
-                  : !allLocked
-                  ? 'Waiting for all boards to be locked'
-                  : 'Start Bingo Game!'}
-              </span>
-            </>
-          )}
-        </button>
-      ) : (
-        <div className="p-3.5 bg-slate-900/60 rounded-2xl border border-slate-800 text-center text-xs text-slate-400 flex items-center justify-center space-x-2">
-          <div className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
-          <span>Waiting for host to start the game...</span>
+      {/* Main 2-Column Responsive Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        {/* Left Column: Room Code, Board Setup & Match Settings */}
+        <div className="lg:col-span-6 space-y-4">
+          {/* Room Code Card */}
+          <div className="bg-white/90 border border-slate-200/90 rounded-3xl p-6 shadow-sm backdrop-blur-md text-center">
+            <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Room Code</div>
+            <div className="text-4xl sm:text-5xl font-mono font-black tracking-widest text-slate-900 mt-2 select-all">
+              {room.roomCode}
+            </div>
+
+            <div className="flex items-center justify-center space-x-2 mt-4">
+              <button
+                onClick={handleCopyCode}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 shadow-2xs transition active:scale-95 cursor-pointer"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? 'Copied to Clipboard!' : 'Copy Code'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Board Setup CTA */}
+          <div className={`p-5 rounded-3xl border transition ${
+            isMyBoardLocked
+              ? 'bg-emerald-50/90 border-emerald-200 shadow-xs'
+              : 'bg-amber-50/90 border-2 border-amber-400 shadow-sm ring-4 ring-amber-300/30 animate-pulse-fast'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3.5">
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-xs ${
+                  isMyBoardLocked ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
+                }`}>
+                  <Grid className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="text-sm font-black text-slate-900">
+                    {isMyBoardLocked ? 'Board Locked & Ready' : 'Customize Your Board'}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {isMyBoardLocked
+                      ? 'Waiting for host to start match'
+                      : `Arrange and lock your ${room.boardSize || 5}x${room.boardSize || 5} numbers`}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate(`/setup/${room.roomCode}`)}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition shadow-xs ${
+                  isMyBoardLocked
+                    ? 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/30'
+                }`}
+              >
+                {isMyBoardLocked ? 'View Board' : 'Set Up Now'}
+              </button>
+            </div>
+          </div>
+
+          {/* Room Settings Details */}
+          <div className="bg-white/80 border border-slate-200/90 rounded-3xl p-5 shadow-xs grid grid-cols-3 gap-3 text-center">
+            <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200/70">
+              <div className="text-[10px] text-slate-400 font-semibold uppercase">Size</div>
+              <div className="text-sm font-black text-slate-800 mt-0.5">{room.boardSize || 5}x{room.boardSize || 5}</div>
+            </div>
+            <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200/70">
+              <div className="text-[10px] text-slate-400 font-semibold uppercase">Goal</div>
+              <div className="text-sm font-black text-amber-600 mt-0.5">{room.winningLines || 5} Lines</div>
+            </div>
+            <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200/70">
+              <div className="text-[10px] text-slate-400 font-semibold uppercase">Players</div>
+              <div className="text-sm font-black text-blue-600 mt-0.5">{room.players.length}/{room.maxPlayers || 6}</div>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Right Column: Player Roster & Host Actions */}
+        <div className="lg:col-span-6 space-y-4">
+          <PlayerList
+            roomPlayers={room.players}
+            hostId={room.hostId}
+            currentUserId={user.id}
+          />
+
+          {/* Host Action / Waiting indicator */}
+          {isHost ? (
+            <button
+              onClick={handleStartGame}
+              disabled={!allLocked || starting}
+              className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-4 rounded-3xl shadow-xl shadow-emerald-500/25 flex items-center justify-center space-x-2.5 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {starting ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Play className="w-5 h-5 fill-white" />
+                  <span className="text-sm">
+                    {room.players.length < 2
+                      ? 'Need at least 2 players to start'
+                      : !allLocked
+                      ? 'Waiting for all players to lock board'
+                      : 'Start Bingo Game!'}
+                  </span>
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="p-4 bg-white/90 rounded-3xl border border-slate-200 text-center text-xs font-bold text-slate-600 shadow-xs flex items-center justify-center space-x-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
+              <span>Waiting for host to start the game...</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

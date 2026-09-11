@@ -36,39 +36,39 @@ export const JoinRoom: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-lg mx-auto px-4 sm:px-6 py-6">
       <button
         onClick={() => navigate('/')}
-        className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-white transition mb-6"
+        className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs transition mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to Home</span>
       </button>
 
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl backdrop-blur-md">
+      <div className="bg-white/95 border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md">
         <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mx-auto mb-3 text-indigo-400">
+          <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center mx-auto mb-3 text-indigo-600 shadow-xs">
             <LogIn className="w-7 h-7" />
           </div>
-          <h2 className="text-xl font-black text-white">Join Room</h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Enter the 6-character room code from your friend
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Join Room</h2>
+          <p className="text-xs text-slate-500 mt-1">
+            Enter the 6-character room code from your friend to jump in
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs">
+          <div className="mb-4 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold text-center">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleJoin} className="space-y-4">
+        <form onSubmit={handleJoin} className="space-y-5">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 mb-2">
               Room Code
             </label>
             <div className="relative">
-              <Hash className="w-5 h-5 text-slate-500 absolute left-3 top-3.5" />
+              <Hash className="w-5 h-5 text-slate-400 absolute left-3.5 top-4" />
               <input
                 type="text"
                 required
@@ -76,7 +76,7 @@ export const JoinRoom: React.FC = () => {
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="e.g. B7K4P2"
-                className="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-center text-xl font-mono font-black tracking-widest text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 uppercase"
+                className="w-full bg-slate-50 border border-slate-300 rounded-2xl pl-11 pr-4 py-3.5 text-center text-2xl font-mono font-black tracking-widest text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 uppercase transition"
               />
             </div>
           </div>
@@ -84,7 +84,7 @@ export const JoinRoom: React.FC = () => {
           <button
             type="submit"
             disabled={loading || code.trim().length !== 6}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-2xl shadow-xl shadow-blue-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-3.5 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

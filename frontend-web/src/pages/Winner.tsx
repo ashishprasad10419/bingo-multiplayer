@@ -46,69 +46,69 @@ export const Winner: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[85vh] text-center">
+    <div className="max-w-md mx-auto px-4 sm:px-6 py-10 flex flex-col items-center justify-center min-h-[85vh] text-center">
       {/* Trophy & Badge */}
       <div className="relative mb-6">
-        <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center text-slate-950 shadow-2xl shadow-amber-500/40 animate-bounce-short">
+        <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-amber-400 via-amber-300 to-yellow-400 flex items-center justify-center text-slate-950 shadow-xl shadow-amber-400/30 animate-bounce-short">
           <Trophy className="w-12 h-12" />
         </div>
-        <Star className="w-7 h-7 text-yellow-300 fill-yellow-300 absolute -top-2 -right-2 animate-spin" />
+        <Star className="w-8 h-8 text-amber-500 fill-amber-400 absolute -top-2 -right-2 animate-spin" />
       </div>
 
-      <div className="inline-block px-4 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-extrabold text-xs tracking-widest uppercase mb-2">
+      <div className="inline-block px-4 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-black text-xs tracking-widest uppercase mb-2.5">
         Match Completed
       </div>
 
-      <h1 className="text-3xl font-black text-white tracking-tight">
+      <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
         {hasWon ? '🏆 BINGO! YOU WON!' : `${winnerInfo?.username || 'Opponent'} Won!`}
       </h1>
 
-      <p className="text-xs text-slate-400 mt-1 max-w-xs">
+      <p className="text-xs text-slate-500 mt-2 max-w-xs leading-relaxed">
         {hasWon
-          ? 'Incredible game! You completed 5 lines and claimed the victory.'
+          ? 'Incredible game! You completed your lines and claimed the victory.'
           : 'Great match! Keep practicing to claim the next win.'}
       </p>
 
       {/* Rewards Card */}
-      <div className="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl mt-6 space-y-3">
-        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+      <div className="w-full bg-white/95 border border-slate-200/90 rounded-3xl p-6 shadow-sm mt-6 space-y-4">
+        <div className="text-xs font-black text-slate-400 uppercase tracking-wider">
           Match Rewards
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/60">
-            <div className="flex items-center justify-center space-x-1 text-xs text-blue-400 font-medium">
-              <Award className="w-3.5 h-3.5" />
+          <div className="bg-blue-50/80 p-3.5 rounded-2xl border border-blue-100">
+            <div className="flex items-center justify-center space-x-1 text-xs text-blue-700 font-bold">
+              <Award className="w-4 h-4" />
               <span>XP Earned</span>
             </div>
-            <div className="text-lg font-black text-white mt-1">
+            <div className="text-xl font-black text-blue-900 mt-1">
               +{hasWon ? '100' : '25'} XP
             </div>
           </div>
 
-          <div className="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/60">
-            <div className="flex items-center justify-center space-x-1 text-xs text-amber-400 font-medium">
-              <Flame className="w-3.5 h-3.5" />
+          <div className="bg-amber-50/80 p-3.5 rounded-2xl border border-amber-100">
+            <div className="flex items-center justify-center space-x-1 text-xs text-amber-700 font-bold">
+              <Flame className="w-4 h-4 text-amber-500" />
               <span>Win Streak</span>
             </div>
-            <div className="text-lg font-black text-white mt-1">
+            <div className="text-xl font-black text-amber-900 mt-1">
               {user?.stats?.currentWinStreak || (hasWon ? 1 : 0)}
             </div>
           </div>
         </div>
 
         {game?.moveNumber && (
-          <div className="text-[11px] text-slate-500 pt-2 border-t border-slate-800">
-            Total moves called: <span className="text-slate-300 font-semibold">{game.moveNumber}</span>
+          <div className="text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+            Total moves called: <span className="text-slate-700 font-bold">{game.moveNumber}</span>
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <div className="w-full space-y-2.5 mt-6">
+      <div className="w-full space-y-3 mt-6">
         <button
           onClick={handleGoHome}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center space-x-2 transition"
+          className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center space-x-2 transition cursor-pointer"
         >
           <Home className="w-5 h-5" />
           <span>Back to Main Menu</span>

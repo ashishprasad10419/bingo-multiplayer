@@ -29,16 +29,16 @@ export const BingoAnimation: React.FC<BingoAnimationProps> = ({
   }, [triggerConfetti, lineCount, targetLines]);
 
   return (
-    <div className="w-full max-w-[440px] mx-auto flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-900/60 rounded-xl border border-slate-800 backdrop-blur-sm">
+    <div className="w-full max-w-[560px] mx-auto flex items-center justify-between gap-1.5 sm:gap-2 px-3 py-2 bg-white/95 rounded-2xl border border-slate-200/90 shadow-sm backdrop-blur-md">
       {fullLetters.map((char, index) => {
         const isLit = index < lineCount;
         return (
           <div
             key={`${char}-${index}`}
-            className={`flex-1 aspect-square max-w-[44px] rounded-xl flex items-center justify-center font-black text-lg sm:text-xl transition-all duration-300 ${
+            className={`flex-1 aspect-square max-w-[52px] rounded-xl flex items-center justify-center font-black text-lg sm:text-2xl transition-all duration-300 ${
               isLit
-                ? 'bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 shadow-lg shadow-amber-500/40 scale-105 ring-2 ring-yellow-300'
-                : 'bg-slate-800/80 text-slate-500 border border-slate-700/60'
+                ? 'bg-gradient-to-tr from-amber-400 via-amber-300 to-yellow-400 text-slate-950 shadow-md shadow-amber-400/30 scale-105 ring-2 ring-yellow-300'
+                : 'bg-slate-50 text-slate-400 border border-slate-200 shadow-2xs'
             }`}
           >
             {char}

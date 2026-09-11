@@ -32,15 +32,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 p-4 text-center space-y-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-sky-50/40 to-indigo-50/30 p-4 text-center space-y-4">
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-xl shadow-blue-500/20 mb-2">
           B
         </div>
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-white">Connecting to Bingo...</p>
+          <p className="text-sm font-semibold text-slate-800">Connecting to Bingo...</p>
           {slowServerNotice && (
-            <p className="text-xs text-slate-400 max-w-xs animate-in fade-in">
+            <p className="text-xs text-slate-500 max-w-xs animate-in fade-in">
               Server is waking up from idle sleep. This takes a few seconds on free tier.
             </p>
           )}
@@ -48,7 +48,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         {slowServerNotice && (
           <button
             onClick={() => logout()}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition mt-2"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold shadow-sm transition mt-2"
           >
             Continue as Guest
           </button>
@@ -71,7 +71,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/30 to-indigo-50/20 text-slate-800 flex flex-col">
       {!hideNavbar && <Navbar />}
       <main className="flex-1 pb-10">{children}</main>
     </div>
