@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Room, Game, User, Badge, UserBadge, GameHistory } from './types';
+import { Room, Game, User, Badge, UserBadge, GameHistory, GameType } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -61,7 +61,13 @@ export const authApi = {
 };
 
 export const roomApi = {
-  createRoom: async (options?: { boardSize?: number; winningLines?: number; maxPlayers?: number }): Promise<Room> => {
+  createRoom: async (options?: {
+    gameType?: GameType;
+    boardSize?: number;
+    winningLines?: number;
+    maxPlayers?: number;
+    gridSize?: number;
+  }): Promise<Room> => {
     const res = await apiClient.post<Room>('/rooms', options);
     return res.data;
   },
@@ -120,6 +126,14 @@ export const gameApi = {
   },
   callNumber: async (gameId: string, number: number): Promise<Game> => {
     const res = await apiClient.post<Game>(`/games/${gameId}/call?number=${number}`);
+    return res.data;
+  },
+  makeTttMove: async (gameId: string, row: number, col: number): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/tic-tac-toe/move`, { row, col });
+    return res.data;
+  },
+  drawDotsLine: async (gameId: string, lineType: 'H' | 'V', row: number, col: number): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/dots-and-boxes/line`, { lineType, row, col });
     return res.data;
   },
   sendEmote: async (gameId: string, emote: string): Promise<void> => {

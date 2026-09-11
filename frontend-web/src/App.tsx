@@ -13,6 +13,7 @@ import { Game } from './pages/Game';
 import { Winner } from './pages/Winner';
 import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
+import { GameHub } from './pages/GameHub';
 
 // Protected Route Guard
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -98,6 +99,22 @@ export const App: React.FC = () => {
 
           <Route
             path="/"
+            element={
+              <ProtectedRoute>
+                <GameHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hub"
+            element={
+              <ProtectedRoute>
+                <GameHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/home"
             element={
               <ProtectedRoute>
                 <Home />

@@ -26,10 +26,36 @@ public class Game {
     private String roomCode;
 
     @Builder.Default
+    private GameType gameType = GameType.BINGO;
+
+    @Builder.Default
     private int boardSize = 5;
 
     @Builder.Default
     private int winningLines = 5;
+
+    // --- Tic-Tac-Toe Specific State ---
+    @Builder.Default
+    private int tttGridSize = 3;
+
+    @Builder.Default
+    private List<String> tttBoard = new ArrayList<>(); // values: userId, or ""
+
+    // --- Dots & Boxes Specific State ---
+    @Builder.Default
+    private int dotsGridSize = 4; // dot count per side (4x4 dots = 3x3 boxes)
+
+    @Builder.Default
+    private List<String> horizontalLines = new ArrayList<>(); // "r-c"
+
+    @Builder.Default
+    private List<String> verticalLines = new ArrayList<>(); // "r-c"
+
+    @Builder.Default
+    private java.util.Map<String, String> completedBoxes = new java.util.HashMap<>(); // "boxR-boxC" -> winner userId
+
+    @Builder.Default
+    private java.util.Map<String, Integer> playerScores = new java.util.HashMap<>(); // userId -> score
 
     @Indexed
     @Builder.Default

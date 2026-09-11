@@ -97,8 +97,10 @@ export const Lobby: React.FC = () => {
 
   const isHost = room.hostId === user.id;
   const myPlayer = room.players.find((p) => p.userId === user.id);
-  const allLocked = room.players.length >= 2 && room.players.every((p) => p.boardLocked);
+  const isBingo = !room.gameType || room.gameType === 'BINGO';
+  const allLocked = room.players.length >= 2 && (isBingo ? room.players.every((p) => p.boardLocked) : true);
   const isMyBoardLocked = !!myPlayer?.boardLocked;
+  const isReadyToStart = room.players.length >= 2 && allLocked;
 
 
   const handleStartGame = async () => {
@@ -217,57 +219,77 @@ export const Lobby: React.FC = () => {
             </div>
           </div>
 
-          {/* Board Setup CTA */}
-          <div className={`p-5 rounded-[28px] border transition-all ${
-            isMyBoardLocked
-              ? 'bg-[#e6f7ef] border-[#c3eed7] shadow-2xs'
-              : 'bg-[#fef5db] border-2 border-[#f59e0b] shadow-md ring-4 ring-[#f59e0b]/20'
-          }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3.5">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs ${
-                  isMyBoardLocked ? 'bg-[#10b981] text-white' : 'bg-[#f59e0b] text-white'
-                }`}>
-                  <Grid className="w-6 h-6" />
+          {/* Board Setup CTA (Only for Bingo) */}
+          {isBingo ? (
+            <div className={`p-5 rounded-[28px] border transition-all ${
+              isMyBoardLocked
+                ? 'bg-[#e6f7ef] border-[#c3eed7] shadow-2xs'
+                : 'bg-[#fef5db] border-2 border-[#f59e0b] shadow-md ring-4 ring-[#f59e0b]/20'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3.5">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs ${
+                    isMyBoardLocked ? 'bg-[#10b981] text-white' : 'bg-[#f59e0b] text-white'
+                  }`}>
+                    <Grid className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-extrabold text-[#2a2050]">
+                      {isMyBoardLocked ? 'Board Locked & Ready' : 'Customize Your Board'}
+                    </div>
+                    <div className="text-xs text-[#7e749c] mt-0.5 font-medium">
+                      {isMyBoardLocked
+                        ? 'Waiting for host to start match'
+                        : `Arrange and lock your ${room.boardSize || 5}x${room.boardSize || 5} numbers`}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm font-extrabold text-[#2a2050]">
-                    {isMyBoardLocked ? 'Board Locked & Ready' : 'Customize Your Board'}
-                  </div>
-                  <div className="text-xs text-[#7e749c] mt-0.5 font-medium">
-                    {isMyBoardLocked
-                      ? 'Waiting for host to start match'
-                      : `Arrange and lock your ${room.boardSize || 5}x${room.boardSize || 5} numbers`}
-                  </div>
+
+                <button
+                  onClick={() => navigate(`/setup/${room.roomCode}`)}
+                  className={`px-4 py-2 rounded-full text-xs font-extrabold transition shadow-xs cursor-pointer ${
+                    isMyBoardLocked
+                      ? 'btn-pill-outline'
+                      : 'btn-gradient'
+                  }`}
+                >
+                  {isMyBoardLocked ? 'View Board' : 'Set Up Now'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-5 rounded-[28px] bg-[#e6f7ef] border border-[#c3eed7] shadow-2xs flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#10b981] text-white flex items-center justify-center shadow-xs font-extrabold text-xl">
+                {room.gameType === 'TIC_TAC_TOE' ? 'XO' : '📦'}
+              </div>
+              <div>
+                <div className="text-sm font-extrabold text-[#2a2050]">
+                  {room.gameType === 'TIC_TAC_TOE' ? 'Tic-Tac-Toe Ready' : 'Dots & Boxes Ready'}
+                </div>
+                <div className="text-xs text-[#7e749c] mt-0.5 font-medium">
+                  Instant start enabled! Host can start as soon as 2 players are present.
                 </div>
               </div>
-
-              <button
-                onClick={() => navigate(`/setup/${room.roomCode}`)}
-                className={`px-4 py-2 rounded-full text-xs font-extrabold transition shadow-xs cursor-pointer ${
-                  isMyBoardLocked
-                    ? 'btn-pill-outline'
-                    : 'btn-gradient'
-                }`}
-              >
-                {isMyBoardLocked ? 'View Board' : 'Set Up Now'}
-              </button>
             </div>
-          </div>
+          )}
 
           {/* Room Settings Details */}
           <div className="card-clay p-5 grid grid-cols-3 gap-3 text-center">
             <div className="p-3 bg-[#f0ecfc] rounded-2xl border border-[#e0d6f8]">
-              <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Size</div>
-              <div className="text-base font-extrabold text-[#2a2050] mt-0.5">{room.boardSize || 5}x{room.boardSize || 5}</div>
+              <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Game</div>
+              <div className="text-xs font-extrabold text-[#2a2050] mt-0.5 truncate">
+                {room.gameType === 'TIC_TAC_TOE' ? 'Tic-Tac-Toe' : (room.gameType === 'DOTS_AND_BOXES' ? 'Dots & Boxes' : 'Bingo')}
+              </div>
             </div>
             <div className="p-3 bg-[#fef5db] rounded-2xl border border-[#fde7ad]">
-              <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Goal</div>
-              <div className="text-base font-extrabold text-[#b45309] mt-0.5">{room.winningLines || 5} Lines</div>
+              <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Rule</div>
+              <div className="text-xs font-extrabold text-[#b45309] mt-0.5">
+                {room.gameType === 'TIC_TAC_TOE' ? `${room.boardSize} in a row` : (room.gameType === 'DOTS_AND_BOXES' ? `${(room.boardSize - 1) * (room.boardSize - 1)} Boxes` : `${room.winningLines} Lines`)}
+              </div>
             </div>
             <div className="p-3 bg-[#e3f2fd] rounded-2xl border border-[#c7e5fc]">
               <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Players</div>
-              <div className="text-base font-extrabold text-[#0284c7] mt-0.5">{room.players.length}/{room.maxPlayers || 6}</div>
+              <div className="text-xs font-extrabold text-[#0284c7] mt-0.5">{room.players.length}/{room.maxPlayers || 6}</div>
             </div>
           </div>
         </div>
@@ -284,20 +306,20 @@ export const Lobby: React.FC = () => {
           {isHost ? (
             <button
               onClick={handleStartGame}
-              disabled={!allLocked || starting}
+              disabled={!isReadyToStart || starting}
               className="btn-gradient w-full py-4 text-base cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {starting ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
               ) : (
-                <span className="flex items-center space-x-2">
+                <span className="flex items-center justify-center space-x-2">
                   <Play className="w-5 h-5 fill-white" />
                   <span>
                     {room.players.length < 2
                       ? 'Need at least 2 players to start'
-                      : !allLocked
+                      : !isReadyToStart
                       ? 'Waiting for all players to lock board'
-                      : 'Start Bingo Game!'}
+                      : `Start ${room.gameType === 'TIC_TAC_TOE' ? 'Tic-Tac-Toe' : (room.gameType === 'DOTS_AND_BOXES' ? 'Dots & Boxes' : 'Bingo')} Game!`}
                   </span>
                 </span>
               )}

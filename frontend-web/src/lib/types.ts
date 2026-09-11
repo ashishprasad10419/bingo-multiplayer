@@ -27,6 +27,8 @@ export interface RoomPlayer {
   boardLocked: boolean;
 }
 
+export type GameType = 'BINGO' | 'TIC_TAC_TOE' | 'DOTS_AND_BOXES';
+
 export type RoomStatus = 'WAITING' | 'BOARD_SETUP' | 'READY' | 'PLAYING' | 'FINISHED' | 'CANCELLED';
 
 export interface Room {
@@ -34,6 +36,7 @@ export interface Room {
   roomCode: string;
   hostId: string;
   status: RoomStatus;
+  gameType?: GameType;
   boardSize: number;
   winningLines: number;
   maxPlayers: number;
@@ -63,6 +66,7 @@ export interface CalledNumberRecord {
 export interface Game {
   id: string;
   roomCode: string;
+  gameType?: GameType;
   boardSize: number;
   winningLines: number;
   status: 'PLAYING' | 'FINISHED' | 'ABANDONED';
@@ -75,6 +79,17 @@ export interface Game {
   winnerId?: string;
   startedAt?: string;
   finishedAt?: string;
+
+  // Tic-Tac-Toe state
+  tttGridSize?: number;
+  tttBoard?: string[];
+
+  // Dots & Boxes state
+  dotsGridSize?: number;
+  horizontalLines?: string[];
+  verticalLines?: string[];
+  completedBoxes?: Record<string, string>;
+  playerScores?: Record<string, number>;
 }
 
 export interface Badge {

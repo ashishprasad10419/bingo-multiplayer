@@ -280,6 +280,43 @@ export const useGameStore = create<GameState>((set, get) => ({
           });
           break;
 
+        case 'GAME_DRAW':
+          set({
+            winnerInfo: { username: 'Nobody (Draw)' },
+            hasWon: false,
+            game: game ? { ...game, status: 'FINISHED' } : null,
+          });
+          break;
+
+        case 'TTT_MOVE_MADE':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                tttBoard: event.data.tttBoard || game.tttBoard,
+                currentTurnUserId: event.data.nextTurn,
+                status: (event.data.status as any) || game.status,
+              },
+            });
+          }
+          break;
+
+        case 'DOTS_LINE_DRAWN':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                horizontalLines: event.data.horizontalLines || game.horizontalLines,
+                verticalLines: event.data.verticalLines || game.verticalLines,
+                completedBoxes: event.data.completedBoxes || game.completedBoxes,
+                playerScores: event.data.playerScores || game.playerScores,
+                currentTurnUserId: event.data.nextTurn,
+                status: (event.data.status as any) || game.status,
+              },
+            });
+          }
+          break;
+
         case 'EMOTE_SENT':
           if (event.data?.emote) {
             const emoteItem: ActiveEmote = {

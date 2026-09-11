@@ -17,6 +17,8 @@ public class GameService {
     private final GameRepository gameRepository;
     private final GameHistoryRepository gameHistoryRepository;
     private final GameEngine gameEngine;
+    private final com.bingo.game.engine.TicTacToeEngine ticTacToeEngine;
+    private final com.bingo.game.engine.DotsAndBoxesEngine dotsAndBoxesEngine;
     private final TurnService turnService;
     private final WinnerService winnerService;
     private final GameEventService gameEventService;
@@ -175,12 +177,120 @@ public class GameService {
         Game game = getGameById(gameId);
         GamePlayer player = game.findPlayer(userId);
         String username = player != null ? player.getUsername() : "Player";
-
         gameEventService.publishEvent(game.getRoomCode(), game.getId(), "EMOTE_SENT", Map.of(
                 "userId", userId,
                 "username", username,
                 "emote", emote,
                 "timestamp", System.currentTimeMillis()
         ));
+    }
+
+    public synchronized Game processTttMove(String senderUserId, String gameId, int row, int col) {
+        Game game = getGameById(gameId);
+        turnService.validateTurn(game, senderUserId);
+
+        int gridSize = game.getTttGridSize() > 0 ? game.getTttGridSize() : 3;
+        com.bingo.game.engine.TicTacToeEngine.Result result =
+                ticTacToeEngine.processMove(game.getTttBoard(), gridSize, row, col, senderUserId);
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+
+        if (result == com.bingo.game.engine.TicTacToeEngine.Result.WIN) {
+            GamePlayer winner = game.findPlayer(senderUserId);
+            winnerService.handleGameFinished(game, winner);
+            game = gameRepository.save(game);
+        } else if (result == com.bingo.game.engine.TicTacToeEngine.Result.DRAW) {
+            game.setStatus(GameStatus.FINISHED);
+            game.setFinishedAt(java.time.Instant.now());
+            game = gameRepository.save(game);
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
+                    "reason", "Board is full"
+            ));
+        } else {
+            turnService.advanceTurn(game);
+            game = gameRepository.save(game);
+        }
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TTT_MOVE_MADE", Map.of(
+                "row", row,
+                "col", col,
+                "userId", senderUserId,
+                "tttBoard", game.getTttBoard(),
+                "nextTurn", game.getCurrentTurnUserId(),
+                "status", game.getStatus().name()
+        ));
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
+                "currentTurnUserId", game.getCurrentTurnUserId()
+        ));
+
+        return game;
+    }
+
+    public synchronized Game processDotsLine(String senderUserId, String gameId, String lineType, int row, int col) {
+        Game game = getGameById(gameId);
+        turnService.validateTurn(game, senderUserId);
+
+        int dotsSize = game.getDotsGridSize() > 0 ? game.getDotsGridSize() : 4;
+        com.bingo.game.engine.DotsAndBoxesEngine.MoveResult result = dotsAndBoxesEngine.drawLine(
+                dotsSize,
+                lineType,
+                row,
+                col,
+                senderUserId,
+                game.getHorizontalLines(),
+                game.getVerticalLines(),
+                game.getCompletedBoxes(),
+                game.getPlayerScores()
+        );
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+
+        if (result.isGameFinished()) {
+            if (result.isDraw()) {
+                game.setStatus(GameStatus.FINISHED);
+                game.setFinishedAt(java.time.Instant.now());
+                game = gameRepository.save(game);
+                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
+                        "scores", game.getPlayerScores()
+                ));
+            } else {
+                GamePlayer winner = game.findPlayer(result.getWinnerId());
+                winnerService.handleGameFinished(game, winner);
+                game = gameRepository.save(game);
+            }
+        } else if (result.givesExtraTurn()) {
+            // Player captured a box! Retains turn for bonus move
+            game = gameRepository.save(game);
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "EXTRA_TURN_AWARDED", Map.of(
+                    "userId", senderUserId,
+                    "boxesCompleted", result.getBoxesCompleted()
+            ));
+        } else {
+            // No box completed: advance turn
+            turnService.advanceTurn(game);
+            game = gameRepository.save(game);
+        }
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("lineType", lineType);
+        payload.put("row", row);
+        payload.put("col", col);
+        payload.put("userId", senderUserId);
+        payload.put("boxesCompleted", result.getBoxesCompleted());
+        payload.put("completedBoxes", game.getCompletedBoxes());
+        payload.put("playerScores", game.getPlayerScores());
+        payload.put("horizontalLines", game.getHorizontalLines());
+        payload.put("verticalLines", game.getVerticalLines());
+        payload.put("nextTurn", game.getCurrentTurnUserId());
+        payload.put("status", game.getStatus().name());
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "DOTS_LINE_DRAWN", payload);
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
+                "currentTurnUserId", game.getCurrentTurnUserId()
+        ));
+
+        return game;
     }
 }

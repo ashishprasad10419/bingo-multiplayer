@@ -47,23 +47,43 @@ public class RoomService {
         }
 
         String roomCode = generateUniqueRoomCode();
-        int boardSize = (request.getBoardSize() != null && request.getBoardSize() >= 5 && request.getBoardSize() <= 10) ? request.getBoardSize() : 5;
-        int winningLines = (request.getWinningLines() != null && request.getWinningLines() > 0 && request.getWinningLines() <= boardSize) ? request.getWinningLines() : boardSize;
-        int maxPlayers = (request.getMaxPlayers() != null && request.getMaxPlayers() >= 2 && request.getMaxPlayers() <= 6) ? request.getMaxPlayers() : 6;
+        com.bingo.game.GameType gameType = request.getGameType() != null ? request.getGameType() : com.bingo.game.GameType.BINGO;
+
+        int boardSize = 5;
+        int winningLines = 5;
+        int maxPlayers = 6;
+
+        if (gameType == com.bingo.game.GameType.TIC_TAC_TOE) {
+            maxPlayers = 2;
+            boardSize = (request.getGridSize() != null && request.getGridSize() >= 3 && request.getGridSize() <= 5) ? request.getGridSize() : 3;
+            winningLines = boardSize;
+        } else if (gameType == com.bingo.game.GameType.DOTS_AND_BOXES) {
+            maxPlayers = (request.getMaxPlayers() != null && request.getMaxPlayers() >= 2 && request.getMaxPlayers() <= 4) ? request.getMaxPlayers() : 4;
+            boardSize = (request.getGridSize() != null && request.getGridSize() >= 3 && request.getGridSize() <= 5) ? request.getGridSize() : 4;
+            winningLines = (boardSize - 1) * (boardSize - 1); // total boxes to claim
+        } else {
+            // BINGO
+            boardSize = (request.getBoardSize() != null && request.getBoardSize() >= 5 && request.getBoardSize() <= 10) ? request.getBoardSize() : 5;
+            winningLines = (request.getWinningLines() != null && request.getWinningLines() > 0 && request.getWinningLines() <= boardSize) ? request.getWinningLines() : boardSize;
+            maxPlayers = (request.getMaxPlayers() != null && request.getMaxPlayers() >= 2 && request.getMaxPlayers() <= 6) ? request.getMaxPlayers() : 6;
+        }
+
+        boolean autoLock = (gameType != com.bingo.game.GameType.BINGO);
 
         RoomPlayer hostPlayer = RoomPlayer.builder()
                 .userId(host.getId())
                 .username(host.getUsername())
                 .avatar(host.getAvatar())
                 .isGuest(host.isGuest())
-                .ready(false)
-                .boardLocked(false)
+                .ready(autoLock)
+                .boardLocked(autoLock)
                 .build();
 
         Room room = Room.builder()
                 .roomCode(roomCode)
                 .hostId(host.getId())
                 .status(RoomStatus.WAITING)
+                .gameType(gameType)
                 .boardSize(boardSize)
                 .winningLines(winningLines)
                 .maxPlayers(maxPlayers)
@@ -73,8 +93,10 @@ public class RoomService {
 
         room = roomRepository.save(room);
 
-        // Pre-generate a board for host
-        boardService.generateBoard(roomCode, hostUserId);
+        // Pre-generate a board for host only if Bingo
+        if (gameType == com.bingo.game.GameType.BINGO) {
+            boardService.generateBoard(roomCode, hostUserId);
+        }
 
         return roomRepository.findByRoomCode(roomCode).orElse(room);
     }
@@ -97,20 +119,24 @@ public class RoomService {
             throw new IllegalStateException("Room is full (max " + room.getMaxPlayers() + " players)");
         }
 
+        boolean autoLock = (room.getGameType() != com.bingo.game.GameType.BINGO);
+
         RoomPlayer newPlayer = RoomPlayer.builder()
                 .userId(user.getId())
                 .username(user.getUsername())
                 .avatar(user.getAvatar())
                 .isGuest(user.isGuest())
-                .ready(false)
-                .boardLocked(false)
+                .ready(autoLock)
+                .boardLocked(autoLock)
                 .build();
 
         room.getPlayers().add(newPlayer);
         room = roomRepository.save(room);
 
-        // Pre-generate initial board for new player
-        boardService.generateBoard(roomCode, userId);
+        // Pre-generate initial board for new player only if Bingo
+        if (room.getGameType() == com.bingo.game.GameType.BINGO) {
+            boardService.generateBoard(roomCode, userId);
+        }
         room = roomRepository.findByRoomCode(roomCode).orElse(room);
 
         // Broadcast PLAYER_JOINED event
@@ -190,7 +216,7 @@ public class RoomService {
         }
 
         for (RoomPlayer player : room.getPlayers()) {
-            if (!player.isBoardLocked() || player.getBoard() == null) {
+            if (room.getGameType() == com.bingo.game.GameType.BINGO && (!player.isBoardLocked() || player.getBoard() == null)) {
                 throw new IllegalStateException("All players must lock their boards before starting");
             }
         }
@@ -215,18 +241,38 @@ public class RoomService {
         // Shuffle player turn order at start
         Collections.shuffle(gamePlayers);
 
-        Game game = Game.builder()
+        Game.GameBuilder gameBuilder = Game.builder()
                 .roomCode(room.getRoomCode())
+                .gameType(room.getGameType())
                 .boardSize(room.getBoardSize())
                 .winningLines(room.getWinningLines())
                 .status(GameStatus.PLAYING)
                 .players(gamePlayers)
-                .calledNumbers(new ArrayList<>())
                 .currentPlayerIndex(0)
                 .currentTurnUserId(gamePlayers.get(0).getUserId())
                 .moveNumber(0)
-                .startedAt(Instant.now())
-                .build();
+                .startedAt(Instant.now());
+
+        if (room.getGameType() == com.bingo.game.GameType.TIC_TAC_TOE) {
+            int tttSize = room.getBoardSize();
+            gameBuilder.tttGridSize(tttSize);
+            gameBuilder.tttBoard(new ArrayList<>(Collections.nCopies(tttSize * tttSize, "")));
+        } else if (room.getGameType() == com.bingo.game.GameType.DOTS_AND_BOXES) {
+            int dotsSize = room.getBoardSize();
+            gameBuilder.dotsGridSize(dotsSize);
+            gameBuilder.horizontalLines(new ArrayList<>());
+            gameBuilder.verticalLines(new ArrayList<>());
+            gameBuilder.completedBoxes(new HashMap<>());
+            Map<String, Integer> initialScores = new HashMap<>();
+            for (GamePlayer gp : gamePlayers) {
+                initialScores.put(gp.getUserId(), 0);
+            }
+            gameBuilder.playerScores(initialScores);
+        } else {
+            gameBuilder.calledNumbers(new ArrayList<>());
+        }
+
+        Game game = gameBuilder.build();
 
         game = gameRepository.save(game);
 

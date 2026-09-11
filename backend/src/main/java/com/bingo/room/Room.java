@@ -32,6 +32,9 @@ public class Room {
     private RoomStatus status = RoomStatus.WAITING;
 
     @Builder.Default
+    private com.bingo.game.GameType gameType = com.bingo.game.GameType.BINGO;
+
+    @Builder.Default
     private int boardSize = 5;
 
     @Builder.Default

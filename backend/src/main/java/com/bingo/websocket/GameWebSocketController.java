@@ -47,6 +47,54 @@ public class GameWebSocketController {
         }
     }
 
+    @MessageMapping("/game/tic-tac-toe/move")
+    public void handleTttMove(@Payload com.bingo.game.dto.TttWsMove request, Principal principal) {
+        if (principal == null) {
+            log.warn("Unauthorized TTT move attempt");
+            return;
+        }
+
+        String userId = principal.getName();
+        try {
+            gameService.processTttMove(userId, request.getGameId(), request.getRow(), request.getCol());
+        } catch (Exception ex) {
+            log.warn("Notice: TTT move rejected ({}): {}", userId, ex.getMessage());
+            try {
+                Game game = gameService.getGameById(request.getGameId());
+                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", java.util.Map.of(
+                        "currentTurnUserId", game.getCurrentTurnUserId(),
+                        "tttBoard", game.getTttBoard()
+                ));
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    @MessageMapping("/game/dots-and-boxes/line")
+    public void handleDotsLine(@Payload com.bingo.game.dto.DotsWsLine request, Principal principal) {
+        if (principal == null) {
+            log.warn("Unauthorized Dots line attempt");
+            return;
+        }
+
+        String userId = principal.getName();
+        try {
+            gameService.processDotsLine(userId, request.getGameId(), request.getLineType(), request.getRow(), request.getCol());
+        } catch (Exception ex) {
+            log.warn("Notice: Dots line rejected ({}): {}", userId, ex.getMessage());
+            try {
+                Game game = gameService.getGameById(request.getGameId());
+                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", java.util.Map.of(
+                        "currentTurnUserId", game.getCurrentTurnUserId(),
+                        "playerScores", game.getPlayerScores(),
+                        "horizontalLines", game.getHorizontalLines(),
+                        "verticalLines", game.getVerticalLines()
+                ));
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
     @MessageMapping("/game/send-emote")
     public void handleSendEmote(@Payload com.bingo.game.dto.SendEmoteRequest request, Principal principal) {
         if (principal == null) {

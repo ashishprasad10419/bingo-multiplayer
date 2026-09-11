@@ -45,11 +45,17 @@ export const Winner: React.FC = () => {
     navigate('/');
   };
 
+  const isDraw = (!game?.winnerId || game.winnerId === '') && game?.status === 'FINISHED';
+
   return (
     <div className="max-w-md mx-auto px-4 sm:px-6 py-10 flex flex-col items-center justify-center min-h-[85vh] text-center font-sans">
       {/* Trophy & Badge */}
       <div className="relative mb-6">
-        <div className="w-24 h-24 rounded-[30px] bg-gradient-to-tr from-[#f8788a] via-[#f59e0b] to-[#fde047] flex items-center justify-center text-white shadow-[0_12px_32px_rgba(245,158,11,0.35)] animate-bounce-short">
+        <div className={`w-24 h-24 rounded-[30px] flex items-center justify-center text-white shadow-[0_12px_32px_rgba(245,158,11,0.35)] animate-bounce-short ${
+          isDraw
+            ? 'bg-gradient-to-tr from-[#8b7fe8] via-[#a78bfa] to-[#c4b5fd]'
+            : 'bg-gradient-to-tr from-[#f8788a] via-[#f59e0b] to-[#fde047]'
+        }`}>
           <Trophy className="w-12 h-12 stroke-[2.5]" />
         </div>
         <Star className="w-8 h-8 text-[#f59e0b] fill-[#f59e0b] absolute -top-2 -right-2 animate-spin" />
@@ -60,13 +66,19 @@ export const Winner: React.FC = () => {
       </div>
 
       <h1 className="text-3xl sm:text-4xl font-extrabold text-[#2a2050] tracking-tight">
-        {hasWon ? '🏆 BINGO! YOU WON!' : `${winnerInfo?.username || 'Opponent'} Won!`}
+        {isDraw
+          ? "🤝 IT'S A DRAW!"
+          : hasWon
+          ? '🏆 VICTORY! YOU WON!'
+          : `${winnerInfo?.username || 'Opponent'} Won!`}
       </h1>
 
       <p className="text-xs sm:text-sm font-medium text-[#7e749c] mt-2 max-w-xs leading-relaxed">
-        {hasWon
-          ? 'Incredible game! You completed your lines and claimed the victory.'
-          : 'Great match! Keep practicing to claim the next win.'}
+        {isDraw
+          ? 'Both players played exceptionally well! No victor this round.'
+          : hasWon
+          ? 'Incredible performance! You claimed the victory.'
+          : 'Great match! Keep playing to claim the next win.'}
       </p>
 
       {/* Rewards Card */}

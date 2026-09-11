@@ -48,6 +48,26 @@ public class GameController {
         return ResponseEntity.ok(gameService.processCallNumber(userId, request));
     }
 
+    @PostMapping("/games/{id}/tic-tac-toe/move")
+    @Operation(summary = "Make a Tic-Tac-Toe move (REST fallback for WebSocket)")
+    public ResponseEntity<Game> makeTttMove(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.TttMoveRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processTttMove(userId, id, request.getRow(), request.getCol()));
+    }
+
+    @PostMapping("/games/{id}/dots-and-boxes/line")
+    @Operation(summary = "Draw a line in Dots & Boxes (REST fallback for WebSocket)")
+    public ResponseEntity<Game> drawDotsLine(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.DotsLineRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processDotsLine(userId, id, request.getLineType(), request.getRow(), request.getCol()));
+    }
+
     @PostMapping("/games/{id}/emote")
     @Operation(summary = "Send an in-game reaction emote (REST fallback)")
     public ResponseEntity<Void> sendEmote(

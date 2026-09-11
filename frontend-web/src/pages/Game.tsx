@@ -11,6 +11,8 @@ import { PlayerList } from '../components/PlayerList';
 import { BingoAnimation } from '../components/BingoAnimation';
 import { EmoteBar } from '../components/EmoteBar';
 import { FloatingEmotesOverlay } from '../components/FloatingEmotesOverlay';
+import { TicTacToeArena } from '../components/games/TicTacToeArena';
+import { DotsAndBoxesArena } from '../components/games/DotsAndBoxesArena';
 import { AlertCircle, Clock, Sparkles } from 'lucide-react';
 
 export const Game: React.FC = () => {
@@ -35,6 +37,10 @@ export const Game: React.FC = () => {
   const prevTurnUserIdRef = useRef<string | null>(null);
   const prevLineCountRef = useRef(lineCount);
 
+  const isBingo = !game?.gameType || game.gameType === 'BINGO';
+  const isTtt = game?.gameType === 'TIC_TAC_TOE';
+  const isDots = game?.gameType === 'DOTS_AND_BOXES';
+
   // Audio Cue: Alert player when it becomes their turn
   useEffect(() => {
     if (game?.currentTurnUserId && user?.id) {
@@ -51,11 +57,11 @@ export const Game: React.FC = () => {
 
   // Audio Cue: Ascending triumphant chime when a BINGO line completes
   useEffect(() => {
-    if (lineCount > prevLineCountRef.current) {
+    if (isBingo && lineCount > prevLineCountRef.current) {
       soundService.playLineComplete();
     }
     prevLineCountRef.current = lineCount;
-  }, [lineCount]);
+  }, [lineCount, isBingo]);
 
   // Audio Cue: Victory celebration fanfare when winner is crowned
   useEffect(() => {
@@ -69,7 +75,8 @@ export const Game: React.FC = () => {
       initSocketListeners(code, user.id);
 
       // Restore full game and board state if refreshing, missing, or room code mismatch
-      if (!game || !board || game.roomCode?.toUpperCase() !== code.toUpperCase()) {
+      const needsSync = !game || (isBingo && !board) || game.roomCode?.toUpperCase() !== code.toUpperCase();
+      if (needsSync) {
         syncGameByRoomCode(code, user.id).catch((err) => {
           console.error('Failed to sync game state on refresh:', err);
           setError(err.response?.data?.message || 'Could not load match state. Please return to lobby.');
@@ -103,7 +110,6 @@ export const Game: React.FC = () => {
 
   // Bulletproof Heartbeat Reconciliation:
   // Poll authoritative match state every 1.5s while playing
-  // Guarantees all players stay in 100% lockstep even if WebSocket drops or lags
   useEffect(() => {
     if (!code || !user) return;
     if (game && game.status !== 'PLAYING') return;
@@ -115,7 +121,7 @@ export const Game: React.FC = () => {
     return () => clearInterval(timer);
   }, [code, user?.id, game?.status, syncGameByRoomCode]);
 
-  if (!user || !game || !board || game.roomCode?.toUpperCase() !== code?.toUpperCase()) {
+  if (!user || !game || (isBingo && !board) || game.roomCode?.toUpperCase() !== code?.toUpperCase()) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4 px-4 text-center font-sans">
         {error ? (
@@ -123,7 +129,7 @@ export const Game: React.FC = () => {
             <p className="text-sm text-red-500 font-semibold">{error}</p>
             <button
               onClick={() => navigate(`/lobby/${code}`)}
-              className="btn-gradient px-5 py-2.5 text-xs font-bold shadow-sm"
+              className="btn-gradient px-5 py-2.5 text-xs font-bold shadow-sm cursor-pointer"
             >
               Return to Lobby
             </button>
@@ -141,35 +147,28 @@ export const Game: React.FC = () => {
   const isMyTurn = game.currentTurnUserId === user.id;
   const currentTurnPlayer = game.players.find((p) => p.userId === game.currentTurnUserId);
 
+  // --- BINGO Move Handler ---
   const handleCellClick = async (_row: number, _col: number, value: number) => {
     if (!isMyTurn || calling || pendingPick !== null) return;
     if (game.calledNumbers.includes(value)) return;
 
-    // 1. INSTANT 0ms OPTIMISTIC FEEDBACK:
-    // Mark cell as picked immediately in UI so player NEVER has to wonder or click twice!
     soundService.playTileTap();
     soundService.playPickSuccess();
     setPendingPick(value);
     setCalling(true);
     setError(null);
 
-    // Subtle tactile feedback on mobile devices
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try { navigator.vibrate(15); } catch (_) {}
     }
 
     let socketSent = false;
     try {
-      // 2. Dispatch over real-time WebSocket STOMP
       socketSent = socketService.callNumber(game.id, value);
     } catch (e) {
       socketSent = false;
     }
 
-    // 3. Fast Dual-Channel Guarantee:
-    // If socket wasn't connected, fire REST immediately.
-    // If socket was sent, schedule a 350ms safety fallback timer to guarantee execution
-    // even if mobile network jitter caused a dropped STOMP packet.
     if (!socketSent) {
       try {
         await gameApi.callNumber(game.id, value);
@@ -182,21 +181,103 @@ export const Game: React.FC = () => {
         setCalling(false);
       }
     } else {
-      // Socket sent: fallback safety check in 350ms
       setTimeout(async () => {
         const latestGame = useGameStore.getState().game;
         if (latestGame && !latestGame.calledNumbers.includes(value) && latestGame.currentTurnUserId === user?.id) {
           try {
             await gameApi.callNumber(game.id, value);
-          } catch (err: any) {
-            // ignore duplicate or turn advance
-          }
+          } catch (err: any) {}
         }
       }, 350);
-
-      // Re-enable calling check after short delay
       setTimeout(() => setCalling(false), 300);
     }
+  };
+
+  // --- TIC-TAC-TOE Move Handler ---
+  const handleTttMove = async (row: number, col: number) => {
+    if (!isMyTurn || calling) return;
+    soundService.playTileTap();
+    setCalling(true);
+    setError(null);
+
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(15); } catch (_) {}
+    }
+
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendTttMove(game.id, row, col);
+    } catch (e) {
+      socketSent = false;
+    }
+
+    if (!socketSent) {
+      try {
+        await gameApi.makeTttMove(game.id, row, col);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to make move');
+      } finally {
+        setCalling(false);
+      }
+    } else {
+      setTimeout(async () => {
+        const latestGame = useGameStore.getState().game;
+        const size = latestGame?.tttGridSize || 3;
+        const index = row * size + col;
+        if (latestGame && latestGame.tttBoard && !latestGame.tttBoard[index] && latestGame.currentTurnUserId === user?.id) {
+          try {
+            await gameApi.makeTttMove(game.id, row, col);
+          } catch (err: any) {}
+        }
+      }, 350);
+      setTimeout(() => setCalling(false), 300);
+    }
+  };
+
+  // --- DOTS & BOXES Move Handler ---
+  const handleDotsLine = async (lineType: 'H' | 'V', row: number, col: number) => {
+    if (!isMyTurn || calling) return;
+    soundService.playTileTap();
+    setCalling(true);
+    setError(null);
+
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(15); } catch (_) {}
+    }
+
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendDotsLine(game.id, lineType, row, col);
+    } catch (e) {
+      socketSent = false;
+    }
+
+    if (!socketSent) {
+      try {
+        await gameApi.drawDotsLine(game.id, lineType, row, col);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to draw line');
+      } finally {
+        setCalling(false);
+      }
+    } else {
+      setTimeout(async () => {
+        const latestGame = useGameStore.getState().game;
+        const lines = lineType === 'H' ? latestGame?.horizontalLines : latestGame?.verticalLines;
+        if (latestGame && lines && !lines[row]?.[col] && latestGame.currentTurnUserId === user?.id) {
+          try {
+            await gameApi.drawDotsLine(game.id, lineType, row, col);
+          } catch (err: any) {}
+        }
+      }, 350);
+      setTimeout(() => setCalling(false), 300);
+    }
+  };
+
+  const getGameTitle = () => {
+    if (isTtt) return 'Tic-Tac-Toe';
+    if (isDots) return 'Dots & Boxes';
+    return 'Bingo';
   };
 
   return (
@@ -208,12 +289,27 @@ export const Game: React.FC = () => {
           <span className="px-3 py-1 rounded-full bg-[#f0ecfc] border border-[#e0d6f8] font-mono font-extrabold text-xs text-[#6d5ebd] tracking-wider">
             {code}
           </span>
+          <span className="px-2.5 py-0.5 rounded-full bg-white border border-[#ede8f8] text-[10px] font-bold text-[#8b7fe8]">
+            {getGameTitle()}
+          </span>
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="text-xs px-3 py-1 rounded-full bg-[#fef5db] border border-[#fde7ad] text-[#b45309] font-extrabold">
-            Target: {game.winningLines || 5} Lines
-          </span>
+          {isBingo && (
+            <span className="text-xs px-3 py-1 rounded-full bg-[#fef5db] border border-[#fde7ad] text-[#b45309] font-extrabold">
+              Target: {game.winningLines || 5} Lines
+            </span>
+          )}
+          {isTtt && (
+            <span className="text-xs px-3 py-1 rounded-full bg-[#fee8ea] border border-[#fcd3d7] text-[#dc2626] font-extrabold">
+              Grid: {game.tttGridSize || 3}x{game.tttGridSize || 3}
+            </span>
+          )}
+          {isDots && (
+            <span className="text-xs px-3 py-1 rounded-full bg-[#e6f7ef] border border-[#c3eed7] text-[#047857] font-extrabold">
+              Grid: {game.dotsGridSize || 4}x{game.dotsGridSize || 4}
+            </span>
+          )}
           <span className="text-xs px-3 py-1 rounded-full bg-[#e6f7ef] border border-[#c3eed7] text-[#047857] font-extrabold">
             {game.status}
           </span>
@@ -229,10 +325,12 @@ export const Game: React.FC = () => {
 
       {/* Main 2-Column Responsive Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-        {/* Left Column: BINGO Banner, Turn Callout & Board Grid */}
+        {/* Left Column: Game Arena & Controls */}
         <div className="lg:col-span-7 space-y-3.5 flex flex-col items-center">
-          {/* B-I-N-G-O Progress Banner */}
-          <BingoAnimation lineCount={lineCount} targetLines={game.winningLines || 5} />
+          {/* Bingo-Only: Progress Banner */}
+          {isBingo && (
+            <BingoAnimation lineCount={lineCount} targetLines={game.winningLines || 5} />
+          )}
 
           {/* Turn Indicator Banner */}
           <div
@@ -255,7 +353,9 @@ export const Game: React.FC = () => {
               <div className="flex items-center justify-center space-x-2">
                 <Sparkles className="w-5 h-5 text-[#f59e0b] animate-pulse" />
                 <div className="text-sm font-extrabold text-[#2a2050]">
-                  IT'S YOUR TURN! Tap a number on your board
+                  {isBingo && "IT'S YOUR TURN! Tap a number on your board"}
+                  {isTtt && "IT'S YOUR TURN! Place your mark on the grid"}
+                  {isDots && "IT'S YOUR TURN! Click a line between two dots"}
                 </div>
               </div>
             ) : (
@@ -266,35 +366,63 @@ export const Game: React.FC = () => {
                   <strong className="text-[#2a2050] font-extrabold">
                     {currentTurnPlayer?.username || 'player'}
                   </strong>{' '}
-                  to pick a number...
+                  to make a move...
                 </span>
               </div>
             )}
           </div>
 
-          {/* Live Board Grid */}
-          <BoardGrid
-            board={board}
-            mode="game"
-            calledNumbers={game.calledNumbers}
-            calledByMap={calledByMap}
-            currentUserId={user.id}
-            onCellClick={handleCellClick}
-            isMyTurn={isMyTurn}
-            pendingPick={pendingPick}
-            disabled={game.status !== 'PLAYING'}
-          />
+          {/* Dynamic Game Arena Component */}
+          {isBingo && board && (
+            <>
+              <BoardGrid
+                board={board}
+                mode="game"
+                calledNumbers={game.calledNumbers}
+                calledByMap={calledByMap}
+                currentUserId={user.id}
+                onCellClick={handleCellClick}
+                isMyTurn={isMyTurn}
+                pendingPick={pendingPick}
+                disabled={game.status !== 'PLAYING'}
+              />
 
-          {/* Called Numbers Ticker - Positioned directly below the Bingo Board */}
-          <div className="w-full max-w-[560px]">
-            <CalledNumbersTicker
-              calledNumbers={game.calledNumbers}
-              lastNumber={lastCalledNumber}
-              totalNumbers={game.boardSize * game.boardSize}
-              calledByMap={calledByMap}
-              currentUserId={user.id}
-            />
-          </div>
+              {/* Called Numbers Ticker */}
+              <div className="w-full max-w-[560px]">
+                <CalledNumbersTicker
+                  calledNumbers={game.calledNumbers}
+                  lastNumber={lastCalledNumber}
+                  totalNumbers={game.boardSize * game.boardSize}
+                  calledByMap={calledByMap}
+                  currentUserId={user.id}
+                />
+              </div>
+            </>
+          )}
+
+          {isTtt && (
+            <div className="w-full max-w-[560px] flex justify-center">
+              <TicTacToeArena
+                game={game}
+                currentUserId={user.id}
+                onMakeMove={handleTttMove}
+                isMyTurn={isMyTurn}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
+
+          {isDots && (
+            <div className="w-full max-w-[560px] flex justify-center">
+              <DotsAndBoxesArena
+                game={game}
+                currentUserId={user.id}
+                onDrawLine={handleDotsLine}
+                isMyTurn={isMyTurn}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
 
           {/* In-Game Emote Reactions Bar */}
           <div className="w-full pt-1 flex justify-center">
@@ -316,9 +444,21 @@ export const Game: React.FC = () => {
             <div className="font-extrabold text-[#2a2050] flex items-center space-x-1.5">
               <span>🎯 How to Win:</span>
             </div>
-            <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
-              Complete {game.winningLines || 5} horizontal rows, vertical columns, or diagonal lines before your opponents. Each number called marks that tile for every player in the room!
-            </p>
+            {isBingo && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Complete {game.winningLines || 5} horizontal rows, vertical columns, or diagonal lines before your opponents. Each number called marks that tile for every player in the room!
+              </p>
+            )}
+            {isTtt && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Align {game.tttGridSize || 3} of your marks in an uninterrupted row, column, or diagonal line. Block your opponent before they complete theirs!
+              </p>
+            )}
+            {isDots && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Take turns drawing horizontal or vertical lines between adjacent dots. Completing the 4th side of any 1x1 box claims it for your score and grants you an immediate bonus turn!
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -328,3 +468,4 @@ export const Game: React.FC = () => {
     </div>
   );
 };
+

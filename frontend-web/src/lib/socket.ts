@@ -107,6 +107,38 @@ class SocketService {
     }
   }
 
+  public sendTttMove(gameId: string, row: number, col: number): boolean {
+    if (!this.client || !this.client.connected) {
+      return false;
+    }
+    try {
+      this.client.publish({
+        destination: '/app/game/tic-tac-toe/move',
+        body: JSON.stringify({ gameId, row, col }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendTttMove failed:', e);
+      return false;
+    }
+  }
+
+  public sendDotsLine(gameId: string, lineType: 'H' | 'V', row: number, col: number): boolean {
+    if (!this.client || !this.client.connected) {
+      return false;
+    }
+    try {
+      this.client.publish({
+        destination: '/app/game/dots-and-boxes/line',
+        body: JSON.stringify({ gameId, lineType, row, col }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendDotsLine failed:', e);
+      return false;
+    }
+  }
+
   public sendEmote(gameId: string, roomCode: string, emote: string): boolean {
     if (!this.client || !this.client.connected) {
       return false;
