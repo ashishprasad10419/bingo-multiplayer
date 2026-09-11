@@ -12,11 +12,11 @@ export const BingoAnimation: React.FC<BingoAnimationProps> = ({
   targetLines = 5,
   triggerConfetti = false,
 }) => {
-  // If standard 5 lines, use classic B-I-N-G-O. If > 5 lines, extend with extra markers or numbers!
+  // If standard 5 lines, use classic B-I-N-G-O. If > 5 lines, extend with extra 'O's (e.g., BINGOOOOOO)
   const baseLetters = ['B', 'I', 'N', 'G', 'O'];
   const fullLetters = targetLines <= 5
     ? baseLetters
-    : [...baseLetters, ...Array.from({ length: targetLines - 5 }, (_, i) => `${i + 6}`)];
+    : [...baseLetters, ...Array.from({ length: targetLines - 5 }, () => 'O')];
 
   useEffect(() => {
     if (triggerConfetti || lineCount >= targetLines) {

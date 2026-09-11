@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CellPosition {
     @Min(0)
-    @Max(4)
+    @Max(9)
     private int row;
 
     @Min(0)
-    @Max(4)
+    @Max(9)
     private int column;
 }

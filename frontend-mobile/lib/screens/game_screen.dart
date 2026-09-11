@@ -237,19 +237,23 @@ class GameScreen extends StatelessWidget {
   }
 
   Widget _buildBingoBanner(int lineCount, int target) {
-    const letters = ['B', 'I', 'N', 'G', 'O'];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: letters.asMap().entries.map((entry) {
-        final idx = entry.key;
-        final char = entry.value;
-        final isCompleted = idx < lineCount;
+    final letters = target <= 5
+        ? ['B', 'I', 'N', 'G', 'O']
+        : ['B', 'I', 'N', 'G', 'O', ...List.filled(target - 5, 'O')];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: letters.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final char = entry.value;
+          final isCompleted = idx < lineCount;
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: 44,
-          height: 44,
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            width: target > 7 ? 34 : 44,
+            height: target > 7 ? 34 : 44,
           decoration: BoxDecoration(
             gradient: isCompleted ? ClayColors.primaryGradient : null,
             color: isCompleted ? null : Colors.white,
@@ -276,8 +280,9 @@ class GameScreen extends StatelessWidget {
               ),
             ),
           ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 }
