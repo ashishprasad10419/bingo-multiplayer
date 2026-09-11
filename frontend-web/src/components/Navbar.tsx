@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../state/authStore';
-import { Trophy, LogOut, Flame, Volume2, VolumeX } from 'lucide-react';
+import { Trophy, LogOut, Flame, Volume2, VolumeX, Gamepad2 } from 'lucide-react';
 import { soundService } from '../lib/sound';
+import { useGameTheme } from '../lib/useGameTheme';
+import { GameVisualIcon } from './games/GameVisualIcon';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const theme = useGameTheme();
   const [soundOn, setSoundOn] = useState(() => soundService.isEnabled());
 
   const handleToggleSound = () => {
@@ -17,19 +20,28 @@ export const Navbar: React.FC = () => {
   if (!user) return null;
 
   return (
-    <header className="bg-white/80 backdrop-blur-lg border-b border-[#ede8f8] sticky top-0 z-40 px-4 sm:px-6 py-2.5 shadow-[0_4px_20px_rgba(140,120,210,0.08)] transition-all">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
-        {/* Brand */}
+    <header className={`${theme.navbarBg} backdrop-blur-lg border-b ${theme.navbarBorder} sticky top-0 z-40 px-4 sm:px-6 py-2.5 shadow-[0_4px_20px_rgba(140,120,210,0.06)] transition-colors duration-300`}>
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        {/* Brand with Game-Specific Colors */}
         <div
           onClick={() => navigate('/')}
-          className="flex items-center space-x-2.5 cursor-pointer group"
+          className="flex items-center space-x-2.5 cursor-pointer group select-none"
         >
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#f8788a] via-[#e271a5] to-[#8b7fe8] flex items-center justify-center font-extrabold text-white text-xl shadow-[0_6px_16px_rgba(240,115,145,0.3)] group-hover:scale-105 transition-transform">
-            B
+          <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${theme.navIconBg} flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform p-1`}>
+            {theme.type === 'DEFAULT' ? (
+              <Gamepad2 className="w-5 h-5 text-white" />
+            ) : (
+              <GameVisualIcon type={theme.type} size="sm" />
+            )}
           </div>
-          <span className="font-extrabold text-xl tracking-tight text-[#2a2050] group-hover:text-[#8b7fe8] transition-colors">
-            BINGO
-          </span>
+          <div className="flex flex-col">
+            <span className={`font-black text-lg tracking-tight bg-gradient-to-r ${theme.navbarBrandGrad} bg-clip-text text-transparent group-hover:opacity-90 transition-opacity leading-none`}>
+              {theme.brandTitle}
+            </span>
+            <span className="text-[9px] font-bold text-[#7e749c] tracking-widest uppercase mt-0.5">
+              {theme.type === 'DEFAULT' ? 'Multiplayer Hub' : theme.badge}
+            </span>
+          </div>
         </div>
 
         {/* Right Stats & Controls */}

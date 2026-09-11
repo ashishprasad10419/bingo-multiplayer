@@ -4,6 +4,7 @@ import { useGameStore } from '../state/gameStore';
 import { useAuthStore } from '../state/authStore';
 import { roomApi } from '../lib/api';
 import { PlayerList } from '../components/PlayerList';
+import { getGameTheme } from '../lib/gameThemes';
 import { Copy, Check, Play, ArrowLeft, Grid, AlertCircle, Share2, MessageCircle } from 'lucide-react';
 
 export const Lobby: React.FC = () => {
@@ -119,8 +120,10 @@ export const Lobby: React.FC = () => {
     navigate('/');
   };
 
+  const theme = getGameTheme(room?.gameType);
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6 font-sans">
+    <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 font-sans">
       {/* Header controls */}
       <div className="flex items-center justify-between">
         <button
@@ -131,7 +134,7 @@ export const Lobby: React.FC = () => {
           <span>Leave Lobby</span>
         </button>
 
-        <span className="text-xs font-extrabold px-3.5 py-1.5 rounded-full bg-[#f0ecfc] border border-[#e0d6f8] text-[#6d5ebd] uppercase tracking-wider">
+        <span className={`text-xs font-black px-4 py-1.5 rounded-full ${theme.accentBadgeBg} border ${theme.accentBadgeBorder} ${theme.accentBadgeText} uppercase tracking-wider shadow-2xs`}>
           {room.status}
         </span>
       </div>
@@ -307,7 +310,7 @@ export const Lobby: React.FC = () => {
             <button
               onClick={handleStartGame}
               disabled={!isReadyToStart || starting}
-              className="btn-gradient w-full py-4 text-base cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className={`w-full py-4 rounded-full text-base font-black text-white bg-gradient-to-r ${theme.buttonGrad} shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed`}
             >
               {starting ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />

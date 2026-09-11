@@ -114,7 +114,7 @@ export const CreateRoom: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-6 py-6 font-sans">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 font-sans">
       <button
         onClick={() => navigate('/')}
         className="btn-pill-outline text-xs px-4 py-2 space-x-1.5 cursor-pointer mb-6"
@@ -351,7 +351,7 @@ export const CreateRoom: React.FC = () => {
         <button
           onClick={handleCreate}
           disabled={loading}
-          className="btn-gradient w-full py-4 text-base cursor-pointer"
+          className={`w-full py-4 rounded-full text-base font-black text-white bg-gradient-to-r ${meta.iconGradient} shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50`}
         >
           {loading ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />

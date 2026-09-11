@@ -13,6 +13,7 @@ import { EmoteBar } from '../components/EmoteBar';
 import { FloatingEmotesOverlay } from '../components/FloatingEmotesOverlay';
 import { TicTacToeArena } from '../components/games/TicTacToeArena';
 import { DotsAndBoxesArena } from '../components/games/DotsAndBoxesArena';
+import { getGameTheme } from '../lib/gameThemes';
 import { AlertCircle, Clock, Sparkles } from 'lucide-react';
 
 export const Game: React.FC = () => {
@@ -274,6 +275,8 @@ export const Game: React.FC = () => {
     }
   };
 
+  const theme = getGameTheme(game?.gameType);
+
   const getGameTitle = () => {
     if (isTtt) return 'Tic-Tac-Toe';
     if (isDots) return 'Dots & Boxes';
@@ -281,36 +284,36 @@ export const Game: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-4 font-sans">
-      {/* Match Header Bar */}
+    <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-4 font-sans">
+      {/* Match Header Bar with Game-Themed Badges */}
       <div className="flex items-center justify-between pb-1">
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-semibold text-[#7e749c]">Match Room:</span>
-          <span className="px-3 py-1 rounded-full bg-[#f0ecfc] border border-[#e0d6f8] font-mono font-extrabold text-xs text-[#6d5ebd] tracking-wider">
+          <span className="text-xs font-bold text-[#7e749c]">Match Room:</span>
+          <span className={`px-3 py-1 rounded-full ${theme.accentBadgeBg} border ${theme.accentBadgeBorder} font-mono font-black text-xs ${theme.accentBadgeText} tracking-wider shadow-2xs`}>
             {code}
           </span>
-          <span className="px-2.5 py-0.5 rounded-full bg-white border border-[#ede8f8] text-[10px] font-bold text-[#8b7fe8]">
+          <span className={`px-3 py-1 rounded-full bg-white border ${theme.accentBadgeBorder} text-xs font-black ${theme.accentBadgeText} shadow-2xs`}>
             {getGameTitle()}
           </span>
         </div>
 
         <div className="flex items-center space-x-2">
           {isBingo && (
-            <span className="text-xs px-3 py-1 rounded-full bg-[#fef5db] border border-[#fde7ad] text-[#b45309] font-extrabold">
+            <span className={`text-xs px-3 py-1 rounded-full ${theme.accentBadgeBg} border ${theme.accentBadgeBorder} ${theme.accentBadgeText} font-black`}>
               Target: {game.winningLines || 5} Lines
             </span>
           )}
           {isTtt && (
-            <span className="text-xs px-3 py-1 rounded-full bg-[#fee8ea] border border-[#fcd3d7] text-[#dc2626] font-extrabold">
+            <span className={`text-xs px-3 py-1 rounded-full ${theme.accentBadgeBg} border ${theme.accentBadgeBorder} ${theme.accentBadgeText} font-black`}>
               Grid: {game.tttGridSize || 3}x{game.tttGridSize || 3}
             </span>
           )}
           {isDots && (
-            <span className="text-xs px-3 py-1 rounded-full bg-[#e6f7ef] border border-[#c3eed7] text-[#047857] font-extrabold">
+            <span className={`text-xs px-3 py-1 rounded-full ${theme.accentBadgeBg} border ${theme.accentBadgeBorder} ${theme.accentBadgeText} font-black`}>
               Grid: {game.dotsGridSize || 4}x{game.dotsGridSize || 4}
             </span>
           )}
-          <span className="text-xs px-3 py-1 rounded-full bg-[#e6f7ef] border border-[#c3eed7] text-[#047857] font-extrabold">
+          <span className="text-xs px-3 py-1 rounded-full bg-[#e6f7ef] border border-[#c3eed7] text-[#047857] font-black">
             {game.status}
           </span>
         </div>
@@ -332,14 +335,14 @@ export const Game: React.FC = () => {
             <BingoAnimation lineCount={lineCount} targetLines={game.winningLines || 5} />
           )}
 
-          {/* Turn Indicator Banner */}
+          {/* Turn Indicator Banner with Game-Themed Glow */}
           <div
-            className={`w-full max-w-[560px] p-3.5 sm:p-4 rounded-[24px] border text-center transition-all ${
+            className={`w-full max-w-[560px] p-3.5 sm:p-4 rounded-[24px] border text-center transition-all duration-300 ${
               pendingPick !== null
                 ? 'bg-[#ecfdf5] border-2 border-[#10b981] ring-4 ring-[#10b981]/20 shadow-[0_8px_24px_rgba(16,185,129,0.25)]'
                 : isMyTurn
-                ? 'bg-[#f0ecfc] border-2 border-[#8b7fe8] ring-4 ring-[#8b7fe8]/20 shadow-[0_8px_24px_rgba(139,127,232,0.25)]'
-                : 'card-clay shadow-2xs'
+                ? theme.turnBannerMyTurn
+                : theme.turnBannerWaiting
             }`}
           >
             {pendingPick !== null ? (
@@ -351,8 +354,8 @@ export const Game: React.FC = () => {
               </div>
             ) : isMyTurn ? (
               <div className="flex items-center justify-center space-x-2">
-                <Sparkles className="w-5 h-5 text-[#f59e0b] animate-pulse" />
-                <div className="text-sm font-extrabold text-[#2a2050]">
+                <Sparkles className="w-5 h-5 animate-pulse text-amber-500" />
+                <div className="text-sm font-black text-[#2a2050]">
                   {isBingo && "IT'S YOUR TURN! Tap a number on your board"}
                   {isTtt && "IT'S YOUR TURN! Place your mark on the grid"}
                   {isDots && "IT'S YOUR TURN! Click a line between two dots"}

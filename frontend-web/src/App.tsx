@@ -14,6 +14,7 @@ import { Winner } from './pages/Winner';
 import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
 import { GameHub } from './pages/GameHub';
+import { useGameTheme } from './lib/useGameTheme';
 
 // Protected Route Guard
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -67,12 +68,13 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const theme = useGameTheme();
   const hideNavbar = ['/splash', '/login', '/winner'].some((p) =>
     location.pathname.startsWith(p)
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#d9d2fa] via-[#e8e2fc] to-[#fde2ea] text-[#2a2050] flex flex-col font-sans selection:bg-[#8b7fe8]/20">
+    <div className={`min-h-screen bg-gradient-to-br ${theme.bgGradient} text-[#2a2050] flex flex-col font-sans selection:bg-[#8b7fe8]/20 transition-colors duration-500`}>
       {!hideNavbar && <Navbar />}
       <main className="flex-1 pb-10">{children}</main>
     </div>
