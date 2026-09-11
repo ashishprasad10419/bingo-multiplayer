@@ -28,16 +28,23 @@ public class GameService {
         int number = request.getNumber();
         int maxNumber = game.getBoardSize() * game.getBoardSize();
 
-        // 1. Server-side validation
-        turnService.validateTurn(game, senderUserId);
-
         if (number < 1 || number > maxNumber) {
             throw new IllegalArgumentException("Number must be between 1 and " + maxNumber);
         }
 
-        if (game.getCalledNumbers().contains(number)) {
-            throw new IllegalArgumentException("Number " + number + " has already been called");
+        // Idempotency guard: If number was already processed (e.g. fast dual-channel delivery),
+        // gracefully return the existing game state rather than throwing an exception
+        if (game.getCalledNumbers() == null) {
+            game.setCalledNumbers(new ArrayList<>());
         }
+        if (game.getCalledNumbers().contains(number)) {
+            log.info("Idempotent call-number acknowledged: user={} number={} already called in game={}",
+                    senderUserId, number, game.getId());
+            return game;
+        }
+
+        // 1. Server-side turn validation
+        turnService.validateTurn(game, senderUserId);
 
         // 2. Append called number and move record
         game.getCalledNumbers().add(number);

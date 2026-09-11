@@ -8,6 +8,7 @@ interface BoardGridProps {
   calledByMap?: Record<number, string>; // number -> userId
   currentUserId?: string;
   selectedPos?: { row: number; column: number } | null;
+  pendingPick?: number | null;
   onCellClick?: (row: number, col: number, value: number) => void;
   onCellSwap?: (from: { row: number; column: number }, to: { row: number; column: number }) => void;
   isMyTurn?: boolean;
@@ -21,6 +22,7 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
   calledByMap = {},
   currentUserId,
   selectedPos = null,
+  pendingPick = null,
   onCellClick,
   onCellSwap,
   isMyTurn = false,
@@ -151,10 +153,11 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
             const isDragging = draggedCell?.row === r && draggedCell?.column === c;
             const isHoveredTarget = hoveredCell?.row === r && hoveredCell?.column === c && !isDragging;
             const isCalled = calledSet.has(val);
+            const isPendingThis = mode === 'game' && pendingPick === val;
 
             // Check WHO called this number
             const callerId = calledByMap[val];
-            const isMyPick = isCalled && currentUserId && callerId === currentUserId;
+            const isMyPick = (isCalled && currentUserId && callerId === currentUserId) || isPendingThis;
             const isOpponentPick = isCalled && currentUserId && callerId && callerId !== currentUserId;
 
             // 3D Pastel Clay Styling
@@ -174,7 +177,11 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
                 bgStyle = 'bg-white hover:bg-[#fbf9fe] text-[#2a2050] border border-[#ede8f8] hover:border-[#8b7fe8] hover:scale-[1.03] active:scale-95 shadow-[0_3px_10px_rgba(140,120,205,0.08)] cursor-grab active:cursor-grabbing';
               }
             } else if (mode === 'game') {
-              if (isCalled) {
+              if (isPendingThis) {
+                // Instant 0ms Optimistic Pick
+                bgStyle = 'bg-gradient-to-br from-[#10b981] to-[#059669] border-transparent text-white scale-[0.98] shadow-[0_6px_18px_rgba(16,185,129,0.4)] animate-pulse';
+                extraGlow = 'ring-4 ring-[#a7f3d0] z-10';
+              } else if (isCalled) {
                 if (isOpponentPick) {
                   // Opponent pick: Pastel Rose / Coral Gradient
                   bgStyle = 'bg-gradient-to-br from-[#f8788a] to-[#e11d48] border-transparent text-white scale-[0.98] shadow-[0_6px_16px_rgba(248,120,138,0.32)]';
@@ -188,7 +195,7 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
                   bgStyle = 'bg-gradient-to-br from-[#8b7fe8] to-[#6d5ebd] border-transparent text-white scale-[0.98] shadow-[0_6px_16px_rgba(139,127,232,0.32)]';
                   extraGlow = 'ring-2 ring-[#ddd6fe]';
                 }
-              } else if (isMyTurn && !disabled) {
+              } else if (isMyTurn && !disabled && !pendingPick) {
                 bgStyle = 'bg-white hover:bg-[#f4effc] border-2 border-[#e2d8f8] hover:border-[#8b7fe8] text-[#2a2050] hover:text-[#8b7fe8] cursor-pointer hover:scale-[1.04] active:scale-95 transition-all shadow-[0_4px_14px_rgba(140,120,205,0.12)]';
               } else {
                 bgStyle = 'bg-[#f5f1fc]/80 text-[#9f96ba] border border-[#ede8f8] cursor-default';
@@ -203,19 +210,19 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
                 data-row={r}
                 data-col={c}
                 draggable={mode === 'setup' && !disabled}
-                onDragStart={(e) => handleDragStart(e, r, c)}
-                onDragOver={(e) => handleDragOver(e, r, c)}
-                onDragLeave={(e) => handleDragLeave(e, r, c)}
-                onDrop={(e) => handleDrop(e, r, c)}
-                onDragEnd={handleDragEnd}
-                onTouchStart={() => handleTouchStart(r, c)}
-                disabled={disabled || (mode === 'game' && (isCalled || !isMyTurn))}
+                onDragStart={mode === 'setup' ? (e) => handleDragStart(e, r, c) : undefined}
+                onDragOver={mode === 'setup' ? (e) => handleDragOver(e, r, c) : undefined}
+                onDragLeave={mode === 'setup' ? (e) => handleDragLeave(e, r, c) : undefined}
+                onDrop={mode === 'setup' ? (e) => handleDrop(e, r, c) : undefined}
+                onDragEnd={mode === 'setup' ? handleDragEnd : undefined}
+                onTouchStart={mode === 'setup' ? () => handleTouchStart(r, c) : undefined}
+                disabled={disabled || (mode === 'game' && (isCalled || isPendingThis || !isMyTurn))}
                 onClick={() => onCellClick && onCellClick(r, c, val)}
-                className={`relative flex flex-col items-center justify-center border transition-all duration-150 select-none ${cellTypeClass} ${bgStyle} ${extraGlow}`}
+                className={`relative flex flex-col items-center justify-center border transition-all duration-150 select-none touch-manipulation cursor-pointer ${cellTypeClass} ${bgStyle} ${extraGlow}`}
               >
                 <span className="font-extrabold">{val}</span>
 
-                {mode === 'game' && isCalled && (
+                {mode === 'game' && (isCalled || isPendingThis) && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     {isOpponentPick ? (
                       <div className={`${badgeSizeClass} rounded-full bg-white/25 border border-white/70 flex items-center justify-center text-white animate-in fade-in zoom-in duration-150 shadow-xs`}>

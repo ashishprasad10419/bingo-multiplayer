@@ -26,6 +26,7 @@ export const Game: React.FC = () => {
   } = useGameStore();
 
   const [calling, setCalling] = useState(false);
+  const [pendingPick, setPendingPick] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,16 @@ export const Game: React.FC = () => {
     }
   }, [winnerInfo, game?.id, navigate]);
 
+  // Reconcile pending pick once authoritative state or turn change arrives
+  useEffect(() => {
+    if (pendingPick !== null && game) {
+      if (game.calledNumbers.includes(pendingPick) || game.currentTurnUserId !== user?.id) {
+        setPendingPick(null);
+        setCalling(false);
+      }
+    }
+  }, [game?.calledNumbers, game?.currentTurnUserId, user?.id, pendingPick]);
+
   // Bulletproof Heartbeat Reconciliation:
   // Poll authoritative match state every 1.5s while playing
   // Guarantees all players stay in 100% lockstep even if WebSocket drops or lags
@@ -71,21 +82,21 @@ export const Game: React.FC = () => {
 
   if (!user || !game || !board || game.roomCode?.toUpperCase() !== code?.toUpperCase()) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4 px-4 text-center">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4 px-4 text-center font-sans">
         {error ? (
           <div className="space-y-3">
-            <p className="text-sm text-red-400 font-semibold">{error}</p>
+            <p className="text-sm text-red-500 font-semibold">{error}</p>
             <button
               onClick={() => navigate(`/lobby/${code}`)}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-lg shadow-blue-500/20"
+              className="btn-gradient px-5 py-2.5 text-xs font-bold shadow-sm"
             >
               Return to Lobby
             </button>
           </div>
         ) : (
           <>
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-xs text-slate-400">Syncing live match state...</p>
+            <div className="w-8 h-8 border-3 border-[#8b7fe8] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-xs text-[#7e749c] font-medium">Syncing live match state...</p>
           </>
         )}
       </div>
@@ -96,28 +107,58 @@ export const Game: React.FC = () => {
   const currentTurnPlayer = game.players.find((p) => p.userId === game.currentTurnUserId);
 
   const handleCellClick = async (_row: number, _col: number, value: number) => {
-    if (!isMyTurn || calling) return;
+    if (!isMyTurn || calling || pendingPick !== null) return;
     if (game.calledNumbers.includes(value)) return;
 
+    // 1. INSTANT 0ms OPTIMISTIC FEEDBACK:
+    // Mark cell as picked immediately in UI so player NEVER has to wonder or click twice!
+    setPendingPick(value);
     setCalling(true);
     setError(null);
 
-    try {
-      // 1. Attempt real-time WebSocket STOMP action first
-      const sentViaSocket = socketService.callNumber(game.id, value);
+    // Subtle tactile feedback on mobile devices
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(15); } catch (_) {}
+    }
 
-      // 2. If socket not active, fallback to authoritative REST endpoint
-      if (!sentViaSocket) {
+    let socketSent = false;
+    try {
+      // 2. Dispatch over real-time WebSocket STOMP
+      socketSent = socketService.callNumber(game.id, value);
+    } catch (e) {
+      socketSent = false;
+    }
+
+    // 3. Fast Dual-Channel Guarantee:
+    // If socket wasn't connected, fire REST immediately.
+    // If socket was sent, schedule a 350ms safety fallback timer to guarantee execution
+    // even if mobile network jitter caused a dropped STOMP packet.
+    if (!socketSent) {
+      try {
         await gameApi.callNumber(game.id, value);
+      } catch (err: any) {
+        if (!err.message?.includes('already')) {
+          setError(err.response?.data?.message || 'Failed to call number');
+          setPendingPick(null);
+        }
+      } finally {
+        setCalling(false);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to call number');
-      // If turn collision or race condition occurred, resync match immediately
-      if (code && user?.id) {
-        syncGameByRoomCode(code, user.id).catch(() => {});
-      }
-    } finally {
-      setTimeout(() => setCalling(false), 200);
+    } else {
+      // Socket sent: fallback safety check in 350ms
+      setTimeout(async () => {
+        const latestGame = useGameStore.getState().game;
+        if (latestGame && !latestGame.calledNumbers.includes(value) && latestGame.currentTurnUserId === user?.id) {
+          try {
+            await gameApi.callNumber(game.id, value);
+          } catch (err: any) {
+            // ignore duplicate or turn advance
+          }
+        }
+      }, 350);
+
+      // Re-enable calling check after short delay
+      setTimeout(() => setCalling(false), 300);
     }
   };
 
@@ -159,12 +200,21 @@ export const Game: React.FC = () => {
           {/* Turn Indicator Banner */}
           <div
             className={`w-full max-w-[560px] p-3.5 sm:p-4 rounded-[24px] border text-center transition-all ${
-              isMyTurn
+              pendingPick !== null
+                ? 'bg-[#ecfdf5] border-2 border-[#10b981] ring-4 ring-[#10b981]/20 shadow-[0_8px_24px_rgba(16,185,129,0.25)]'
+                : isMyTurn
                 ? 'bg-[#f0ecfc] border-2 border-[#8b7fe8] ring-4 ring-[#8b7fe8]/20 shadow-[0_8px_24px_rgba(139,127,232,0.25)]'
                 : 'card-clay shadow-2xs'
             }`}
           >
-            {isMyTurn ? (
+            {pendingPick !== null ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-4 h-4 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin"></div>
+                <div className="text-sm font-extrabold text-[#047857]">
+                  Picked #{pendingPick}! Confirming move...
+                </div>
+              </div>
+            ) : isMyTurn ? (
               <div className="flex items-center justify-center space-x-2">
                 <Sparkles className="w-5 h-5 text-[#f59e0b] animate-pulse" />
                 <div className="text-sm font-extrabold text-[#2a2050]">
@@ -194,7 +244,8 @@ export const Game: React.FC = () => {
             currentUserId={user.id}
             onCellClick={handleCellClick}
             isMyTurn={isMyTurn}
-            disabled={calling || game.status !== 'PLAYING'}
+            pendingPick={pendingPick}
+            disabled={game.status !== 'PLAYING'}
           />
         </div>
 
