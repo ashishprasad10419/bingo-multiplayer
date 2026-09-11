@@ -120,6 +120,8 @@ export const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/join" element={<JoinRoom />} />
+          <Route path="/join/:code" element={<JoinRoom />} />
           <Route
             path="/lobby/:code"
             element={

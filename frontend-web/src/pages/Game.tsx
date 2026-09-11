@@ -285,27 +285,29 @@ export const Game: React.FC = () => {
             disabled={game.status !== 'PLAYING'}
           />
 
+          {/* Called Numbers Ticker - Positioned directly below the Bingo Board */}
+          <div className="w-full max-w-[560px]">
+            <CalledNumbersTicker
+              calledNumbers={game.calledNumbers}
+              lastNumber={lastCalledNumber}
+              totalNumbers={game.boardSize * game.boardSize}
+              calledByMap={calledByMap}
+              currentUserId={user.id}
+            />
+          </div>
+
           {/* In-Game Emote Reactions Bar */}
-          <div className="w-full pt-1.5 flex justify-center">
+          <div className="w-full pt-1 flex justify-center">
             <EmoteBar gameId={game.id} roomCode={game.roomCode} />
           </div>
         </div>
 
-        {/* Right Column: Player Roster, Ticker, and Match Info */}
+        {/* Right Column: Player Roster and Match Info */}
         <div className="lg:col-span-5 space-y-4">
           {/* Match Players Status */}
           <PlayerList
             gamePlayers={game.players}
             currentTurnUserId={game.currentTurnUserId}
-            currentUserId={user.id}
-          />
-
-          {/* Called Numbers Ticker */}
-          <CalledNumbersTicker
-            calledNumbers={game.calledNumbers}
-            lastNumber={lastCalledNumber}
-            totalNumbers={game.boardSize * game.boardSize}
-            calledByMap={calledByMap}
             currentUserId={user.id}
           />
 

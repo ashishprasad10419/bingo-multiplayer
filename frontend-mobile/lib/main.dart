@@ -34,11 +34,19 @@ class BingoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // If opened via deep link intent (e.g. from WhatsApp /join/ABCD12 link)
+    final defaultRoute = WidgetsBinding.instance.platformDispatcher.defaultRouteName;
+    final initialUrl = (defaultRoute.isNotEmpty && defaultRoute != '/')
+        ? (defaultRoute.startsWith('http')
+            ? defaultRoute
+            : 'https://bingo-multiplayer-delta.vercel.app$defaultRoute')
+        : 'https://bingo-multiplayer-delta.vercel.app';
+
     return MaterialApp(
       title: 'Bingo Multiplayer',
       debugShowCheckedModeBanner: false,
       theme: ClayTheme.theme,
-      home: const WebGameScreen(),
+      home: WebGameScreen(initialUrl: initialUrl),
     );
   }
 }

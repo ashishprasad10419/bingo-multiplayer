@@ -4,7 +4,7 @@ import { useGameStore } from '../state/gameStore';
 import { useAuthStore } from '../state/authStore';
 import { roomApi } from '../lib/api';
 import { PlayerList } from '../components/PlayerList';
-import { Copy, Check, Play, ArrowLeft, Grid, AlertCircle } from 'lucide-react';
+import { Copy, Check, Play, ArrowLeft, Grid, AlertCircle, Share2, MessageCircle } from 'lucide-react';
 
 export const Lobby: React.FC = () => {
   const { code } = useParams<{ code: string }>();
@@ -13,8 +13,46 @@ export const Lobby: React.FC = () => {
   const { room, fetchRoom, initSocketListeners, leaveCurrentRoom, game, resetGame } = useGameStore();
 
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const inviteUrl = `${window.location.origin}/join/${room?.roomCode || code}`;
+  const shareText = `🎮 Hey! Join my Bingo game right now! Tap the link to join directly:\n${inviteUrl}\n(Room Code: ${room?.roomCode || code})`;
+
+  const handleCopyCode = () => {
+    if (!room) return;
+    navigator.clipboard.writeText(room.roomCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(inviteUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleShareWhatsApp = () => {
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleNativeShare = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join my Bingo Game!',
+          text: `Hey! Join my Bingo match (Room Code: ${room?.roomCode || code})`,
+          url: inviteUrl,
+        });
+      } catch (err) {
+        // User cancelled or ignored
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
 
   useEffect(() => {
     if (code && user) {
@@ -62,11 +100,6 @@ export const Lobby: React.FC = () => {
   const allLocked = room.players.length >= 2 && room.players.every((p) => p.boardLocked);
   const isMyBoardLocked = !!myPlayer?.boardLocked;
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(room.roomCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleStartGame = async () => {
     setStarting(true);
@@ -112,21 +145,75 @@ export const Lobby: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         {/* Left Column: Room Code, Board Setup & Match Settings */}
         <div className="lg:col-span-6 space-y-4">
-          {/* Room Code Card */}
-          <div className="card-clay p-6 text-center">
-            <div className="text-xs text-[#7e749c] font-bold uppercase tracking-wider">Room Code</div>
-            <div className="text-4xl sm:text-5xl font-mono font-black tracking-widest text-[#2a2050] mt-2 select-all">
-              {room.roomCode}
+          {/* Room Code & Invite Friends Card */}
+          <div className="card-clay p-5 sm:p-6 text-center space-y-4">
+            <div>
+              <div className="text-xs text-[#7e749c] font-bold uppercase tracking-wider">Room Code</div>
+              <div className="text-4xl sm:text-5xl font-mono font-black tracking-widest text-[#2a2050] mt-1 select-all">
+                {room.roomCode}
+              </div>
             </div>
 
-            <div className="flex items-center justify-center space-x-2 mt-4">
-              <button
-                onClick={handleCopyCode}
-                className="btn-pill-outline px-4 py-2 text-xs font-bold space-x-1.5 cursor-pointer"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-[#10b981]" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Copied to Clipboard!' : 'Copy Code'}</span>
-              </button>
+            {/* Invite & Share Action Bar */}
+            <div className="pt-3 border-t border-[#ede8f8] space-y-2.5">
+              <div className="text-[11px] font-extrabold text-[#7e749c] uppercase tracking-wider">
+                Invite Friends to Match
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {/* WhatsApp Share Button */}
+                <button
+                  onClick={handleShareWhatsApp}
+                  className="px-4 py-2 rounded-full text-xs font-extrabold text-white bg-gradient-to-r from-[#25D366] to-[#128C7E] shadow-[0_4px_12px_rgba(37,211,102,0.3)] hover:brightness-105 active:scale-[0.98] transition flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                  <span>Share on WhatsApp</span>
+                </button>
+
+                {/* Native Social Share (WhatsApp, Telegram, Instagram, Messages, etc.) */}
+                {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
+                  <button
+                    onClick={handleNativeShare}
+                    className="btn-pill-outline px-3.5 py-2 text-xs font-bold space-x-1.5 cursor-pointer"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-[#8b7fe8]" />
+                    <span>Share...</span>
+                  </button>
+                )}
+
+                {/* Copy Direct Invite Link */}
+                <button
+                  onClick={handleCopyLink}
+                  className="btn-pill-outline px-3.5 py-2 text-xs font-bold space-x-1.5 cursor-pointer"
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-[#10b981]" />
+                      <span className="text-[#10b981]">Link Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-[#7e749c]" />
+                      <span>Copy Link</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Copy Code Only */}
+                <button
+                  onClick={handleCopyCode}
+                  className="btn-pill-outline px-3.5 py-2 text-xs font-bold space-x-1.5 cursor-pointer"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-[#10b981]" />
+                      <span className="text-[#10b981]">Code Copied!</span>
+                    </>
+                  ) : (
+                    <span>Copy Code</span>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
