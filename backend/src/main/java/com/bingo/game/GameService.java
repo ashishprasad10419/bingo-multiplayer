@@ -170,4 +170,17 @@ public class GameService {
                 userId, PageRequest.of(0, Math.min(limit, 50))
         );
     }
+
+    public void broadcastEmote(String userId, String gameId, String emote) {
+        Game game = getGameById(gameId);
+        GamePlayer player = game.findPlayer(userId);
+        String username = player != null ? player.getUsername() : "Player";
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "EMOTE_SENT", Map.of(
+                "userId", userId,
+                "username", username,
+                "emote", emote,
+                "timestamp", System.currentTimeMillis()
+        ));
+    }
 }

@@ -122,6 +122,9 @@ export const gameApi = {
     const res = await apiClient.post<Game>(`/games/${gameId}/call?number=${number}`);
     return res.data;
   },
+  sendEmote: async (gameId: string, emote: string): Promise<void> => {
+    await apiClient.post(`/games/${gameId}/emote?emote=${encodeURIComponent(emote)}`);
+  },
 };
 
 export const publicApi = {

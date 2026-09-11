@@ -107,6 +107,22 @@ class SocketService {
     }
   }
 
+  public sendEmote(gameId: string, roomCode: string, emote: string): boolean {
+    if (!this.client || !this.client.connected) {
+      return false;
+    }
+    try {
+      this.client.publish({
+        destination: '/app/game/send-emote',
+        body: JSON.stringify({ gameId, roomCode, emote }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendEmote failed:', e);
+      return false;
+    }
+  }
+
   public removeListener(listener: (event: GameEventEnvelope) => void) {
     this.listeners = this.listeners.filter((l) => l !== listener);
   }

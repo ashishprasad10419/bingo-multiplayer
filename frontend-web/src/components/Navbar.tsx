@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../state/authStore';
-import { Trophy, LogOut, Flame } from 'lucide-react';
+import { Trophy, LogOut, Flame, Volume2, VolumeX } from 'lucide-react';
+import { soundService } from '../lib/sound';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const [soundOn, setSoundOn] = useState(() => soundService.isEnabled());
+
+  const handleToggleSound = () => {
+    const newState = soundService.toggle();
+    setSoundOn(newState);
+  };
 
   if (!user) return null;
 
@@ -39,6 +46,19 @@ export const Navbar: React.FC = () => {
           <div className="hidden sm:flex items-center space-x-1 px-3 py-1.5 bg-[#f0ecfc] border border-[#e2d7f8] rounded-full text-[#6d5ebd] text-xs font-bold shadow-xs">
             <span>Lvl {user.level}</span>
           </div>
+
+          {/* Sound Toggle button */}
+          <button
+            onClick={handleToggleSound}
+            className={`w-9 h-9 rounded-full border flex items-center justify-center shadow-[0_2px_8px_rgba(140,120,210,0.08)] hover:scale-105 transition-all ${
+              soundOn
+                ? 'bg-[#f0ecfc] border-[#d8ccf5] text-[#8b7fe8]'
+                : 'bg-white border-[#ede8f8] text-[#a59dbd]'
+            }`}
+            title={soundOn ? 'Sound On' : 'Sound Muted'}
+          >
+            {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </button>
 
           {/* Leaderboard button */}
           <button

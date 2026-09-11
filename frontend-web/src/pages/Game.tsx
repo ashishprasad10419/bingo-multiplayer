@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../state/gameStore';
 import { useAuthStore } from '../state/authStore';
 import { gameApi } from '../lib/api';
 import { socketService } from '../lib/socket';
+import { soundService } from '../lib/sound';
 import { BoardGrid } from '../components/BoardGrid';
 import { CalledNumbersTicker } from '../components/CalledNumbersTicker';
 import { PlayerList } from '../components/PlayerList';
 import { BingoAnimation } from '../components/BingoAnimation';
+import { EmoteBar } from '../components/EmoteBar';
+import { FloatingEmotesOverlay } from '../components/FloatingEmotesOverlay';
 import { AlertCircle, Clock, Sparkles } from 'lucide-react';
 
 export const Game: React.FC = () => {
@@ -28,6 +31,38 @@ export const Game: React.FC = () => {
   const [calling, setCalling] = useState(false);
   const [pendingPick, setPendingPick] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const prevTurnUserIdRef = useRef<string | null>(null);
+  const prevLineCountRef = useRef(lineCount);
+
+  // Audio Cue: Alert player when it becomes their turn
+  useEffect(() => {
+    if (game?.currentTurnUserId && user?.id) {
+      if (
+        prevTurnUserIdRef.current &&
+        prevTurnUserIdRef.current !== user.id &&
+        game.currentTurnUserId === user.id
+      ) {
+        soundService.playTurnChime();
+      }
+      prevTurnUserIdRef.current = game.currentTurnUserId;
+    }
+  }, [game?.currentTurnUserId, user?.id]);
+
+  // Audio Cue: Ascending triumphant chime when a BINGO line completes
+  useEffect(() => {
+    if (lineCount > prevLineCountRef.current) {
+      soundService.playLineComplete();
+    }
+    prevLineCountRef.current = lineCount;
+  }, [lineCount]);
+
+  // Audio Cue: Victory celebration fanfare when winner is crowned
+  useEffect(() => {
+    if (winnerInfo) {
+      soundService.playWinFanfare();
+    }
+  }, [winnerInfo]);
 
   useEffect(() => {
     if (code && user) {
@@ -112,6 +147,8 @@ export const Game: React.FC = () => {
 
     // 1. INSTANT 0ms OPTIMISTIC FEEDBACK:
     // Mark cell as picked immediately in UI so player NEVER has to wonder or click twice!
+    soundService.playTileTap();
+    soundService.playPickSuccess();
     setPendingPick(value);
     setCalling(true);
     setError(null);
@@ -247,6 +284,11 @@ export const Game: React.FC = () => {
             pendingPick={pendingPick}
             disabled={game.status !== 'PLAYING'}
           />
+
+          {/* In-Game Emote Reactions Bar */}
+          <div className="w-full pt-1.5 flex justify-center">
+            <EmoteBar gameId={game.id} roomCode={game.roomCode} />
+          </div>
         </div>
 
         {/* Right Column: Player Roster, Ticker, and Match Info */}
@@ -278,6 +320,9 @@ export const Game: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating Animated Emotes Overlay */}
+      <FloatingEmotesOverlay />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../state/gameStore';
 import { useAuthStore } from '../state/authStore';
 import { roomApi } from '../lib/api';
+import { soundService } from '../lib/sound';
 import { BoardGrid } from '../components/BoardGrid';
 import { Shuffle, Lock, ArrowLeft, CheckCircle2, RefreshCw } from 'lucide-react';
 
@@ -64,6 +65,7 @@ export const BoardSetup: React.FC = () => {
 
   const handleCellClick = async (row: number, col: number) => {
     if (isLocked || !code) return;
+    soundService.playTileTap();
 
     if (!selectedPos) {
       // First cell selected
@@ -94,6 +96,7 @@ export const BoardSetup: React.FC = () => {
     toPos: { row: number; column: number }
   ) => {
     if (isLocked || !code || !board) return;
+    soundService.playTileTap();
 
     // Optimistic local board update for instantaneous 0ms feedback
     const prevBoard = board.map((r) => [...r]);

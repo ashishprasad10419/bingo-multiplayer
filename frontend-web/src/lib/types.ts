@@ -114,3 +114,11 @@ export interface GameEventEnvelope<T = any> {
   timestamp: number;
   data: T;
 }
+
+export interface ActiveEmote {
+  id: string;
+  userId: string;
+  username: string;
+  emote: string;
+  timestamp: number;
+}

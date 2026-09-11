@@ -52,3 +52,29 @@
     @apply bg-white rounded-[28px] sm:rounded-[32px] shadow-[0_14px_36px_rgba(135,115,215,0.12),0_2px_8px_rgba(135,115,215,0.06)] border border-[#ede8f8]/60;
   }
 }
+
+@keyframes float-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0px) scale(1.12);
+  }
+  35% {
+    transform: translateY(-25px) scale(1);
+  }
+  80% {
+    opacity: 0.95;
+    transform: translateY(-130px) scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-180px) scale(0.8);
+  }
+}
+
+.animate-float-emote {
+  animation: float-up-fade 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}

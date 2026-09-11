@@ -48,6 +48,17 @@ public class GameController {
         return ResponseEntity.ok(gameService.processCallNumber(userId, request));
     }
 
+    @PostMapping("/games/{id}/emote")
+    @Operation(summary = "Send an in-game reaction emote (REST fallback)")
+    public ResponseEntity<Void> sendEmote(
+            @PathVariable String id,
+            @RequestParam String emote,
+            @AuthenticationPrincipal String userId
+    ) {
+        gameService.broadcastEmote(userId, id, emote);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/users/me/games")
     @Operation(summary = "Get game history for the currently authenticated player")
     public ResponseEntity<List<GameHistory>> getMyGameHistory(

@@ -46,4 +46,19 @@ public class GameWebSocketController {
             }
         }
     }
+
+    @MessageMapping("/game/send-emote")
+    public void handleSendEmote(@Payload com.bingo.game.dto.SendEmoteRequest request, Principal principal) {
+        if (principal == null) {
+            log.warn("Unauthorized send-emote attempt");
+            return;
+        }
+
+        String userId = principal.getName();
+        try {
+            gameService.broadcastEmote(userId, request.getGameId(), request.getEmote());
+        } catch (Exception ex) {
+            log.warn("Failed to broadcast emote: {}", ex.getMessage());
+        }
+    }
 }

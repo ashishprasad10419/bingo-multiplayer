@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Room, Game, GameEventEnvelope } from '../lib/types';
+import { Room, Game, GameEventEnvelope, ActiveEmote } from '../lib/types';
 import { roomApi, gameApi } from '../lib/api';
 import { socketService } from '../lib/socket';
 
@@ -13,6 +13,7 @@ interface GameState {
   calledByMap: Record<number, string>; // number -> calledByUserId
   winnerInfo: { username: string; avatar?: string } | null;
   hasWon: boolean;
+  activeEmotes: ActiveEmote[];
   isLoading: boolean;
   error: string | null;
 
@@ -20,6 +21,8 @@ interface GameState {
   setGame: (game: Game | null) => void;
   setBoard: (board: number[][] | null) => void;
   setSelectedPos: (pos: { row: number; column: number } | null) => void;
+  addEmote: (emote: ActiveEmote) => void;
+  clearEmotes: () => void;
   fetchRoom: (code: string) => Promise<Room>;
   fetchGame: (gameId: string) => Promise<Game>;
   syncGameByRoomCode: (roomCode: string, currentUserId: string, silent?: boolean) => Promise<Game>;
@@ -38,6 +41,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   calledByMap: {},
   winnerInfo: null,
   hasWon: false,
+  activeEmotes: [],
   isLoading: false,
   error: null,
 
@@ -45,6 +49,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   setGame: (game) => set({ game }),
   setBoard: (board) => set({ board }),
   setSelectedPos: (selectedPos) => set({ selectedPos }),
+  addEmote: (emote) => set((state) => ({ activeEmotes: [...state.activeEmotes.slice(-15), emote] })),
+  clearEmotes: () => set({ activeEmotes: [] }),
 
   fetchRoom: async (code: string) => {
     set({ isLoading: true, error: null });
@@ -273,6 +279,21 @@ export const useGameStore = create<GameState>((set, get) => ({
             game: game ? { ...game, status: 'FINISHED' } : null,
           });
           break;
+
+        case 'EMOTE_SENT':
+          if (event.data?.emote) {
+            const emoteItem: ActiveEmote = {
+              id: `${event.data.userId}-${Date.now()}-${Math.random()}`,
+              userId: event.data.userId,
+              username: event.data.username || 'Player',
+              emote: event.data.emote,
+              timestamp: event.data.timestamp || Date.now(),
+            };
+            set((state) => ({
+              activeEmotes: [...state.activeEmotes.slice(-15), emoteItem],
+            }));
+          }
+          break;
       }
     });
   },
@@ -301,6 +322,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       calledByMap: {},
       winnerInfo: null,
       hasWon: false,
+      activeEmotes: [],
       error: null,
     });
   },
