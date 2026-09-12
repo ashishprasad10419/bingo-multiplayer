@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../state/authStore';
 import { roomApi } from '../lib/api';
 import { GameType } from '../lib/types';
 import { GameVisualIcon } from '../components/games/GameVisualIcon';
-import { Trophy, Shield, Plus, LogIn, Sparkles, Flame, Zap, Award, CheckCircle2 } from 'lucide-react';
+import { Trophy, Shield, Plus, LogIn, Sparkles, Zap } from 'lucide-react';
 
 interface GameCardDef {
   type: GameType;
@@ -21,7 +20,6 @@ interface GameCardDef {
 
 export const GameHub: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
   const [quickCode, setQuickCode] = useState('');
   const [matchingType, setMatchingType] = useState<GameType | null>(null);
 
@@ -58,51 +56,51 @@ export const GameHub: React.FC = () => {
       cardBorder: 'border-[#8b5cf6]',
       cardShadow: 'shadow-[0_8px_0_#6d28d9]',
       bannerGrad: 'from-[#a78bfa] via-[#8b5cf6] to-[#6d28d9]',
-      titleColor: 'text-[#4c1d95] dark:text-[#ddd6fe]',
+      titleColor: 'text-[#4c1d95] dark:text-[#ede9fe]',
       btnQuick: 'bg-[#8b5cf6] hover:bg-[#7c3aed] text-white shadow-[0_4px_0_#5b21b6]',
-      btnCustom: 'bg-white dark:bg-slate-800 text-[#6d28d9] dark:text-[#ddd6fe] border-2 border-[#c4b5fd] hover:bg-[#ede9fe]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#6d28d9] dark:text-[#ede9fe] border-2 border-[#c4b5fd] hover:bg-[#ede9fe]',
     },
     {
       type: 'DOTS_AND_BOXES',
       title: 'Dots & Boxes',
-      badge: '📐 Box Strategy',
-      cardBg: 'bg-[#f0fdf4] dark:bg-[#081a10]',
-      cardBorder: 'border-[#22c55e]',
-      cardShadow: 'shadow-[0_8px_0_#16a34a]',
-      bannerGrad: 'from-[#4ade80] via-[#22c55e] to-[#15803d]',
-      titleColor: 'text-[#14532d] dark:text-[#bbf7d0]',
-      btnQuick: 'bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-[0_4px_0_#15803d]',
-      btnCustom: 'bg-white dark:bg-slate-800 text-[#15803d] dark:text-[#bbf7d0] border-2 border-[#86efac] hover:bg-[#dcfce7]',
+      badge: '📐 Territory War',
+      cardBg: 'bg-[#ecfdf5] dark:bg-[#062016]',
+      cardBorder: 'border-[#10b981]',
+      cardShadow: 'shadow-[0_8px_0_#047857]',
+      bannerGrad: 'from-[#34d399] via-[#10b981] to-[#059669]',
+      titleColor: 'text-[#064e3b] dark:text-[#d1fae5]',
+      btnQuick: 'bg-[#10b981] hover:bg-[#059669] text-white shadow-[0_4px_0_#065f46]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#047857] dark:text-[#d1fae5] border-2 border-[#a7f3d0] hover:bg-[#d1fae5]',
     },
     {
       type: 'CONNECT_FOUR',
       title: 'Connect Four',
-      badge: '🔴🟡 4-in-a-Row',
-      cardBg: 'bg-[#eff6ff] dark:bg-[#0a1628]',
+      badge: '🔴 4-in-a-Row',
+      cardBg: 'bg-[#eff6ff] dark:bg-[#0b192c]',
       cardBorder: 'border-[#3b82f6]',
       cardShadow: 'shadow-[0_8px_0_#1d4ed8]',
       bannerGrad: 'from-[#60a5fa] via-[#3b82f6] to-[#1d4ed8]',
-      titleColor: 'text-[#1e3a8a] dark:text-[#bfdbfe]',
+      titleColor: 'text-[#1e3a8a] dark:text-[#dbeafe]',
       btnQuick: 'bg-[#3b82f6] hover:bg-[#2563eb] text-white shadow-[0_4px_0_#1e40af]',
-      btnCustom: 'bg-white dark:bg-slate-800 text-[#1d4ed8] dark:text-[#bfdbfe] border-2 border-[#93c5fd] hover:bg-[#dbeafe]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#1d4ed8] dark:text-[#dbeafe] border-2 border-[#bfdbfe] hover:bg-[#dbeafe]',
     },
     {
       type: 'ROCK_PAPER_SCISSORS',
-      title: 'Rock Paper Scissors',
-      badge: '✊✌️ RPS Clash',
-      cardBg: 'bg-[#fff7ed] dark:bg-[#210f05]',
-      cardBorder: 'border-[#f97316]',
-      cardShadow: 'shadow-[0_8px_0_#c2410c]',
-      bannerGrad: 'from-[#fb923c] via-[#f97316] to-[#c2410c]',
-      titleColor: 'text-[#7c2d12] dark:text-[#fed7aa]',
-      btnQuick: 'bg-[#f97316] hover:bg-[#ea580c] text-white shadow-[0_4px_0_#9a3412]',
-      btnCustom: 'bg-white dark:bg-slate-800 text-[#c2410c] dark:text-[#fed7aa] border-2 border-[#fdba74] hover:bg-[#ffedd5]',
+      title: 'RPS Arena',
+      badge: '✊ Quick Clash',
+      cardBg: 'bg-[#fffbeb] dark:bg-[#241a06]',
+      cardBorder: 'border-[#f59e0b]',
+      cardShadow: 'shadow-[0_8px_0_#b45309]',
+      bannerGrad: 'from-[#fbbf24] via-[#f59e0b] to-[#d97706]',
+      titleColor: 'text-[#78350f] dark:text-[#fef3c7]',
+      btnQuick: 'bg-[#f59e0b] hover:bg-[#d97706] text-white shadow-[0_4px_0_#92400e]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#b45309] dark:text-[#fef3c7] border-2 border-[#fde68a] hover:bg-[#fef3c7]',
     },
     {
       type: 'MEMORY',
-      title: 'Memory Match',
-      badge: '🃏 Card Match',
-      cardBg: 'bg-[#faf5ff] dark:bg-[#180a26]',
+      title: 'Memory Cards',
+      badge: '🃏 Brain Match',
+      cardBg: 'bg-[#faf5ff] dark:bg-[#1a0a2a]',
       cardBorder: 'border-[#a855f7]',
       cardShadow: 'shadow-[0_8px_0_#7e22ce]',
       bannerGrad: 'from-[#c084fc] via-[#a855f7] to-[#7e22ce]',
@@ -113,35 +111,35 @@ export const GameHub: React.FC = () => {
     {
       type: 'NUMBER_RUSH',
       title: 'Number Rush',
-      badge: '⚡ Speed Tap',
-      cardBg: 'bg-[#ecfeff] dark:bg-[#061c22]',
-      cardBorder: 'border-[#06b6d4]',
-      cardShadow: 'shadow-[0_8px_0_#0e7490]',
-      bannerGrad: 'from-[#22d3ee] via-[#06b6d4] to-[#0e7490]',
-      titleColor: 'text-[#164e63] dark:text-[#cffafe]',
-      btnQuick: 'bg-[#06b6d4] hover:bg-[#0891b2] text-white shadow-[0_4px_0_#155e75]',
-      btnCustom: 'bg-white dark:bg-slate-800 text-[#0e7490] dark:text-[#cffafe] border-2 border-[#a5f3fc] hover:bg-[#cffafe]',
+      badge: '🔢 Speed Tap',
+      cardBg: 'bg-[#f0fdf4] dark:bg-[#072110]',
+      cardBorder: 'border-[#22c55e]',
+      cardShadow: 'shadow-[0_8px_0_#15803d]',
+      bannerGrad: 'from-[#4ade80] via-[#22c55e] to-[#16a34a]',
+      titleColor: 'text-[#14532d] dark:text-[#dcfce7]',
+      btnQuick: 'bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-[0_4px_0_#166534]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#15803d] dark:text-[#dcfce7] border-2 border-[#bbf7d0] hover:bg-[#dcfce7]',
     },
     {
       type: 'WORD_SCRAMBLE',
       title: 'Word Scramble',
-      badge: '🔤 Anagram Race',
-      cardBg: 'bg-[#fefce8] dark:bg-[#1c1a06]',
-      cardBorder: 'border-[#eab308]',
-      cardShadow: 'shadow-[0_8px_0_#a16207]',
-      bannerGrad: 'from-[#fde047] via-[#eab308] to-[#a16207]',
-      titleColor: 'text-[#713f12] dark:text-[#fef08a]',
-      btnQuick: 'bg-[#eab308] hover:bg-[#ca8a04] text-white shadow-[0_4px_0_#854d0e]',
-      btnCustom: 'bg-white dark:bg-slate-800 text-[#a16207] dark:text-[#fef08a] border-2 border-[#fef08a] hover:bg-[#fef9c3]',
+      badge: '📝 Anagram Race',
+      cardBg: 'bg-[#fff7ed] dark:bg-[#281305]',
+      cardBorder: 'border-[#f97316]',
+      cardShadow: 'shadow-[0_8px_0_#c2410c]',
+      bannerGrad: 'from-[#fb923c] via-[#f97316] to-[#ea580c]',
+      titleColor: 'text-[#7c2d12] dark:text-[#ffedd5]',
+      btnQuick: 'bg-[#f97316] hover:bg-[#ea580c] text-white shadow-[0_4px_0_#9a3412]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#c2410c] dark:text-[#ffedd5] border-2 border-[#fed7aa] hover:bg-[#ffedd5]',
     },
     {
       type: 'QUIZ_BATTLE',
       title: 'Quiz Battle',
-      badge: '🧠 Trivia Duel',
-      cardBg: 'bg-[#fdf2f8] dark:bg-[#200a18]',
+      badge: '🧠 Trivia Showdown',
+      cardBg: 'bg-[#fdf2f8] dark:bg-[#260818]',
       cardBorder: 'border-[#ec4899]',
       cardShadow: 'shadow-[0_8px_0_#be185d]',
-      bannerGrad: 'from-[#f472b6] via-[#ec4899] to-[#be185d]',
+      bannerGrad: 'from-[#f472b6] via-[#ec4899] to-[#db2777]',
       titleColor: 'text-[#831843] dark:text-[#fce7f3]',
       btnQuick: 'bg-[#ec4899] hover:bg-[#db2777] text-white shadow-[0_4px_0_#9d174d]',
       btnCustom: 'bg-white dark:bg-slate-800 text-[#be185d] dark:text-[#fce7f3] border-2 border-[#fbcfe8] hover:bg-[#fce7f3]',
@@ -160,132 +158,12 @@ export const GameHub: React.FC = () => {
     }
   };
 
-  const gamesPlayed = user?.stats?.gamesPlayed || 0;
-  const gamesWon = user?.stats?.gamesWon || 0;
-  const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
-  const level = user?.level || 1;
-  const xp = user?.xp || 0;
-  const xpInCurrentLevel = xp % 500;
-  const xpProgressPercent = Math.min(100, Math.round((xpInCurrentLevel / 500) * 100));
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6 font-sans">
       {/* ========================================================================= */}
-      {/* 1. COMPACT & RICH ARCADE PLAYER COMMAND DECK (Eliminates dead blank space) */}
+      {/* SECTION HEADER & QUICK ACTIONS                                            */}
       {/* ========================================================================= */}
-      <div className="card-clay p-5 sm:p-6 shadow-sm border border-[#ede8f8] relative overflow-hidden">
-        {/* Soft background ambient glow */}
-        <div className="absolute -right-16 -top-16 w-64 h-64 bg-gradient-to-br from-[#8b7fe8]/10 via-[#f8788a]/10 to-transparent rounded-full blur-2xl pointer-events-none" />
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-          {/* Col 1: Player Identity, Level & XP Bar */}
-          <div className="lg:col-span-4 flex items-center space-x-4">
-            <div className="relative flex-shrink-0">
-              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-[24px] bg-gradient-to-tr from-[#f8788a] via-[#e271a5] to-[#8b7fe8] flex items-center justify-center font-black text-2xl text-white shadow-[0_8px_20px_rgba(240,115,145,0.35)]">
-                {user?.username.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-[#2a2050] text-white text-[10px] font-black border-2 border-white shadow-xs">
-                Lvl {level}
-              </div>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2">
-                <h1 className="text-xl sm:text-2xl font-black text-[#2a2050] truncate tracking-tight">
-                  {user?.username}
-                </h1>
-                {user?.isGuest && (
-                  <span className="text-[10px] bg-[#f0ecfc] text-[#6d5ebd] font-bold px-2 py-0.5 rounded-full border border-[#e0d6f8] flex-shrink-0">
-                    Guest
-                  </span>
-                )}
-              </div>
-              <p className="text-xs font-semibold text-[#7e749c]">
-                Arcade Challenger • Ready to Play
-              </p>
-
-              {/* XP Progress Bar */}
-              <div className="mt-2 space-y-1">
-                <div className="flex justify-between text-[10px] font-bold text-[#7e749c]">
-                  <span>XP: {xpInCurrentLevel} / 500</span>
-                  <span>Level {level + 1}</span>
-                </div>
-                <div className="w-full h-2 bg-[#f0ecfc] rounded-full overflow-hidden border border-[#e0d6f8]">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#f8788a] via-[#e271a5] to-[#8b7fe8] rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(8, xpProgressPercent)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Col 2: High-Density 4-Chip Stat Matrix */}
-          <div className="lg:col-span-5 grid grid-cols-4 gap-2 sm:gap-3">
-            <div className="bg-[#f0ecfc] border border-[#e0d6f8] rounded-2xl p-2.5 sm:p-3 text-center transition hover:scale-[1.02]">
-              <div className="text-[10px] font-bold text-[#6d5ebd] flex items-center justify-center space-x-1">
-                <Zap className="w-3 h-3 text-[#8b7fe8]" />
-                <span className="hidden sm:inline">Matches</span>
-              </div>
-              <div className="text-lg sm:text-xl font-black text-[#2a2050] mt-0.5">{gamesPlayed}</div>
-            </div>
-
-            <div className="bg-[#fee8ea] border border-[#fcd3d7] rounded-2xl p-2.5 sm:p-3 text-center transition hover:scale-[1.02]">
-              <div className="text-[10px] font-bold text-[#dc2626] flex items-center justify-center space-x-1">
-                <Award className="w-3 h-3 text-[#f8788a]" />
-                <span className="hidden sm:inline">Wins</span>
-              </div>
-              <div className="text-lg sm:text-xl font-black text-[#dc2626] mt-0.5">{gamesWon}</div>
-            </div>
-
-            <div className="bg-[#fef5db] border border-[#fde7ad] rounded-2xl p-2.5 sm:p-3 text-center transition hover:scale-[1.02]">
-              <div className="text-[10px] font-bold text-[#b45309] flex items-center justify-center space-x-1">
-                <Flame className="w-3 h-3 text-[#f59e0b] fill-[#f59e0b]" />
-                <span className="hidden sm:inline">Streak</span>
-              </div>
-              <div className="text-lg sm:text-xl font-black text-[#b45309] mt-0.5">{user?.stats?.currentWinStreak || 0}</div>
-            </div>
-
-            <div className="bg-[#e6f7ef] border border-[#c3eed7] rounded-2xl p-2.5 sm:p-3 text-center transition hover:scale-[1.02]">
-              <div className="text-[10px] font-bold text-[#047857] flex items-center justify-center space-x-1">
-                <CheckCircle2 className="w-3 h-3 text-[#10b981]" />
-                <span className="hidden sm:inline">Win %</span>
-              </div>
-              <div className="text-lg sm:text-xl font-black text-[#047857] mt-0.5">{winRate}%</div>
-            </div>
-          </div>
-
-          {/* Col 3: Direct Quick-Join Room Input (High interactive utility, zero dead space) */}
-          <div className="lg:col-span-3 bg-[#faf7fe] p-3 rounded-2xl border border-[#ede8f8] flex flex-col justify-center">
-            <div className="text-[11px] font-extrabold text-[#2a2050] flex items-center space-x-1.5 mb-1.5">
-              <LogIn className="w-3.5 h-3.5 text-[#8b7fe8]" />
-              <span>Join with Room Code:</span>
-            </div>
-            <form onSubmit={handleQuickJoin} className="flex items-center space-x-1.5">
-              <input
-                type="text"
-                maxLength={6}
-                value={quickCode}
-                onChange={(e) => setQuickCode(e.target.value.toUpperCase())}
-                placeholder="6-DIGIT"
-                className="flex-1 min-w-0 bg-white border border-[#ede8f8] rounded-xl px-2.5 py-1.5 text-xs font-mono font-black text-center text-[#2a2050] uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[#8b7fe8]/30"
-              />
-              <button
-                type="submit"
-                disabled={!quickCode.trim()}
-                className="btn-gradient px-3 py-1.5 text-xs font-black shadow-xs disabled:opacity-50 cursor-pointer flex-shrink-0"
-              >
-                Join
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2. SECTION HEADER                                                         */}
-      {/* ========================================================================= */}
-      <div className="flex items-center justify-between pt-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
         <div>
           <h2 className="text-2xl font-black text-[#2a2050] tracking-tight flex items-center space-x-2">
             <Sparkles className="w-5 h-5 text-[#f8788a]" />
@@ -296,13 +174,35 @@ export const GameHub: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => navigate('/leaderboard')}
-          className="btn-pill-outline text-xs px-4 py-2 space-x-1.5 cursor-pointer flex items-center font-extrabold"
-        >
-          <Trophy className="w-3.5 h-3.5 text-[#f59e0b]" />
-          <span>Hall of Fame</span>
-        </button>
+        <div className="flex items-center flex-wrap gap-2.5">
+          {/* Quick Room Code Join Form */}
+          <form onSubmit={handleQuickJoin} className="flex items-center bg-white dark:bg-slate-800 border-2 border-[#e0d6f8] dark:border-slate-700 rounded-2xl p-1 shadow-xs">
+            <input
+              type="text"
+              maxLength={6}
+              value={quickCode}
+              onChange={(e) => setQuickCode(e.target.value.toUpperCase())}
+              placeholder="ROOM CODE"
+              className="w-24 sm:w-28 px-2.5 py-1 text-xs font-mono font-black text-center text-[#2a2050] dark:text-white uppercase tracking-wider focus:outline-none bg-transparent"
+            />
+            <button
+              type="submit"
+              disabled={!quickCode.trim()}
+              className="btn-gradient px-3 py-1 text-xs font-black rounded-xl shadow-xs disabled:opacity-50 cursor-pointer flex items-center space-x-1"
+            >
+              <LogIn className="w-3 h-3" />
+              <span>Join</span>
+            </button>
+          </form>
+
+          <button
+            onClick={() => navigate('/leaderboard')}
+            className="btn-pill-outline text-xs px-4 py-2 space-x-1.5 cursor-pointer flex items-center font-extrabold flex-shrink-0"
+          >
+            <Trophy className="w-3.5 h-3.5 text-[#f59e0b]" />
+            <span>Hall of Fame</span>
+          </button>
+        </div>
       </div>
 
       {/* ========================================================================= */}
