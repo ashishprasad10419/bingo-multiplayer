@@ -4,22 +4,19 @@ import { useAuthStore } from '../state/authStore';
 import { roomApi } from '../lib/api';
 import { GameType } from '../lib/types';
 import { GameVisualIcon } from '../components/games/GameVisualIcon';
-import { GAME_THEMES } from '../lib/gameThemes';
-import { Trophy, Shield, Plus, LogIn, Sparkles, Flame, Users, Zap, Award, CheckCircle2 } from 'lucide-react';
+import { Trophy, Shield, Plus, LogIn, Sparkles, Flame, Zap, Award, CheckCircle2 } from 'lucide-react';
 
 interface GameCardDef {
   type: GameType;
   title: string;
   badge: string;
-  badgeStyle: string;
-  description: string;
-  playersText: string;
-  gradient: string;
+  cardBg: string;
   cardBorder: string;
-  glowColor: string;
-  buttonGrad: string;
-  tags: string[];
-  specs: { label: string; value: string }[];
+  cardShadow: string;
+  bannerGrad: string;
+  titleColor: string;
+  btnQuick: string;
+  btnCustom: string;
 }
 
 export const GameHub: React.FC = () => {
@@ -43,165 +40,111 @@ export const GameHub: React.FC = () => {
   const games: GameCardDef[] = [
     {
       type: 'BINGO',
-      title: 'Bingo Multiplayer',
-      badge: 'Classic Match',
-      badgeStyle: 'bg-[#fee8ea] text-[#e11d48] border-[#fcd3d7]',
-      description: 'Match called numbers & race to shout BINGO before rivals!',
-      playersText: '2–6 Players',
-      gradient: GAME_THEMES.BINGO.navbarBrandGrad,
-      cardBorder: 'hover:border-[#f43f5e]/50 hover:shadow-[0_12px_32px_rgba(244,63,94,0.18)]',
-      glowColor: 'bg-[#f43f5e]/10',
-      buttonGrad: GAME_THEMES.BINGO.buttonGrad,
-      tags: ['5x5 to 10x10', 'In-Game Emotes', 'Voice Cues'],
-      specs: [
-        { label: 'Mode', value: 'Multiplayer' },
-        { label: 'Grid', value: '5x5 - 10x10' },
-        { label: 'Pace', value: 'Dynamic' },
-      ],
+      title: 'Bingo',
+      badge: '🎱 Bingo Party',
+      cardBg: 'bg-[#fff1f2] dark:bg-[#1a0c14]',
+      cardBorder: 'border-[#ff4d6d]',
+      cardShadow: 'shadow-[0_8px_0_#d90429]',
+      bannerGrad: 'from-[#ff758f] via-[#ff4d6d] to-[#c9184a]',
+      titleColor: 'text-[#800f2f] dark:text-[#ffb3c1]',
+      btnQuick: 'bg-[#ff4d6d] hover:bg-[#d90429] text-white shadow-[0_4px_0_#a4161a]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#c9184a] dark:text-[#ffb3c1] border-2 border-[#ff758f] hover:bg-[#ffe5ec]',
     },
     {
       type: 'TIC_TAC_TOE',
-      title: 'Tic-Tac-Toe Duel',
-      badge: 'Rapid 1v1',
-      badgeStyle: 'bg-[#f5f3ff] text-[#7c3aed] border-[#ddd6fe]',
-      description: 'Fast-paced duel of X vs O on classic 3x3 to 5x5 grids!',
-      playersText: '2 Players (1v1)',
-      gradient: GAME_THEMES.TIC_TAC_TOE.navbarBrandGrad,
-      cardBorder: 'hover:border-[#8b5cf6]/50 hover:shadow-[0_12px_32px_rgba(139,92,246,0.18)]',
-      glowColor: 'bg-[#8b5cf6]/10',
-      buttonGrad: GAME_THEMES.TIC_TAC_TOE.buttonGrad,
-      tags: ['Instant Start', '3x3, 4x4, 5x5', 'Zero Setup'],
-      specs: [
-        { label: 'Mode', value: '1v1 Head-to-Head' },
-        { label: 'Grid', value: '3x3, 4x4, 5x5' },
-        { label: 'Pace', value: 'Rapid' },
-      ],
+      title: 'Tic-Tac-Toe',
+      badge: '⚔️ 1v1 Duel',
+      cardBg: 'bg-[#f5f3ff] dark:bg-[#140c24]',
+      cardBorder: 'border-[#8b5cf6]',
+      cardShadow: 'shadow-[0_8px_0_#6d28d9]',
+      bannerGrad: 'from-[#a78bfa] via-[#8b5cf6] to-[#6d28d9]',
+      titleColor: 'text-[#4c1d95] dark:text-[#ddd6fe]',
+      btnQuick: 'bg-[#8b5cf6] hover:bg-[#7c3aed] text-white shadow-[0_4px_0_#5b21b6]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#6d28d9] dark:text-[#ddd6fe] border-2 border-[#c4b5fd] hover:bg-[#ede9fe]',
     },
     {
       type: 'DOTS_AND_BOXES',
       title: 'Dots & Boxes',
-      badge: 'Tactical Strategy',
-      badgeStyle: 'bg-[#ecfdf5] text-[#047857] border-[#a7f3d0]',
-      description: 'Connect dots, complete boxes & earn instant bonus turns!',
-      playersText: '2–4 Players',
-      gradient: GAME_THEMES.DOTS_AND_BOXES.navbarBrandGrad,
-      cardBorder: 'hover:border-[#10b981]/50 hover:shadow-[0_12px_32px_rgba(16,185,129,0.18)]',
-      glowColor: 'bg-[#10b981]/10',
-      buttonGrad: GAME_THEMES.DOTS_AND_BOXES.buttonGrad,
-      tags: ['Territory Capture', 'Bonus Turns', 'Live Scoring'],
-      specs: [
-        { label: 'Mode', value: '2-4 Turn Strategy' },
-        { label: 'Grid', value: '2x2 to 4x4 Boxes' },
-        { label: 'Pace', value: 'Strategic' },
-      ],
+      badge: '📐 Box Strategy',
+      cardBg: 'bg-[#f0fdf4] dark:bg-[#081a10]',
+      cardBorder: 'border-[#22c55e]',
+      cardShadow: 'shadow-[0_8px_0_#16a34a]',
+      bannerGrad: 'from-[#4ade80] via-[#22c55e] to-[#15803d]',
+      titleColor: 'text-[#14532d] dark:text-[#bbf7d0]',
+      btnQuick: 'bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-[0_4px_0_#15803d]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#15803d] dark:text-[#bbf7d0] border-2 border-[#86efac] hover:bg-[#dcfce7]',
     },
     {
       type: 'CONNECT_FOUR',
       title: 'Connect Four',
-      badge: '1v1 Gravity Drop',
-      badgeStyle: 'bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]',
-      description: 'Drop chips into 7 columns and connect four in a row!',
-      playersText: '2 Players (1v1)',
-      gradient: GAME_THEMES.CONNECT_FOUR.navbarBrandGrad,
-      cardBorder: 'hover:border-[#3b82f6]/50 hover:shadow-[0_12px_32px_rgba(59,130,246,0.18)]',
-      glowColor: 'bg-[#3b82f6]/10',
-      buttonGrad: GAME_THEMES.CONNECT_FOUR.buttonGrad,
-      tags: ['7x6 Grid', 'Horizontal/Diag', 'Gravity Physics'],
-      specs: [
-        { label: 'Mode', value: '1v1 Duel' },
-        { label: 'Grid', value: '7x6 Vertical' },
-        { label: 'Pace', value: 'Tactical' },
-      ],
+      badge: '🔴🟡 4-in-a-Row',
+      cardBg: 'bg-[#eff6ff] dark:bg-[#0a1628]',
+      cardBorder: 'border-[#3b82f6]',
+      cardShadow: 'shadow-[0_8px_0_#1d4ed8]',
+      bannerGrad: 'from-[#60a5fa] via-[#3b82f6] to-[#1d4ed8]',
+      titleColor: 'text-[#1e3a8a] dark:text-[#bfdbfe]',
+      btnQuick: 'bg-[#3b82f6] hover:bg-[#2563eb] text-white shadow-[0_4px_0_#1e40af]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#1d4ed8] dark:text-[#bfdbfe] border-2 border-[#93c5fd] hover:bg-[#dbeafe]',
     },
     {
       type: 'ROCK_PAPER_SCISSORS',
       title: 'Rock Paper Scissors',
-      badge: 'Best of 5 Duel',
-      badgeStyle: 'bg-[#fff7ed] text-[#c2410c] border-[#fed7aa]',
-      description: 'Fast-paced simultaneous pick clash with secret reveals!',
-      playersText: '2 Players (1v1)',
-      gradient: GAME_THEMES.ROCK_PAPER_SCISSORS.navbarBrandGrad,
-      cardBorder: 'hover:border-[#f97316]/50 hover:shadow-[0_12px_32px_rgba(249,115,22,0.18)]',
-      glowColor: 'bg-[#f97316]/10',
-      buttonGrad: GAME_THEMES.ROCK_PAPER_SCISSORS.buttonGrad,
-      tags: ['First to 3 Wins', 'Simultaneous Pick', 'Instant Clashes'],
-      specs: [
-        { label: 'Mode', value: '1v1 Rapid' },
-        { label: 'Rounds', value: 'Best of 5' },
-        { label: 'Pace', value: 'Lightning' },
-      ],
+      badge: '✊✌️ RPS Clash',
+      cardBg: 'bg-[#fff7ed] dark:bg-[#210f05]',
+      cardBorder: 'border-[#f97316]',
+      cardShadow: 'shadow-[0_8px_0_#c2410c]',
+      bannerGrad: 'from-[#fb923c] via-[#f97316] to-[#c2410c]',
+      titleColor: 'text-[#7c2d12] dark:text-[#fed7aa]',
+      btnQuick: 'bg-[#f97316] hover:bg-[#ea580c] text-white shadow-[0_4px_0_#9a3412]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#c2410c] dark:text-[#fed7aa] border-2 border-[#fdba74] hover:bg-[#ffedd5]',
     },
     {
       type: 'MEMORY',
       title: 'Memory Match',
-      badge: 'Pair Search',
-      badgeStyle: 'bg-[#f5f3ff] text-[#6d28d9] border-[#ddd6fe]',
-      description: 'Test your visual memory! Flip pairs of cards to score points.',
-      playersText: '2–4 Players',
-      gradient: GAME_THEMES.MEMORY.navbarBrandGrad,
-      cardBorder: 'hover:border-[#8b5cf6]/50 hover:shadow-[0_12px_32px_rgba(139,92,246,0.18)]',
-      glowColor: 'bg-[#8b5cf6]/10',
-      buttonGrad: GAME_THEMES.MEMORY.buttonGrad,
-      tags: ['16 Cards', 'Bonus Turn on Match', 'Icon Pairs'],
-      specs: [
-        { label: 'Mode', value: 'Turn-Based' },
-        { label: 'Grid', value: '4x4 (8 Pairs)' },
-        { label: 'Pace', value: 'Mind Game' },
-      ],
+      badge: '🃏 Card Match',
+      cardBg: 'bg-[#faf5ff] dark:bg-[#180a26]',
+      cardBorder: 'border-[#a855f7]',
+      cardShadow: 'shadow-[0_8px_0_#7e22ce]',
+      bannerGrad: 'from-[#c084fc] via-[#a855f7] to-[#7e22ce]',
+      titleColor: 'text-[#581c87] dark:text-[#f3e8ff]',
+      btnQuick: 'bg-[#a855f7] hover:bg-[#9333ea] text-white shadow-[0_4px_0_#6b21a8]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#7e22ce] dark:text-[#f3e8ff] border-2 border-[#e9d5ff] hover:bg-[#f3e8ff]',
     },
     {
       type: 'NUMBER_RUSH',
       title: 'Number Rush',
-      badge: 'Speed Tap Race',
-      badgeStyle: 'bg-[#ecfeff] text-[#0e7490] border-[#a5f3fc]',
-      description: 'Race opponents to tap 1 through 25 in order as fast as you can!',
-      playersText: '2–6 Players',
-      gradient: GAME_THEMES.NUMBER_RUSH.navbarBrandGrad,
-      cardBorder: 'hover:border-[#06b6d4]/50 hover:shadow-[0_12px_32px_rgba(6,182,212,0.18)]',
-      glowColor: 'bg-[#06b6d4]/10',
-      buttonGrad: GAME_THEMES.NUMBER_RUSH.buttonGrad,
-      tags: ['Real-Time Race', '1 to 25 Speed', 'Live Opponent Bars'],
-      specs: [
-        { label: 'Mode', value: 'Realtime Race' },
-        { label: 'Grid', value: '5x5 (25 Numbers)' },
-        { label: 'Pace', value: 'Adrenaline' },
-      ],
+      badge: '⚡ Speed Tap',
+      cardBg: 'bg-[#ecfeff] dark:bg-[#061c22]',
+      cardBorder: 'border-[#06b6d4]',
+      cardShadow: 'shadow-[0_8px_0_#0e7490]',
+      bannerGrad: 'from-[#22d3ee] via-[#06b6d4] to-[#0e7490]',
+      titleColor: 'text-[#164e63] dark:text-[#cffafe]',
+      btnQuick: 'bg-[#06b6d4] hover:bg-[#0891b2] text-white shadow-[0_4px_0_#155e75]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#0e7490] dark:text-[#cffafe] border-2 border-[#a5f3fc] hover:bg-[#cffafe]',
     },
     {
       type: 'WORD_SCRAMBLE',
       title: 'Word Scramble',
-      badge: 'Anagram Race',
-      badgeStyle: 'bg-[#f0fdfa] text-[#0f766e] border-[#99f6e4]',
-      description: 'Unscramble jumbled letters with hints across 5 quick rounds!',
-      playersText: '2–6 Players',
-      gradient: GAME_THEMES.WORD_SCRAMBLE.navbarBrandGrad,
-      cardBorder: 'hover:border-[#14b8a6]/50 hover:shadow-[0_12px_32px_rgba(20,184,166,0.18)]',
-      glowColor: 'bg-[#14b8a6]/10',
-      buttonGrad: GAME_THEMES.WORD_SCRAMBLE.buttonGrad,
-      tags: ['5 Rounds', 'Category Hints', 'Speed Points'],
-      specs: [
-        { label: 'Mode', value: 'Multiplayer Word' },
-        { label: 'Rounds', value: '5 Words' },
-        { label: 'Pace', value: 'Dynamic' },
-      ],
+      badge: '🔤 Anagram Race',
+      cardBg: 'bg-[#fefce8] dark:bg-[#1c1a06]',
+      cardBorder: 'border-[#eab308]',
+      cardShadow: 'shadow-[0_8px_0_#a16207]',
+      bannerGrad: 'from-[#fde047] via-[#eab308] to-[#a16207]',
+      titleColor: 'text-[#713f12] dark:text-[#fef08a]',
+      btnQuick: 'bg-[#eab308] hover:bg-[#ca8a04] text-white shadow-[0_4px_0_#854d0e]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#a16207] dark:text-[#fef08a] border-2 border-[#fef08a] hover:bg-[#fef9c3]',
     },
     {
       type: 'QUIZ_BATTLE',
       title: 'Quiz Battle',
-      badge: 'Trivia Duel',
-      badgeStyle: 'bg-[#faf5ff] text-[#7e22ce] border-[#e9d5ff]',
-      description: 'Answer fast trivia questions across gaming, science & pop culture!',
-      playersText: '2–6 Players',
-      gradient: GAME_THEMES.QUIZ_BATTLE.navbarBrandGrad,
-      cardBorder: 'hover:border-[#a855f7]/50 hover:shadow-[0_12px_32px_rgba(168,85,247,0.18)]',
-      glowColor: 'bg-[#a855f7]/10',
-      buttonGrad: GAME_THEMES.QUIZ_BATTLE.buttonGrad,
-      tags: ['4 Options', 'Live Scoring', 'Pop & Gaming Trivia'],
-      specs: [
-        { label: 'Mode', value: 'Trivia Battle' },
-        { label: 'Rounds', value: '5 Questions' },
-        { label: 'Pace', value: '15s Timer' },
-      ],
+      badge: '🧠 Trivia Duel',
+      cardBg: 'bg-[#fdf2f8] dark:bg-[#200a18]',
+      cardBorder: 'border-[#ec4899]',
+      cardShadow: 'shadow-[0_8px_0_#be185d]',
+      bannerGrad: 'from-[#f472b6] via-[#ec4899] to-[#be185d]',
+      titleColor: 'text-[#831843] dark:text-[#fce7f3]',
+      btnQuick: 'bg-[#ec4899] hover:bg-[#db2777] text-white shadow-[0_4px_0_#9d174d]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#be185d] dark:text-[#fce7f3] border-2 border-[#fbcfe8] hover:bg-[#fce7f3]',
     },
   ];
 
@@ -363,81 +306,56 @@ export const GameHub: React.FC = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. VIBRANT 3-GAME ARCADE CABINET SHOWCASE (Rich, Beautiful, Themed)      */}
+      {/* 3. VIBRANT CARTOONISH ARCADE SHOWCASE (Big visual art, colorful, clean)  */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         {games.map((g) => (
           <div
             key={g.type}
-            className={`card-clay p-6 flex flex-col justify-between group transition-all duration-300 transform hover:-translate-y-1.5 ${g.cardBorder}`}
+            className={`${g.cardBg} ${g.cardBorder} ${g.cardShadow} border-[3.5px] rounded-[32px] p-5 sm:p-6 flex flex-col justify-between group transition-all duration-300 hover:-translate-y-2 relative overflow-hidden`}
           >
             <div>
               {/* Game Visual Header Banner with Dynamic Game Colors */}
-              <div className={`w-full h-36 rounded-2xl bg-gradient-to-tr ${g.gradient} flex items-center justify-between p-5 mb-4 shadow-md relative overflow-hidden`}>
-                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/15 rounded-full blur-xl pointer-events-none" />
-                
-                {/* 3D Game Visual Icon */}
-                <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shadow-inner border border-white/30 p-2 transition-transform duration-300 group-hover:scale-110">
+              <div className={`w-full h-40 rounded-[24px] bg-gradient-to-tr ${g.bannerGrad} flex items-center justify-between p-5 mb-5 shadow-sm relative overflow-hidden`}>
+                <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-white/20 rounded-full blur-xl pointer-events-none" />
+                <div className="absolute -left-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-lg pointer-events-none" />
+
+                {/* 3D Game Visual Icon in Glossy Bubble */}
+                <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-[22px] bg-white/35 backdrop-blur-xs flex items-center justify-center shadow-inner border border-white/40 p-2 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                   <GameVisualIcon type={g.type} size="xl" />
                 </div>
 
-                <div className="flex flex-col items-end space-y-1.5 z-10">
-                  <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full bg-white/95 text-[#2a2050] shadow-sm`}>
+                {/* Cute Cartoon Pill Badge */}
+                <div className="z-10 flex flex-col items-end">
+                  <span className="text-xs font-black uppercase px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-slate-900/90 text-slate-800 dark:text-white shadow-md tracking-wider border border-white/40">
                     {g.badge}
                   </span>
-                  <div className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-black/20 backdrop-blur-xs text-white text-[11px] font-bold">
-                    <Users className="w-3 h-3 text-white/90" />
-                    <span>{g.playersText}</span>
-                  </div>
                 </div>
               </div>
 
-              {/* Title & 1-Line Description */}
-              <h3 className="text-xl font-black text-[#2a2050] tracking-tight mb-1">{g.title}</h3>
-              <p className="text-xs text-[#7e749c] font-medium leading-relaxed mb-4 min-h-[34px]">
-                {g.description}
-              </p>
-
-              {/* Quick Specs Matrix */}
-              <div className="grid grid-cols-3 gap-1.5 py-2.5 px-3 bg-[#faf7fe] rounded-2xl border border-[#ede8f8] mb-4 text-center">
-                {g.specs.map((s, idx) => (
-                  <div key={idx} className="border-r last:border-r-0 border-[#ede8f8]">
-                    <div className="text-[9px] font-bold text-[#7e749c] uppercase">{s.label}</div>
-                    <div className="text-[11px] font-black text-[#2a2050] mt-0.5 truncate">{s.value}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Feature Tags */}
-              <div className="flex flex-wrap gap-1.5 mb-5">
-                {g.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#f4effc] text-[#6d5ebd] border border-[#ede8f8]"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              {/* Title (Big, bold, cartoonish, zero clutter) */}
+              <h3 className={`text-2xl sm:text-[26px] font-black ${g.titleColor} text-center tracking-tight mb-2`}>
+                {g.title}
+              </h3>
             </div>
 
             {/* Action Buttons: Quick Match (1-Click) & Custom Room */}
-            <div className="pt-3 border-t border-[#ede8f8] space-y-2">
+            <div className="pt-4 space-y-2.5">
               <button
                 onClick={() => handleQuickPlay(g.type)}
                 disabled={matchingType !== null}
-                className={`w-full py-3 rounded-full text-xs font-black text-white bg-gradient-to-r ${g.buttonGrad} shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50`}
+                className={`w-full py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider ${g.btnQuick} transition-all duration-150 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 active:translate-y-1 active:shadow-none hover:brightness-105`}
               >
-                <Zap className={`w-3.5 h-3.5 ${matchingType === g.type ? 'animate-spin' : ''}`} />
+                <Zap className={`w-4 h-4 ${matchingType === g.type ? 'animate-spin' : ''}`} />
                 <span>{matchingType === g.type ? 'Finding Match...' : '⚡ Quick Match (1-Click)'}</span>
               </button>
 
               <button
                 onClick={() => handleSelectGame(g.type)}
-                className="w-full py-2.5 rounded-full text-xs font-bold text-[#524872] bg-[#f0ecfc] hover:bg-[#e4ddf8] transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                className={`w-full py-2.5 rounded-2xl text-xs font-black uppercase tracking-wide ${g.btnCustom} transition-all flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95`}
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Create Custom Room</span>
+                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                <span>Create Room</span>
               </button>
             </div>
           </div>
