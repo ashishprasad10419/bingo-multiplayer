@@ -60,6 +60,66 @@ public class Game {
     @Builder.Default
     private java.util.Map<String, Integer> playerScores = new java.util.HashMap<>(); // userId -> score
 
+    // --- Connect Four State ---
+    @Builder.Default
+    private int c4Cols = 7;
+    @Builder.Default
+    private int c4Rows = 6;
+    @Builder.Default
+    private List<String> c4Board = new ArrayList<>(); // 42 cells, values: userId or ""
+    @Builder.Default
+    private List<Integer> c4WinningCells = new ArrayList<>();
+
+    // --- Rock Paper Scissors State ---
+    @Builder.Default
+    private int rpsRound = 1;
+    @Builder.Default
+    private int rpsTargetWins = 3;
+    @Builder.Default
+    private java.util.Map<String, String> rpsChoices = new java.util.HashMap<>(); // userId -> "ROCK"/"PAPER"/"SCISSORS"
+    @Builder.Default
+    private java.util.Map<String, Integer> rpsRoundWins = new java.util.HashMap<>(); // userId -> wins
+    @Builder.Default
+    private java.util.Map<String, Object> rpsLastRoundResult = new java.util.HashMap<>();
+
+    // --- Memory Match State ---
+    @Builder.Default
+    private List<String> memoryCards = new ArrayList<>(); // 16 card symbols
+    @Builder.Default
+    private List<Boolean> memoryMatched = new ArrayList<>(); // 16 booleans
+    @Builder.Default
+    private List<Integer> memoryFlippedIndices = new ArrayList<>(); // 0, 1, or 2 indices
+
+    // --- Number Rush State ---
+    @Builder.Default
+    private java.util.Map<String, List<Integer>> numberRushBoards = new java.util.HashMap<>(); // userId -> shuffled 1..25
+    @Builder.Default
+    private java.util.Map<String, Integer> numberRushProgress = new java.util.HashMap<>(); // userId -> next expected number
+
+    // --- Word Scramble State ---
+    @Builder.Default
+    private List<String> scrambleWords = new ArrayList<>();
+    @Builder.Default
+    private List<String> scrambleHints = new ArrayList<>();
+    @Builder.Default
+    private List<String> scrambleJumbled = new ArrayList<>();
+    @Builder.Default
+    private int scrambleCurrentRound = 0;
+    @Builder.Default
+    private String scrambleLastWinnerId = null;
+
+    // --- Quiz Battle State ---
+    @Builder.Default
+    private List<String> quizQuestions = new ArrayList<>();
+    @Builder.Default
+    private List<List<String>> quizOptions = new ArrayList<>();
+    @Builder.Default
+    private List<Integer> quizCorrectIndices = new ArrayList<>();
+    @Builder.Default
+    private int quizCurrentQuestion = 0;
+    @Builder.Default
+    private java.util.Map<String, Integer> quizAnswers = new java.util.HashMap<>(); // userId -> selected option index
+
     @Indexed
     @Builder.Default
     private GameStatus status = GameStatus.PLAYING;

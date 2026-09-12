@@ -156,6 +156,76 @@ export const GameVisualIcon: React.FC<GameVisualIconProps> = ({
     );
   }
 
+  if (type === 'CONNECT_FOUR') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          <defs>
+            <linearGradient id="c4-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#1d4ed8" />
+            </linearGradient>
+            <radialGradient id="c4-red" cx="35%" cy="30%" r="65%">
+              <stop offset="0%" stopColor="#f87171" />
+              <stop offset="100%" stopColor="#dc2626" />
+            </radialGradient>
+            <radialGradient id="c4-yellow" cx="35%" cy="30%" r="65%">
+              <stop offset="0%" stopColor="#fde047" />
+              <stop offset="100%" stopColor="#eab308" />
+            </radialGradient>
+          </defs>
+          <rect x="8" y="10" width="48" height="46" rx="8" fill="url(#c4-blue)" />
+          <circle cx="21" cy="23" r="7" fill="url(#c4-red)" />
+          <circle cx="21" cy="41" r="7" fill="url(#c4-yellow)" />
+          <circle cx="43" cy="23" r="7" fill="url(#c4-yellow)" />
+          <circle cx="43" cy="41" r="7" fill="url(#c4-red)" />
+          <circle cx="19" cy="20" r="2" fill="#ffffff" opacity="0.6" />
+          <circle cx="41" cy="38" r="2" fill="#ffffff" opacity="0.6" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'ROCK_PAPER_SCISSORS') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <span className="text-3xl select-none filter drop-shadow-md">✊✌️</span>
+      </div>
+    );
+  }
+
+  if (type === 'MEMORY') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <span className="text-3xl select-none filter drop-shadow-md">🃏✨</span>
+      </div>
+    );
+  }
+
+  if (type === 'NUMBER_RUSH') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <span className="text-3xl select-none filter drop-shadow-md">🔢⚡</span>
+      </div>
+    );
+  }
+
+  if (type === 'WORD_SCRAMBLE') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <span className="text-3xl select-none filter drop-shadow-md">📝🔤</span>
+      </div>
+    );
+  }
+
+  if (type === 'QUIZ_BATTLE') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <span className="text-3xl select-none filter drop-shadow-md">🧠💡</span>
+      </div>
+    );
+  }
+
   // Default: BINGO
   return (
     <div className={`relative flex items-center justify-center ${dim} ${className}`}>

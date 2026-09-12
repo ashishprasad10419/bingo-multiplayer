@@ -68,6 +68,60 @@ export const CreateRoom: React.FC = () => {
           buttonLabel: 'Create Dots & Boxes Room',
           iconGradient: 'from-[#10b981] via-[#059669] to-[#0284c7]',
         };
+      case 'CONNECT_FOUR':
+        return {
+          title: 'Create Connect Four Room',
+          subtitle: 'Drop chips into 7 columns and connect 4 in a row',
+          badge: '🔴🟡 1v1 Gravity Duel',
+          badgeStyle: 'bg-[#eff6ff] border-[#bfdbfe] text-[#1d4ed8]',
+          buttonLabel: 'Create Connect Four Room',
+          iconGradient: 'from-[#2563eb] via-[#3b82f6] to-[#f59e0b]',
+        };
+      case 'ROCK_PAPER_SCISSORS':
+        return {
+          title: 'Create Rock Paper Scissors Room',
+          subtitle: 'Simultaneous secret selection battle — first to 3 wins',
+          badge: '✊✌️ Rapid Duel',
+          badgeStyle: 'bg-[#fff7ed] border-[#fed7aa] text-[#c2410c]',
+          buttonLabel: 'Create RPS Room',
+          iconGradient: 'from-[#ea580c] via-[#f97316] to-[#ef4444]',
+        };
+      case 'MEMORY':
+        return {
+          title: 'Create Memory Match Room',
+          subtitle: 'Flip pairs of cards to match icons and score bonus turns',
+          badge: '🃏 Card Flip Match',
+          badgeStyle: 'bg-[#f5f3ff] border-[#ddd6fe] text-[#6d28d9]',
+          buttonLabel: 'Create Memory Room',
+          iconGradient: 'from-[#7c3aed] via-[#8b5cf6] to-[#ec4899]',
+        };
+      case 'NUMBER_RUSH':
+        return {
+          title: 'Create Number Rush Room',
+          subtitle: 'Real-time race to tap numbers 1 to 25 in ascending order',
+          badge: '🔢 Speed Tap Race',
+          badgeStyle: 'bg-[#ecfeff] border-[#a5f3fc] text-[#0e7490]',
+          buttonLabel: 'Create Number Rush Room',
+          iconGradient: 'from-[#0891b2] via-[#06b6d4] to-[#10b981]',
+        };
+      case 'WORD_SCRAMBLE':
+        return {
+          title: 'Create Word Scramble Room',
+          subtitle: 'Unscramble jumbled words with hints across 5 rounds',
+          badge: '📝 5 Round Race',
+          badgeStyle: 'bg-[#f0fdfa] border-[#99f6e4] text-[#0f766e]',
+          buttonLabel: 'Create Word Scramble Room',
+          iconGradient: 'from-[#0d9488] via-[#14b8a6] to-[#f59e0b]',
+        };
+      case 'QUIZ_BATTLE':
+        return {
+          title: 'Create Quiz Battle Room',
+          subtitle: 'Answer 5 rapid trivia questions with speed score multipliers',
+          badge: '🧠 Trivia Battle',
+          badgeStyle: 'bg-[#faf5ff] border-[#e9d5ff] text-[#7e22ce]',
+          buttonLabel: 'Create Quiz Battle Room',
+          iconGradient: 'from-[#9333ea] via-[#a855f7] to-[#f97316]',
+        };
       case 'BINGO':
       default:
         return {
@@ -103,6 +157,24 @@ export const CreateRoom: React.FC = () => {
         payload.gridSize = dotsGridSize;
         payload.boardSize = dotsGridSize;
         payload.maxPlayers = dotsMaxPlayers;
+      } else if (gameType === 'CONNECT_FOUR') {
+        payload.boardSize = 7;
+        payload.maxPlayers = 2;
+      } else if (gameType === 'ROCK_PAPER_SCISSORS') {
+        payload.boardSize = 3;
+        payload.maxPlayers = 2;
+      } else if (gameType === 'MEMORY') {
+        payload.boardSize = 4;
+        payload.maxPlayers = 4;
+      } else if (gameType === 'NUMBER_RUSH') {
+        payload.boardSize = 5;
+        payload.maxPlayers = 6;
+      } else if (gameType === 'WORD_SCRAMBLE') {
+        payload.boardSize = 5;
+        payload.maxPlayers = 6;
+      } else if (gameType === 'QUIZ_BATTLE') {
+        payload.boardSize = 5;
+        payload.maxPlayers = 6;
       }
 
       const room = await roomApi.createRoom(payload);

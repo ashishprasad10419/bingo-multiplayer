@@ -28,6 +28,10 @@ public class RoomService {
     private final GameRepository gameRepository;
     private final GameEventService gameEventService;
     private final BoardService boardService;
+    private final com.bingo.game.engine.MemoryEngine memoryEngine;
+    private final com.bingo.game.engine.NumberRushEngine numberRushEngine;
+    private final com.bingo.game.engine.WordScrambleEngine wordScrambleEngine;
+    private final com.bingo.game.engine.QuizBattleEngine quizBattleEngine;
 
     private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -273,6 +277,78 @@ public class RoomService {
             gameBuilder.horizontalLines(new ArrayList<>());
             gameBuilder.verticalLines(new ArrayList<>());
             gameBuilder.completedBoxes(new HashMap<>());
+            Map<String, Integer> initialScores = new HashMap<>();
+            for (GamePlayer gp : gamePlayers) {
+                initialScores.put(gp.getUserId(), 0);
+            }
+            gameBuilder.playerScores(initialScores);
+        } else if (room.getGameType() == com.bingo.game.GameType.CONNECT_FOUR) {
+            gameBuilder.c4Cols(7);
+            gameBuilder.c4Rows(6);
+            gameBuilder.c4Board(new ArrayList<>(Collections.nCopies(42, "")));
+            gameBuilder.c4WinningCells(new ArrayList<>());
+        } else if (room.getGameType() == com.bingo.game.GameType.ROCK_PAPER_SCISSORS) {
+            gameBuilder.rpsRound(1);
+            gameBuilder.rpsTargetWins(3);
+            gameBuilder.rpsChoices(new HashMap<>());
+            Map<String, Integer> wins = new HashMap<>();
+            for (GamePlayer gp : gamePlayers) {
+                wins.put(gp.getUserId(), 0);
+            }
+            gameBuilder.rpsRoundWins(wins);
+            gameBuilder.rpsLastRoundResult(new HashMap<>());
+        } else if (room.getGameType() == com.bingo.game.GameType.MEMORY) {
+            gameBuilder.memoryCards(memoryEngine.initializeDeck());
+            gameBuilder.memoryMatched(new ArrayList<>(Collections.nCopies(16, false)));
+            gameBuilder.memoryFlippedIndices(new ArrayList<>());
+            Map<String, Integer> initialScores = new HashMap<>();
+            for (GamePlayer gp : gamePlayers) {
+                initialScores.put(gp.getUserId(), 0);
+            }
+            gameBuilder.playerScores(initialScores);
+        } else if (room.getGameType() == com.bingo.game.GameType.NUMBER_RUSH) {
+            Map<String, List<Integer>> boards = new HashMap<>();
+            Map<String, Integer> progress = new HashMap<>();
+            for (GamePlayer gp : gamePlayers) {
+                boards.put(gp.getUserId(), numberRushEngine.generateShuffledBoard());
+                progress.put(gp.getUserId(), 1);
+            }
+            gameBuilder.numberRushBoards(boards);
+            gameBuilder.numberRushProgress(progress);
+        } else if (room.getGameType() == com.bingo.game.GameType.WORD_SCRAMBLE) {
+            List<com.bingo.game.engine.WordScrambleEngine.WordEntry> words = wordScrambleEngine.pickRandomWords(5);
+            List<String> rawWords = new ArrayList<>();
+            List<String> hints = new ArrayList<>();
+            List<String> jumbled = new ArrayList<>();
+            for (com.bingo.game.engine.WordScrambleEngine.WordEntry we : words) {
+                rawWords.add(we.word());
+                hints.add(we.hint());
+                jumbled.add(wordScrambleEngine.scrambleWord(we.word()));
+            }
+            gameBuilder.scrambleWords(rawWords);
+            gameBuilder.scrambleHints(hints);
+            gameBuilder.scrambleJumbled(jumbled);
+            gameBuilder.scrambleCurrentRound(0);
+            Map<String, Integer> initialScores = new HashMap<>();
+            for (GamePlayer gp : gamePlayers) {
+                initialScores.put(gp.getUserId(), 0);
+            }
+            gameBuilder.playerScores(initialScores);
+        } else if (room.getGameType() == com.bingo.game.GameType.QUIZ_BATTLE) {
+            List<com.bingo.game.engine.QuizBattleEngine.QuizItem> quizItems = quizBattleEngine.pickRandomQuestions(5);
+            List<String> questions = new ArrayList<>();
+            List<List<String>> options = new ArrayList<>();
+            List<Integer> corrects = new ArrayList<>();
+            for (com.bingo.game.engine.QuizBattleEngine.QuizItem item : quizItems) {
+                questions.add(item.question());
+                options.add(item.options());
+                corrects.add(item.correctIndex());
+            }
+            gameBuilder.quizQuestions(questions);
+            gameBuilder.quizOptions(options);
+            gameBuilder.quizCorrectIndices(corrects);
+            gameBuilder.quizCurrentQuestion(0);
+            gameBuilder.quizAnswers(new HashMap<>());
             Map<String, Integer> initialScores = new HashMap<>();
             for (GamePlayer gp : gamePlayers) {
                 initialScores.put(gp.getUserId(), 0);

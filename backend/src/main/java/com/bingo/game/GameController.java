@@ -68,6 +68,66 @@ public class GameController {
         return ResponseEntity.ok(gameService.processDotsLine(userId, id, request.getLineType(), request.getRow(), request.getCol(), request.getClientMoveId()));
     }
 
+    @PostMapping("/games/{id}/c4/move")
+    @Operation(summary = "Make a Connect Four move (REST fallback)")
+    public ResponseEntity<Game> makeC4Move(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.GenericMoveRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processC4Move(userId, id, request.getCol(), request.getClientMoveId()));
+    }
+
+    @PostMapping("/games/{id}/rps/choice")
+    @Operation(summary = "Submit Rock Paper Scissors choice (REST fallback)")
+    public ResponseEntity<Game> submitRpsChoice(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.GenericMoveRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processRpsChoice(userId, id, request.getChoice(), request.getClientMoveId()));
+    }
+
+    @PostMapping("/games/{id}/memory/flip")
+    @Operation(summary = "Flip a card in Memory (REST fallback)")
+    public ResponseEntity<Game> flipMemoryCard(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.GenericMoveRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processMemoryFlip(userId, id, request.getCardIndex(), request.getClientMoveId()));
+    }
+
+    @PostMapping("/games/{id}/number-rush/tap")
+    @Operation(summary = "Tap number in Number Rush (REST fallback)")
+    public ResponseEntity<Game> tapNumberRush(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.GenericMoveRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processNumberRushTap(userId, id, request.getTappedNumber(), request.getClientMoveId()));
+    }
+
+    @PostMapping("/games/{id}/word-scramble/guess")
+    @Operation(summary = "Submit guess in Word Scramble (REST fallback)")
+    public ResponseEntity<Game> guessWordScramble(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.GenericMoveRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processWordScrambleGuess(userId, id, request.getGuess(), request.getClientMoveId()));
+    }
+
+    @PostMapping("/games/{id}/quiz/answer")
+    @Operation(summary = "Submit answer in Quiz Battle (REST fallback)")
+    public ResponseEntity<Game> submitQuizAnswer(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.GenericMoveRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processQuizAnswer(userId, id, request.getAnswerIndex(), request.getClientMoveId()));
+    }
+
     @PostMapping("/games/{id}/emote")
     @Operation(summary = "Send an in-game reaction emote (REST fallback)")
     public ResponseEntity<Void> sendEmote(

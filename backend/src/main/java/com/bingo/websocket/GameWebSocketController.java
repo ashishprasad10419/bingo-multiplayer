@@ -98,15 +98,70 @@ public class GameWebSocketController {
     @MessageMapping("/game/send-emote")
     public void handleSendEmote(@Payload com.bingo.game.dto.SendEmoteRequest request, Principal principal) {
         if (principal == null) {
-            log.warn("Unauthorized send-emote attempt");
+            log.warn("Unauthorized emote attempt");
             return;
         }
-
         String userId = principal.getName();
+        gameService.broadcastEmote(userId, request.getGameId(), request.getEmote());
+    }
+
+    @MessageMapping("/game/c4/move")
+    public void handleC4Move(@Payload com.bingo.game.dto.GenericMoveRequest request, Principal principal) {
+        if (principal == null) return;
         try {
-            gameService.broadcastEmote(userId, request.getGameId(), request.getEmote());
+            gameService.processC4Move(principal.getName(), request.getGameId(), request.getCol(), request.getClientMoveId());
         } catch (Exception ex) {
-            log.warn("Failed to broadcast emote: {}", ex.getMessage());
+            log.warn("C4 move error: {}", ex.getMessage());
+        }
+    }
+
+    @MessageMapping("/game/rps/choice")
+    public void handleRpsChoice(@Payload com.bingo.game.dto.GenericMoveRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processRpsChoice(principal.getName(), request.getGameId(), request.getChoice(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("RPS choice error: {}", ex.getMessage());
+        }
+    }
+
+    @MessageMapping("/game/memory/flip")
+    public void handleMemoryFlip(@Payload com.bingo.game.dto.GenericMoveRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processMemoryFlip(principal.getName(), request.getGameId(), request.getCardIndex(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("Memory flip error: {}", ex.getMessage());
+        }
+    }
+
+    @MessageMapping("/game/number-rush/tap")
+    public void handleNumberRushTap(@Payload com.bingo.game.dto.GenericMoveRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processNumberRushTap(principal.getName(), request.getGameId(), request.getTappedNumber(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("Number rush tap error: {}", ex.getMessage());
+        }
+    }
+
+    @MessageMapping("/game/word-scramble/guess")
+    public void handleWordScrambleGuess(@Payload com.bingo.game.dto.GenericMoveRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processWordScrambleGuess(principal.getName(), request.getGameId(), request.getGuess(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("Word scramble guess error: {}", ex.getMessage());
+        }
+    }
+
+    @MessageMapping("/game/quiz/answer")
+    public void handleQuizAnswer(@Payload com.bingo.game.dto.GenericMoveRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processQuizAnswer(principal.getName(), request.getGameId(), request.getAnswerIndex(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("Quiz answer error: {}", ex.getMessage());
         }
     }
 }

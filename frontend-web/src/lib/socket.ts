@@ -173,6 +173,90 @@ class SocketService {
     }
   }
 
+  public sendC4Move(gameId: string, col: number, clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/c4/move',
+        body: JSON.stringify({ gameId, col, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendC4Move failed:', e);
+      return false;
+    }
+  }
+
+  public sendRpsChoice(gameId: string, choice: string, clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/rps/choice',
+        body: JSON.stringify({ gameId, choice, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendRpsChoice failed:', e);
+      return false;
+    }
+  }
+
+  public sendMemoryFlip(gameId: string, cardIndex: number, clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/memory/flip',
+        body: JSON.stringify({ gameId, cardIndex, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendMemoryFlip failed:', e);
+      return false;
+    }
+  }
+
+  public sendNumberRushTap(gameId: string, tappedNumber: number, clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/number-rush/tap',
+        body: JSON.stringify({ gameId, tappedNumber, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendNumberRushTap failed:', e);
+      return false;
+    }
+  }
+
+  public sendWordScrambleGuess(gameId: string, guess: string, clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/word-scramble/guess',
+        body: JSON.stringify({ gameId, guess, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendWordScrambleGuess failed:', e);
+      return false;
+    }
+  }
+
+  public sendQuizAnswer(gameId: string, answerIndex: number, clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/quiz/answer',
+        body: JSON.stringify({ gameId, answerIndex, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendQuizAnswer failed:', e);
+      return false;
+    }
+  }
+
   public sendEmote(gameId: string, roomCode: string, emote: string): boolean {
     if (!this.client || !this.client.connected) {
       return false;

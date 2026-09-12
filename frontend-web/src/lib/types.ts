@@ -27,7 +27,16 @@ export interface RoomPlayer {
   boardLocked: boolean;
 }
 
-export type GameType = 'BINGO' | 'TIC_TAC_TOE' | 'DOTS_AND_BOXES';
+export type GameType =
+  | 'BINGO'
+  | 'TIC_TAC_TOE'
+  | 'DOTS_AND_BOXES'
+  | 'CONNECT_FOUR'
+  | 'ROCK_PAPER_SCISSORS'
+  | 'MEMORY'
+  | 'NUMBER_RUSH'
+  | 'WORD_SCRAMBLE'
+  | 'QUIZ_BATTLE';
 
 export type RoomStatus = 'WAITING' | 'BOARD_SETUP' | 'READY' | 'PLAYING' | 'FINISHED' | 'CANCELLED';
 
@@ -94,6 +103,42 @@ export interface Game {
   verticalLines?: string[];
   completedBoxes?: Record<string, string>;
   playerScores?: Record<string, number>;
+
+  // Connect Four
+  c4Cols?: number;
+  c4Rows?: number;
+  c4Board?: string[];
+  c4WinningCells?: number[];
+
+  // Rock Paper Scissors
+  rpsRound?: number;
+  rpsTargetWins?: number;
+  rpsChoices?: Record<string, string>;
+  rpsRoundWins?: Record<string, number>;
+  rpsLastRoundResult?: any;
+
+  // Memory
+  memoryCards?: string[];
+  memoryMatched?: boolean[];
+  memoryFlippedIndices?: number[];
+
+  // Number Rush
+  numberRushBoards?: Record<string, number[]>;
+  numberRushProgress?: Record<string, number>;
+
+  // Word Scramble
+  scrambleWords?: string[];
+  scrambleHints?: string[];
+  scrambleJumbled?: string[];
+  scrambleCurrentRound?: number;
+  scrambleLastWinnerId?: string;
+
+  // Quiz Battle
+  quizQuestions?: string[];
+  quizOptions?: string[][];
+  quizCorrectIndices?: number[];
+  quizCurrentQuestion?: number;
+  quizAnswers?: Record<string, number>;
 }
 
 export interface Badge {

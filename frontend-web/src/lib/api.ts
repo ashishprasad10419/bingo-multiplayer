@@ -148,6 +148,30 @@ export const gameApi = {
     const res = await apiClient.post<Game>(`/games/${gameId}/dots-and-boxes/line`, { lineType, row, col, clientMoveId });
     return res.data;
   },
+  makeC4Move: async (gameId: string, col: number, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/c4/move`, { gameId, col, clientMoveId });
+    return res.data;
+  },
+  submitRpsChoice: async (gameId: string, choice: string, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/rps/choice`, { gameId, choice, clientMoveId });
+    return res.data;
+  },
+  flipMemoryCard: async (gameId: string, cardIndex: number, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/memory/flip`, { gameId, cardIndex, clientMoveId });
+    return res.data;
+  },
+  tapNumberRush: async (gameId: string, tappedNumber: number, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/number-rush/tap`, { gameId, tappedNumber, clientMoveId });
+    return res.data;
+  },
+  guessWordScramble: async (gameId: string, guess: string, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/word-scramble/guess`, { gameId, guess, clientMoveId });
+    return res.data;
+  },
+  submitQuizAnswer: async (gameId: string, answerIndex: number, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/quiz/answer`, { gameId, answerIndex, clientMoveId });
+    return res.data;
+  },
   sendEmote: async (gameId: string, emote: string): Promise<void> => {
     await apiClient.post(`/games/${gameId}/emote?emote=${encodeURIComponent(emote)}`);
   },

@@ -13,6 +13,12 @@ import { EmoteBar } from '../components/EmoteBar';
 import { FloatingEmotesOverlay } from '../components/FloatingEmotesOverlay';
 import { TicTacToeArena } from '../components/games/TicTacToeArena';
 import { DotsAndBoxesArena } from '../components/games/DotsAndBoxesArena';
+import { ConnectFourArena } from '../components/games/ConnectFourArena';
+import { RockPaperScissorsArena } from '../components/games/RockPaperScissorsArena';
+import { MemoryArena } from '../components/games/MemoryArena';
+import { NumberRushArena } from '../components/games/NumberRushArena';
+import { WordScrambleArena } from '../components/games/WordScrambleArena';
+import { QuizBattleArena } from '../components/games/QuizBattleArena';
 import { ConnectionStatusPill } from '../components/ConnectionStatusPill';
 import { CountdownOverlay } from '../components/CountdownOverlay';
 import { LastCalledCallout } from '../components/LastCalledCallout';
@@ -47,6 +53,12 @@ export const Game: React.FC = () => {
   const isBingo = !game?.gameType || game.gameType === 'BINGO';
   const isTtt = game?.gameType === 'TIC_TAC_TOE';
   const isDots = game?.gameType === 'DOTS_AND_BOXES';
+  const isC4 = game?.gameType === 'CONNECT_FOUR';
+  const isRps = game?.gameType === 'ROCK_PAPER_SCISSORS';
+  const isMemory = game?.gameType === 'MEMORY';
+  const isNumberRush = game?.gameType === 'NUMBER_RUSH';
+  const isWordScramble = game?.gameType === 'WORD_SCRAMBLE';
+  const isQuiz = game?.gameType === 'QUIZ_BATTLE';
 
   // Audio Cue: Alert player when it becomes their turn
   useEffect(() => {
@@ -286,11 +298,144 @@ export const Game: React.FC = () => {
     }
   };
 
+  // --- CONNECT FOUR Move Handler ---
+  const handleC4Move = async (col: number) => {
+    if (!isMyTurn || calling) return;
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    soundService.playTileTap();
+    setCalling(true);
+    setError(null);
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendC4Move(game.id, col, clientMoveId);
+    } catch (_) {
+      socketSent = false;
+    }
+    if (!socketSent) {
+      try {
+        await gameApi.makeC4Move(game.id, col, clientMoveId);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to drop chip');
+      } finally {
+        setCalling(false);
+      }
+    } else {
+      setTimeout(() => setCalling(false), 300);
+    }
+  };
+
+  // --- ROCK PAPER SCISSORS Move Handler ---
+  const handleRpsChoice = async (choice: string) => {
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    soundService.playTileTap();
+    setError(null);
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendRpsChoice(game.id, choice, clientMoveId);
+    } catch (_) {
+      socketSent = false;
+    }
+    if (!socketSent) {
+      try {
+        await gameApi.submitRpsChoice(game.id, choice, clientMoveId);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to submit choice');
+      }
+    }
+  };
+
+  // --- MEMORY MATCH Move Handler ---
+  const handleMemoryFlip = async (cardIndex: number) => {
+    if (!isMyTurn || calling) return;
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    soundService.playTileTap();
+    setError(null);
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendMemoryFlip(game.id, cardIndex, clientMoveId);
+    } catch (_) {
+      socketSent = false;
+    }
+    if (!socketSent) {
+      try {
+        await gameApi.flipMemoryCard(game.id, cardIndex, clientMoveId);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to flip card');
+      }
+    }
+  };
+
+  // --- NUMBER RUSH Move Handler ---
+  const handleNumberRushTap = async (tappedNumber: number) => {
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    soundService.playTileTap();
+    setError(null);
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendNumberRushTap(game.id, tappedNumber, clientMoveId);
+    } catch (_) {
+      socketSent = false;
+    }
+    if (!socketSent) {
+      try {
+        await gameApi.tapNumberRush(game.id, tappedNumber, clientMoveId);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to tap number');
+      }
+    }
+  };
+
+  // --- WORD SCRAMBLE Move Handler ---
+  const handleWordScrambleGuess = async (guess: string) => {
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    soundService.playTileTap();
+    setError(null);
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendWordScrambleGuess(game.id, guess, clientMoveId);
+    } catch (_) {
+      socketSent = false;
+    }
+    if (!socketSent) {
+      try {
+        await gameApi.guessWordScramble(game.id, guess, clientMoveId);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to submit guess');
+      }
+    }
+  };
+
+  // --- QUIZ BATTLE Move Handler ---
+  const handleQuizAnswer = async (answerIndex: number) => {
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    soundService.playTileTap();
+    setError(null);
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendQuizAnswer(game.id, answerIndex, clientMoveId);
+    } catch (_) {
+      socketSent = false;
+    }
+    if (!socketSent) {
+      try {
+        await gameApi.submitQuizAnswer(game.id, answerIndex, clientMoveId);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to submit answer');
+      }
+    }
+  };
+
   const theme = getGameTheme(game?.gameType);
 
   const getGameTitle = () => {
     if (isTtt) return 'Tic-Tac-Toe';
     if (isDots) return 'Dots & Boxes';
+    if (isC4) return 'Connect Four';
+    if (isRps) return 'Rock Paper Scissors';
+    if (isMemory) return 'Memory Match';
+    if (isNumberRush) return 'Number Rush';
+    if (isWordScramble) return 'Word Scramble';
+    if (isQuiz) return 'Quiz Battle';
     return 'Bingo';
   };
 
@@ -392,10 +537,16 @@ export const Game: React.FC = () => {
             ) : isMyTurn ? (
               <div className="flex items-center justify-center space-x-2">
                 <Sparkles className="w-5 h-5 animate-pulse text-amber-500" />
-                <div className="text-sm font-black text-[#2a2050]">
+                <div className="text-sm font-black text-[#2a2050] dark:text-white">
                   {isBingo && "IT'S YOUR TURN! Tap a number on your board"}
                   {isTtt && "IT'S YOUR TURN! Place your mark on the grid"}
                   {isDots && "IT'S YOUR TURN! Click a line between two dots"}
+                  {isC4 && "IT'S YOUR TURN! Drop your chip in a column"}
+                  {isRps && "CHOOSE YOUR MOVE! Rock, Paper, or Scissors"}
+                  {isMemory && "IT'S YOUR TURN! Flip cards to find matching pairs"}
+                  {isNumberRush && "⚡ SPEED RACE! Tap numbers 1 to 25 as fast as you can!"}
+                  {isWordScramble && "🔤 ANAGRAM RACE! Solve the scrambled word!"}
+                  {isQuiz && "🧠 TRIVIA BATTLE! Answer fast for maximum points!"}
                 </div>
               </div>
             ) : (
@@ -403,7 +554,7 @@ export const Game: React.FC = () => {
                 <Clock className="w-4 h-4 text-[#8b7fe8] animate-spin" />
                 <span>
                   Waiting for{' '}
-                  <strong className="text-[#2a2050] font-extrabold">
+                  <strong className="text-[#2a2050] dark:text-white font-extrabold">
                     {currentTurnPlayer?.username || 'player'}
                   </strong>{' '}
                   to make a move...
@@ -459,6 +610,74 @@ export const Game: React.FC = () => {
                 currentUserId={user.id}
                 onDrawLine={handleDotsLine}
                 isMyTurn={isMyTurn}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
+
+          {isC4 && (
+            <div className="w-full max-w-[560px] flex justify-center">
+              <ConnectFourArena
+                game={game}
+                currentUserId={user.id}
+                onMakeMove={handleC4Move}
+                isMyTurn={isMyTurn}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
+
+          {isRps && (
+            <div className="w-full max-w-[560px] flex justify-center">
+              <RockPaperScissorsArena
+                game={game}
+                currentUserId={user.id}
+                onSubmitChoice={handleRpsChoice}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
+
+          {isMemory && (
+            <div className="w-full max-w-[560px] flex justify-center">
+              <MemoryArena
+                game={game}
+                currentUserId={user.id}
+                onFlipCard={handleMemoryFlip}
+                isMyTurn={isMyTurn}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
+
+          {isNumberRush && (
+            <div className="w-full max-w-[560px] flex justify-center">
+              <NumberRushArena
+                game={game}
+                currentUserId={user.id}
+                onTapNumber={handleNumberRushTap}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
+
+          {isWordScramble && (
+            <div className="w-full max-w-[560px] flex justify-center">
+              <WordScrambleArena
+                game={game}
+                currentUserId={user.id}
+                onSubmitGuess={handleWordScrambleGuess}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
+
+          {isQuiz && (
+            <div className="w-full max-w-[560px] flex justify-center">
+              <QuizBattleArena
+                game={game}
+                currentUserId={user.id}
+                onSubmitAnswer={handleQuizAnswer}
                 disabled={game.status !== 'PLAYING'}
               />
             </div>

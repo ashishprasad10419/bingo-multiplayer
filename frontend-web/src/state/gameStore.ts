@@ -333,6 +333,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           }
           break;
 
+        case 'DOTS_AND_BOXES':
         case 'DOTS_LINE_DRAWN':
           if (game) {
             set({
@@ -344,6 +345,113 @@ export const useGameStore = create<GameState>((set, get) => ({
                 playerScores: event.data.playerScores || game.playerScores,
                 currentTurnUserId: event.data.nextTurn,
                 status: (event.data.status as any) || game.status,
+              },
+            });
+          }
+          break;
+
+        case 'C4_MOVE_MADE':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                c4Board: event.data.c4Board || game.c4Board,
+                c4WinningCells: event.data.winningCells || game.c4WinningCells,
+                currentTurnUserId: event.data.nextTurn,
+                status: (event.data.status as any) || game.status,
+              },
+            });
+          }
+          break;
+
+        case 'RPS_CHOICE_LOCKED':
+          if (game) {
+            const choices = { ...(game.rpsChoices || {}) };
+            choices[event.data.userId] = 'LOCKED';
+            set({
+              game: {
+                ...game,
+                rpsChoices: choices,
+              },
+            });
+          }
+          break;
+
+        case 'RPS_ROUND_RESOLVED':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                rpsRound: (event.data.round || 1) + 1,
+                rpsRoundWins: event.data.roundScores || game.rpsRoundWins,
+                rpsLastRoundResult: event.data,
+                rpsChoices: {},
+              },
+            });
+          }
+          break;
+
+        case 'MEMORY_FLIP_RESULT':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                memoryMatched: event.data.matched || game.memoryMatched,
+                playerScores: event.data.playerScores || game.playerScores,
+                currentTurnUserId: event.data.nextTurn || game.currentTurnUserId,
+                memoryFlippedIndices:
+                  event.data.status === 'FIRST_CARD_FLIPPED'
+                    ? [event.data.cardIndex]
+                    : [],
+              },
+            });
+          }
+          break;
+
+        case 'NUMBER_RUSH_TAP':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                numberRushProgress: event.data.progress || game.numberRushProgress,
+              },
+            });
+          }
+          break;
+
+        case 'WORD_SCRAMBLE_SOLVED':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                scrambleCurrentRound: event.data.newRound ?? game.scrambleCurrentRound,
+                playerScores: event.data.scores || game.playerScores,
+              },
+            });
+          }
+          break;
+
+        case 'QUIZ_ROUND_COMPLETE':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                quizCurrentQuestion: event.data.nextQuestionIndex ?? game.quizCurrentQuestion,
+                playerScores: event.data.scores || game.playerScores,
+                quizAnswers: {},
+              },
+            });
+          }
+          break;
+
+        case 'QUIZ_PLAYER_ANSWERED':
+          if (game) {
+            const answers = { ...(game.quizAnswers || {}) };
+            answers[event.data.userId] = 1;
+            set({
+              game: {
+                ...game,
+                quizAnswers: answers,
               },
             });
           }

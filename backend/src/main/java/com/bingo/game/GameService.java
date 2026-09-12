@@ -19,6 +19,12 @@ public class GameService {
     private final GameEngine gameEngine;
     private final com.bingo.game.engine.TicTacToeEngine ticTacToeEngine;
     private final com.bingo.game.engine.DotsAndBoxesEngine dotsAndBoxesEngine;
+    private final com.bingo.game.engine.ConnectFourEngine connectFourEngine;
+    private final com.bingo.game.engine.RockPaperScissorsEngine rockPaperScissorsEngine;
+    private final com.bingo.game.engine.MemoryEngine memoryEngine;
+    private final com.bingo.game.engine.NumberRushEngine numberRushEngine;
+    private final com.bingo.game.engine.WordScrambleEngine wordScrambleEngine;
+    private final com.bingo.game.engine.QuizBattleEngine quizBattleEngine;
     private final TurnService turnService;
     private final WinnerService winnerService;
     private final GameEventService gameEventService;
@@ -344,6 +350,323 @@ public class GameService {
         gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
                 "currentTurnUserId", game.getCurrentTurnUserId()
         ), game.getVersion());
+
+        return game;
+    }
+
+    // ==========================================
+    // 1. CONNECT FOUR
+    // ==========================================
+    public synchronized Game processC4Move(String senderUserId, String gameId, int col, String clientMoveId) {
+        Game game = getGameById(gameId);
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds() == null) game.setProcessedMoveIds(new HashSet<>());
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate C4 move ignored by clientMoveId: {}", clientMoveId);
+                return game;
+            }
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
+        turnService.validateTurn(game, senderUserId);
+
+        com.bingo.game.engine.ConnectFourEngine.MoveResult result =
+                connectFourEngine.dropChip(game.getC4Board(), 7, 6, col, senderUserId);
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
+
+        if (result.getStatus() == com.bingo.game.engine.ConnectFourEngine.Status.WIN) {
+            game.setC4WinningCells(result.getWinningCells());
+            GamePlayer winner = game.findPlayer(senderUserId);
+            winnerService.handleGameFinished(game, winner);
+            game = gameRepository.save(game);
+        } else if (result.getStatus() == com.bingo.game.engine.ConnectFourEngine.Status.DRAW) {
+            game.setStatus(GameStatus.FINISHED);
+            game.setFinishedAt(java.time.Instant.now());
+            game = gameRepository.save(game);
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
+                    "reason", "Board is full"
+            ), game.getVersion());
+        } else {
+            turnService.advanceTurn(game);
+            game = gameRepository.save(game);
+        }
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "C4_MOVE_MADE", Map.of(
+                "row", result.getRow(),
+                "col", result.getCol(),
+                "userId", senderUserId,
+                "c4Board", game.getC4Board(),
+                "winningCells", game.getC4WinningCells(),
+                "nextTurn", game.getCurrentTurnUserId(),
+                "status", game.getStatus().name()
+        ), game.getVersion());
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
+                "currentTurnUserId", game.getCurrentTurnUserId()
+        ), game.getVersion());
+
+        return game;
+    }
+
+    // ==========================================
+    // 2. ROCK PAPER SCISSORS
+    // ==========================================
+    public synchronized Game processRpsChoice(String senderUserId, String gameId, String choice, String clientMoveId) {
+        Game game = getGameById(gameId);
+
+        if (!rockPaperScissorsEngine.isValidChoice(choice)) {
+            throw new IllegalArgumentException("Invalid RPS choice: " + choice);
+        }
+
+        if (game.getRpsChoices() == null) {
+            game.setRpsChoices(new HashMap<>());
+        }
+        game.getRpsChoices().put(senderUserId, choice.toUpperCase().trim());
+        game.setVersion(game.getVersion() + 1);
+
+        // Check if both players submitted
+        if (game.getPlayers().size() >= 2 && game.getRpsChoices().size() >= 2) {
+            String p1 = game.getPlayers().get(0).getUserId();
+            String p2 = game.getPlayers().get(1).getUserId();
+
+            if (game.getRpsRoundWins() == null) game.setRpsRoundWins(new HashMap<>());
+
+            com.bingo.game.engine.RockPaperScissorsEngine.RoundResult result =
+                    rockPaperScissorsEngine.evaluateRound(p1, p2, game.getRpsChoices(), game.getRpsRoundWins(), game.getRpsTargetWins());
+
+            Map<String, Object> roundResultData = new HashMap<>();
+            roundResultData.put("round", game.getRpsRound());
+            roundResultData.put("user1Choice", result.getUser1Choice());
+            roundResultData.put("user2Choice", result.getUser2Choice());
+            roundResultData.put("roundWinnerId", result.getRoundWinnerId());
+            roundResultData.put("isTie", result.isTie());
+            roundResultData.put("roundScores", game.getRpsRoundWins());
+
+            game.setRpsLastRoundResult(roundResultData);
+
+            if (result.isMatchWon()) {
+                GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
+                winnerService.handleGameFinished(game, winner);
+                game = gameRepository.save(game);
+            } else {
+                game.setRpsRound(game.getRpsRound() + 1);
+                game.getRpsChoices().clear();
+                game = gameRepository.save(game);
+            }
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "RPS_ROUND_RESOLVED", roundResultData, game.getVersion());
+        } else {
+            game = gameRepository.save(game);
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "RPS_CHOICE_LOCKED", Map.of(
+                    "userId", senderUserId,
+                    "round", game.getRpsRound()
+            ), game.getVersion());
+        }
+
+        return game;
+    }
+
+    // ==========================================
+    // 3. MEMORY MATCH
+    // ==========================================
+    public synchronized Game processMemoryFlip(String senderUserId, String gameId, int cardIndex, String clientMoveId) {
+        Game game = getGameById(gameId);
+
+        turnService.validateTurn(game, senderUserId);
+
+        if (game.getPlayerScores() == null) game.setPlayerScores(new HashMap<>());
+        if (game.getMemoryFlippedIndices() == null) game.setMemoryFlippedIndices(new ArrayList<>());
+
+        com.bingo.game.engine.MemoryEngine.FlipResult result = memoryEngine.processFlip(
+                game.getMemoryCards(),
+                game.getMemoryMatched(),
+                game.getMemoryFlippedIndices(),
+                cardIndex,
+                senderUserId,
+                game.getPlayerScores()
+        );
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
+
+        if (result.isAllMatched()) {
+            // Find player with highest score
+            String highestUser = game.getPlayerScores().entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse(senderUserId);
+            GamePlayer winner = game.findPlayer(highestUser);
+            winnerService.handleGameFinished(game, winner);
+            game = gameRepository.save(game);
+        } else if (!result.isExtraTurn()) {
+            // Mismatch: advance turn
+            turnService.advanceTurn(game);
+            game = gameRepository.save(game);
+        } else {
+            // Match or first flip: player keeps turn
+            game = gameRepository.save(game);
+        }
+
+        Map<String, Object> flipData = new HashMap<>();
+        flipData.put("status", result.getStatus().name());
+        flipData.put("userId", senderUserId);
+        flipData.put("cardIndex", cardIndex);
+        flipData.put("firstIndex", result.getFirstIndex());
+        flipData.put("secondIndex", result.getSecondIndex());
+        flipData.put("firstSymbol", result.getFirstSymbol());
+        flipData.put("secondSymbol", result.getSecondSymbol());
+        flipData.put("matched", game.getMemoryMatched());
+        flipData.put("playerScores", game.getPlayerScores());
+        flipData.put("nextTurn", game.getCurrentTurnUserId());
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "MEMORY_FLIP_RESULT", flipData, game.getVersion());
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
+                "currentTurnUserId", game.getCurrentTurnUserId()
+        ), game.getVersion());
+
+        return game;
+    }
+
+    // ==========================================
+    // 4. NUMBER RUSH
+    // ==========================================
+    public synchronized Game processNumberRushTap(String senderUserId, String gameId, int tappedNumber, String clientMoveId) {
+        Game game = getGameById(gameId);
+
+        if (game.getNumberRushProgress() == null) game.setNumberRushProgress(new HashMap<>());
+
+        com.bingo.game.engine.NumberRushEngine.TapResult result =
+                numberRushEngine.processTap(senderUserId, tappedNumber, game.getNumberRushProgress());
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
+
+        if (result.isWinner()) {
+            GamePlayer winner = game.findPlayer(senderUserId);
+            winnerService.handleGameFinished(game, winner);
+            game = gameRepository.save(game);
+        } else {
+            game = gameRepository.save(game);
+        }
+
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "NUMBER_RUSH_TAP", Map.of(
+                "userId", senderUserId,
+                "tappedNumber", tappedNumber,
+                "status", result.getStatus().name(),
+                "nextExpected", result.getNextExpected(),
+                "progress", game.getNumberRushProgress(),
+                "isWinner", result.isWinner()
+        ), game.getVersion());
+
+        return game;
+    }
+
+    // ==========================================
+    // 5. WORD SCRAMBLE
+    // ==========================================
+    public synchronized Game processWordScrambleGuess(String senderUserId, String gameId, String guess, String clientMoveId) {
+        Game game = getGameById(gameId);
+
+        if (game.getPlayerScores() == null) game.setPlayerScores(new HashMap<>());
+        int round = game.getScrambleCurrentRound();
+        if (round >= game.getScrambleWords().size()) {
+            return game;
+        }
+
+        String targetWord = game.getScrambleWords().get(round);
+        com.bingo.game.engine.WordScrambleEngine.GuessResult result =
+                wordScrambleEngine.evaluateGuess(targetWord, guess, senderUserId, round, game.getScrambleWords().size(), game.getPlayerScores());
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
+
+        if (result.isCorrect()) {
+            game.setScrambleLastWinnerId(senderUserId);
+            if (result.isGameFinished()) {
+                GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
+                winnerService.handleGameFinished(game, winner);
+                game = gameRepository.save(game);
+            } else {
+                game.setScrambleCurrentRound(round + 1);
+                game = gameRepository.save(game);
+            }
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "WORD_SCRAMBLE_SOLVED", Map.of(
+                    "userId", senderUserId,
+                    "targetWord", targetWord,
+                    "guess", guess,
+                    "newRound", game.getScrambleCurrentRound(),
+                    "scores", game.getPlayerScores(),
+                    "isGameFinished", result.isGameFinished()
+            ), game.getVersion());
+        } else {
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "WORD_SCRAMBLE_INCORRECT", Map.of(
+                    "userId", senderUserId,
+                    "guess", guess
+            ), game.getVersion());
+        }
+
+        return game;
+    }
+
+    // ==========================================
+    // 6. QUIZ BATTLE
+    // ==========================================
+    public synchronized Game processQuizAnswer(String senderUserId, String gameId, int answerIndex, String clientMoveId) {
+        Game game = getGameById(gameId);
+
+        if (game.getPlayerScores() == null) game.setPlayerScores(new HashMap<>());
+        if (game.getQuizAnswers() == null) game.setQuizAnswers(new HashMap<>());
+
+        int currentQ = game.getQuizCurrentQuestion();
+        if (currentQ >= game.getQuizQuestions().size()) {
+            return game;
+        }
+
+        int correctIndex = game.getQuizCorrectIndices().get(currentQ);
+        com.bingo.game.engine.QuizBattleEngine.AnswerResult result =
+                quizBattleEngine.submitAnswer(
+                        currentQ,
+                        correctIndex,
+                        answerIndex,
+                        senderUserId,
+                        game.getQuizAnswers(),
+                        game.getPlayers().size(),
+                        game.getPlayerScores(),
+                        game.getQuizQuestions().size()
+                );
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
+
+        if (result.isRoundComplete()) {
+            if (result.isMatchComplete()) {
+                GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
+                winnerService.handleGameFinished(game, winner);
+                game = gameRepository.save(game);
+            } else {
+                game.setQuizCurrentQuestion(currentQ + 1);
+                game.getQuizAnswers().clear();
+                game = gameRepository.save(game);
+            }
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "QUIZ_ROUND_COMPLETE", Map.of(
+                    "questionIndex", currentQ,
+                    "correctIndex", correctIndex,
+                    "scores", game.getPlayerScores(),
+                    "nextQuestionIndex", game.getQuizCurrentQuestion(),
+                    "isMatchComplete", result.isMatchComplete()
+            ), game.getVersion());
+        } else {
+            game = gameRepository.save(game);
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "QUIZ_PLAYER_ANSWERED", Map.of(
+                    "userId", senderUserId,
+                    "questionIndex", currentQ
+            ), game.getVersion());
+        }
 
         return game;
     }
