@@ -56,7 +56,7 @@ public class GameWebSocketController {
 
         String userId = principal.getName();
         try {
-            gameService.processTttMove(userId, request.getGameId(), request.getRow(), request.getCol());
+            gameService.processTttMove(userId, request.getGameId(), request.getRow(), request.getCol(), request.getClientMoveId());
         } catch (Exception ex) {
             log.warn("Notice: TTT move rejected ({}): {}", userId, ex.getMessage());
             try {
@@ -79,7 +79,7 @@ public class GameWebSocketController {
 
         String userId = principal.getName();
         try {
-            gameService.processDotsLine(userId, request.getGameId(), request.getLineType(), request.getRow(), request.getCol());
+            gameService.processDotsLine(userId, request.getGameId(), request.getLineType(), request.getRow(), request.getCol(), request.getClientMoveId());
         } catch (Exception ex) {
             log.warn("Notice: Dots line rejected ({}): {}", userId, ex.getMessage());
             try {

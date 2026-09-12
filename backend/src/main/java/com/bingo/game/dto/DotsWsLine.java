@@ -12,4 +12,5 @@ public class DotsWsLine {
     private String lineType;
     private int row;
     private int col;
+    private String clientMoveId;
 }

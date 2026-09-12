@@ -15,6 +15,14 @@ public class CallNumberRequest {
     private String gameId;
 
     @Min(value = 1, message = "Number must be at least 1")
-    @Max(value = 25, message = "Number must be at most 25")
+    @Max(value = 100, message = "Number must be at most 100")
     private int number;
+
+    private String clientMoveId;
+
+    public CallNumberRequest(String gameId, int number) {
+        this.gameId = gameId;
+        this.number = number;
+        this.clientMoveId = null;
+    }
 }

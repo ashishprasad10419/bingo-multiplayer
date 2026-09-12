@@ -113,6 +113,10 @@ export const roomApi = {
     const res = await apiClient.post<Game>(`/rooms/${code.toUpperCase()}/start`);
     return res.data;
   },
+  rematch: async (code: string): Promise<Room> => {
+    const res = await apiClient.post<Room>(`/rooms/${code.toUpperCase()}/rematch`);
+    return res.data;
+  },
 };
 
 export const gameApi = {
@@ -124,16 +128,16 @@ export const gameApi = {
     const res = await apiClient.get<Game>(`/games/room/${roomCode.toUpperCase()}`);
     return res.data;
   },
-  callNumber: async (gameId: string, number: number): Promise<Game> => {
-    const res = await apiClient.post<Game>(`/games/${gameId}/call?number=${number}`);
+  callNumber: async (gameId: string, number: number, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/call`, { gameId, number, clientMoveId });
     return res.data;
   },
-  makeTttMove: async (gameId: string, row: number, col: number): Promise<Game> => {
-    const res = await apiClient.post<Game>(`/games/${gameId}/tic-tac-toe/move`, { row, col });
+  makeTttMove: async (gameId: string, row: number, col: number, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/tic-tac-toe/move`, { row, col, clientMoveId });
     return res.data;
   },
-  drawDotsLine: async (gameId: string, lineType: 'H' | 'V', row: number, col: number): Promise<Game> => {
-    const res = await apiClient.post<Game>(`/games/${gameId}/dots-and-boxes/line`, { lineType, row, col });
+  drawDotsLine: async (gameId: string, lineType: 'H' | 'V', row: number, col: number, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/dots-and-boxes/line`, { lineType, row, col, clientMoveId });
     return res.data;
   },
   sendEmote: async (gameId: string, emote: string): Promise<void> => {

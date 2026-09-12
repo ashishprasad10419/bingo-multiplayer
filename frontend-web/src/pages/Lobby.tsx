@@ -4,6 +4,7 @@ import { useGameStore } from '../state/gameStore';
 import { useAuthStore } from '../state/authStore';
 import { roomApi } from '../lib/api';
 import { PlayerList } from '../components/PlayerList';
+import { ConnectionStatusPill } from '../components/ConnectionStatusPill';
 import { getGameTheme } from '../lib/gameThemes';
 import { Copy, Check, Play, ArrowLeft, Grid, AlertCircle, Share2, MessageCircle } from 'lucide-react';
 
@@ -11,7 +12,7 @@ export const Lobby: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { room, fetchRoom, initSocketListeners, leaveCurrentRoom, game, resetGame } = useGameStore();
+  const { room, fetchRoom, initSocketListeners, leaveCurrentRoom, game, resetGame, connectionStatus } = useGameStore();
 
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -69,15 +70,6 @@ export const Lobby: React.FC = () => {
     }
   }, [code, user?.id]);
 
-  // Periodic poll in lobby to catch player joins and game start even if socket drops
-  useEffect(() => {
-    if (!code) return;
-    const interval = setInterval(() => {
-      fetchRoom(code).catch(() => {});
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [code, fetchRoom]);
-
   // Navigate when game starts for this exact room
   useEffect(() => {
     const isGamePlaying = game && game.status === 'PLAYING' && game.roomCode?.toUpperCase() === code?.toUpperCase();
@@ -134,9 +126,15 @@ export const Lobby: React.FC = () => {
           <span>Leave Lobby</span>
         </button>
 
-        <span className={`text-xs font-black px-4 py-1.5 rounded-full ${theme.accentBadgeBg} border ${theme.accentBadgeBorder} ${theme.accentBadgeText} uppercase tracking-wider shadow-2xs`}>
-          {room.status}
-        </span>
+        <div className="flex items-center space-x-2">
+          <span className={`text-xs font-black px-4 py-1.5 rounded-full ${theme.accentBadgeBg} border ${theme.accentBadgeBorder} ${theme.accentBadgeText} uppercase tracking-wider shadow-2xs`}>
+            {room.status}
+          </span>
+          <ConnectionStatusPill
+            status={connectionStatus}
+            onRefresh={() => (code ? fetchRoom(code) : undefined)}
+          />
+        </div>
       </div>
 
       {error && (

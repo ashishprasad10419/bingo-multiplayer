@@ -1,14 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../state/gameStore';
 import { useAuthStore } from '../state/authStore';
+import { roomApi } from '../lib/api';
 import confetti from 'canvas-confetti';
-import { Trophy, Home, Award, Flame, Star } from 'lucide-react';
+import { Trophy, Home, Award, Flame, Star, RotateCcw } from 'lucide-react';
 
 export const Winner: React.FC = () => {
   const navigate = useNavigate();
   const { user, initAuth } = useAuthStore();
-  const { winnerInfo, hasWon, resetGame, game } = useGameStore();
+  const { winnerInfo, hasWon, resetGame, game, room } = useGameStore();
+
+  const [requestingRematch, setRequestingRematch] = useState(false);
+  const [rematchError, setRematchError] = useState<string | null>(null);
 
   useEffect(() => {
     // Fire festive fireworks confetti
@@ -39,6 +43,33 @@ export const Winner: React.FC = () => {
     // Refresh profile stats in background
     initAuth();
   }, [initAuth]);
+
+  // When rematch starts, transition seamlessly
+  useEffect(() => {
+    if (!game?.roomCode) return;
+    const isBingo = !game.gameType || game.gameType === 'BINGO';
+    if (isBingo) {
+      if (room && (room.status === 'BOARD_SETUP' || room.status === 'WAITING' || room.status === 'READY')) {
+        navigate(`/lobby/${game.roomCode}`);
+      }
+    } else {
+      if (game.status === 'PLAYING') {
+        navigate(`/game/${game.roomCode}`);
+      }
+    }
+  }, [room?.status, game?.status, game?.roomCode, game?.gameType, navigate]);
+
+  const handleRematch = async () => {
+    if (!game?.roomCode) return;
+    setRequestingRematch(true);
+    setRematchError(null);
+    try {
+      await roomApi.rematch(game.roomCode);
+    } catch (err: any) {
+      setRematchError(err.response?.data?.message || 'Failed to start rematch');
+      setRequestingRematch(false);
+    }
+  };
 
   const handleGoHome = () => {
     resetGame();
@@ -118,13 +149,28 @@ export const Winner: React.FC = () => {
 
       {/* Actions */}
       <div className="w-full space-y-3 mt-6">
+        {game?.roomCode && (
+          <button
+            onClick={handleRematch}
+            disabled={requestingRematch}
+            className="w-full py-4 text-base font-black text-white bg-gradient-to-r from-[#8b7fe8] via-[#7c6ee6] to-[#6d5ebd] rounded-[22px] shadow-[0_8px_20px_rgba(139,127,232,0.35)] hover:brightness-105 active:scale-[0.98] transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60"
+          >
+            <RotateCcw className={`w-5 h-5 ${requestingRematch ? 'animate-spin' : ''}`} />
+            <span>{requestingRematch ? 'Starting Rematch...' : 'Instant Rematch / Play Again'}</span>
+          </button>
+        )}
+
         <button
           onClick={handleGoHome}
-          className="btn-gradient w-full py-4 text-base cursor-pointer"
+          className="btn-pill-outline w-full py-3.5 text-sm font-extrabold cursor-pointer flex items-center justify-center space-x-2"
         >
-          <Home className="w-5 h-5 mr-2" />
+          <Home className="w-4 h-4" />
           <span>Back to Main Menu</span>
         </button>
+
+        {rematchError && (
+          <p className="text-xs text-red-500 font-semibold">{rematchError}</p>
+        )}
       </div>
     </div>
   );

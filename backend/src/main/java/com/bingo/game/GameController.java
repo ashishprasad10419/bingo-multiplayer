@@ -55,7 +55,7 @@ public class GameController {
             @RequestBody com.bingo.game.dto.TttMoveRequest request,
             @AuthenticationPrincipal String userId
     ) {
-        return ResponseEntity.ok(gameService.processTttMove(userId, id, request.getRow(), request.getCol()));
+        return ResponseEntity.ok(gameService.processTttMove(userId, id, request.getRow(), request.getCol(), request.getClientMoveId()));
     }
 
     @PostMapping("/games/{id}/dots-and-boxes/line")
@@ -65,7 +65,7 @@ public class GameController {
             @RequestBody com.bingo.game.dto.DotsLineRequest request,
             @AuthenticationPrincipal String userId
     ) {
-        return ResponseEntity.ok(gameService.processDotsLine(userId, id, request.getLineType(), request.getRow(), request.getCol()));
+        return ResponseEntity.ok(gameService.processDotsLine(userId, id, request.getLineType(), request.getRow(), request.getCol(), request.getClientMoveId()));
     }
 
     @PostMapping("/games/{id}/emote")

@@ -45,6 +45,7 @@ export interface Room {
 }
 
 export type ConnectionStatus = 'CONNECTED' | 'DISCONNECTED';
+export type NetworkConnectionStatus = 'CONNECTED' | 'RECONNECTING' | 'DISCONNECTED';
 
 export interface GamePlayer {
   userId: string;
@@ -76,6 +77,7 @@ export interface Game {
   currentTurnUserId: string;
   currentPlayerIndex: number;
   moveNumber: number;
+  version?: number;
   winnerId?: string;
   startedAt?: string;
   finishedAt?: string;
@@ -126,6 +128,7 @@ export interface GameEventEnvelope<T = any> {
   type: string;
   roomCode: string;
   gameId?: string;
+  gameVersion?: number;
   timestamp: number;
   data: T;
 }

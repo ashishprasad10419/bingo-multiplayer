@@ -119,4 +119,13 @@ public class RoomController {
     ) {
         return ResponseEntity.ok(roomService.startGame(code, userId));
     }
+
+    @PostMapping("/{code}/rematch")
+    @Operation(summary = "Request or launch a rematch for the existing room players")
+    public ResponseEntity<Map<String, Object>> rematch(
+            @PathVariable String code,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(roomService.rematch(code, userId));
+    }
 }

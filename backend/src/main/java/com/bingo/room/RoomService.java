@@ -286,6 +286,56 @@ public class RoomService {
         return game;
     }
 
+    public Map<String, Object> rematch(String roomCode, String userId) {
+        Room room = getRoomByCode(roomCode);
+        boolean isBingo = (room.getGameType() == com.bingo.game.GameType.BINGO);
+
+        if (isBingo) {
+            room.setStatus(RoomStatus.BOARD_SETUP);
+            for (RoomPlayer rp : room.getPlayers()) {
+                rp.setReady(false);
+                rp.setBoardLocked(false);
+                boardService.generateBoard(roomCode, rp.getUserId());
+            }
+            room = roomRepository.save(room);
+
+            gameEventService.publishEvent(roomCode, null, "REMATCH_STARTED", Map.of(
+                    "roomCode", roomCode,
+                    "gameType", room.getGameType(),
+                    "status", "BOARD_SETUP"
+            ));
+
+            return Map.of(
+                    "roomCode", roomCode,
+                    "gameType", room.getGameType(),
+                    "status", "BOARD_SETUP"
+            );
+        } else {
+            room.setStatus(RoomStatus.READY);
+            for (RoomPlayer rp : room.getPlayers()) {
+                rp.setReady(true);
+                rp.setBoardLocked(true);
+            }
+            room = roomRepository.save(room);
+
+            Game newGame = startGame(roomCode, room.getHostId());
+
+            gameEventService.publishEvent(roomCode, newGame.getId(), "REMATCH_STARTED", Map.of(
+                    "roomCode", roomCode,
+                    "gameType", room.getGameType(),
+                    "newGameId", newGame.getId(),
+                    "status", "PLAYING"
+            ));
+
+            return Map.of(
+                    "roomCode", roomCode,
+                    "gameType", room.getGameType(),
+                    "newGameId", newGame.getId(),
+                    "status", "PLAYING"
+            );
+        }
+    }
+
     private String generateUniqueRoomCode() {
         for (int attempt = 0; attempt < 100; attempt++) {
             StringBuilder sb = new StringBuilder(6);

@@ -78,6 +78,12 @@ public class Game {
     @Builder.Default
     private int moveNumber = 0;
 
+    @Builder.Default
+    private long version = 0;
+
+    @Builder.Default
+    private java.util.Set<String> processedMoveIds = new java.util.HashSet<>();
+
     private String winnerId;
 
     private Instant startedAt;

@@ -34,8 +34,18 @@ public class GameService {
             throw new IllegalArgumentException("Number must be between 1 and " + maxNumber);
         }
 
-        // Idempotency guard: If number was already processed (e.g. fast dual-channel delivery),
-        // gracefully return the existing game state rather than throwing an exception
+        // Idempotency guard: By clientMoveId or number already called
+        if (request.getClientMoveId() != null && !request.getClientMoveId().isBlank()) {
+            if (game.getProcessedMoveIds() == null) {
+                game.setProcessedMoveIds(new HashSet<>());
+            }
+            if (game.getProcessedMoveIds().contains(request.getClientMoveId())) {
+                log.info("Idempotent call-number ignored by clientMoveId: user={} id={}", senderUserId, request.getClientMoveId());
+                return game;
+            }
+            game.getProcessedMoveIds().add(request.getClientMoveId());
+        }
+
         if (game.getCalledNumbers() == null) {
             game.setCalledNumbers(new ArrayList<>());
         }
@@ -47,6 +57,8 @@ public class GameService {
 
         // 1. Server-side turn validation
         turnService.validateTurn(game, senderUserId);
+
+        game.setVersion(game.getVersion() + 1);
 
         // 2. Append called number and move record
         game.getCalledNumbers().add(number);
@@ -75,7 +87,7 @@ public class GameService {
                 gameEventService.publishEvent(game.getRoomCode(), game.getId(), "LINE_COMPLETED", Map.of(
                         "userId", player.getUserId(),
                         "lineCount", newLines
-                ));
+                ), game.getVersion());
             }
 
             if (potentialWinner == null && gameEngine.checkWinner(newLines, game.getWinningLines())) {
@@ -104,12 +116,12 @@ public class GameService {
                 "nextTurn", game.getCurrentTurnUserId(),
                 "calledNumbers", game.getCalledNumbers(),
                 "moves", game.getMoves()
-        ));
+        ), game.getVersion());
 
         // Also broadcast TURN_CHANGED
         gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
                 "currentTurnUserId", game.getCurrentTurnUserId()
-        ));
+        ), game.getVersion());
 
         return game;
     }
@@ -186,7 +198,23 @@ public class GameService {
     }
 
     public synchronized Game processTttMove(String senderUserId, String gameId, int row, int col) {
+        return processTttMove(senderUserId, gameId, row, col, null);
+    }
+
+    public synchronized Game processTttMove(String senderUserId, String gameId, int row, int col, String clientMoveId) {
         Game game = getGameById(gameId);
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds() == null) {
+                game.setProcessedMoveIds(new HashSet<>());
+            }
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate TTT move ignored by clientMoveId: {}", clientMoveId);
+                return game;
+            }
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
         turnService.validateTurn(game, senderUserId);
 
         int gridSize = game.getTttGridSize() > 0 ? game.getTttGridSize() : 3;
@@ -194,6 +222,7 @@ public class GameService {
                 ticTacToeEngine.processMove(game.getTttBoard(), gridSize, row, col, senderUserId);
 
         game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
 
         if (result == com.bingo.game.engine.TicTacToeEngine.Result.WIN) {
             GamePlayer winner = game.findPlayer(senderUserId);
@@ -205,7 +234,7 @@ public class GameService {
             game = gameRepository.save(game);
             gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
                     "reason", "Board is full"
-            ));
+            ), game.getVersion());
         } else {
             turnService.advanceTurn(game);
             game = gameRepository.save(game);
@@ -218,17 +247,33 @@ public class GameService {
                 "tttBoard", game.getTttBoard(),
                 "nextTurn", game.getCurrentTurnUserId(),
                 "status", game.getStatus().name()
-        ));
+        ), game.getVersion());
 
         gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
                 "currentTurnUserId", game.getCurrentTurnUserId()
-        ));
+        ), game.getVersion());
 
         return game;
     }
 
     public synchronized Game processDotsLine(String senderUserId, String gameId, String lineType, int row, int col) {
+        return processDotsLine(senderUserId, gameId, lineType, row, col, null);
+    }
+
+    public synchronized Game processDotsLine(String senderUserId, String gameId, String lineType, int row, int col, String clientMoveId) {
         Game game = getGameById(gameId);
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds() == null) {
+                game.setProcessedMoveIds(new HashSet<>());
+            }
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate Dots move ignored by clientMoveId: {}", clientMoveId);
+                return game;
+            }
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
         turnService.validateTurn(game, senderUserId);
 
         int dotsSize = game.getDotsGridSize() > 0 ? game.getDotsGridSize() : 4;
@@ -245,6 +290,7 @@ public class GameService {
         );
 
         game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
 
         if (result.isGameFinished()) {
             if (result.isDraw()) {
@@ -253,7 +299,7 @@ public class GameService {
                 game = gameRepository.save(game);
                 gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
                         "scores", game.getPlayerScores()
-                ));
+                ), game.getVersion());
             } else {
                 GamePlayer winner = game.findPlayer(result.getWinnerId());
                 winnerService.handleGameFinished(game, winner);
@@ -265,7 +311,7 @@ public class GameService {
             gameEventService.publishEvent(game.getRoomCode(), game.getId(), "EXTRA_TURN_AWARDED", Map.of(
                     "userId", senderUserId,
                     "boxesCompleted", result.getBoxesCompleted()
-            ));
+            ), game.getVersion());
         } else {
             // No box completed: advance turn
             turnService.advanceTurn(game);
@@ -285,11 +331,11 @@ public class GameService {
         payload.put("nextTurn", game.getCurrentTurnUserId());
         payload.put("status", game.getStatus().name());
 
-        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "DOTS_LINE_DRAWN", payload);
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "DOTS_LINE_DRAWN", payload, game.getVersion());
 
         gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
                 "currentTurnUserId", game.getCurrentTurnUserId()
-        ));
+        ), game.getVersion());
 
         return game;
     }

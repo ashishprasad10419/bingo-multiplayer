@@ -13,6 +13,7 @@ import { EmoteBar } from '../components/EmoteBar';
 import { FloatingEmotesOverlay } from '../components/FloatingEmotesOverlay';
 import { TicTacToeArena } from '../components/games/TicTacToeArena';
 import { DotsAndBoxesArena } from '../components/games/DotsAndBoxesArena';
+import { ConnectionStatusPill } from '../components/ConnectionStatusPill';
 import { getGameTheme } from '../lib/gameThemes';
 import { AlertCircle, Clock, Sparkles } from 'lucide-react';
 
@@ -29,6 +30,7 @@ export const Game: React.FC = () => {
     initSocketListeners,
     syncGameByRoomCode,
     winnerInfo,
+    connectionStatus,
   } = useGameStore();
 
   const [calling, setCalling] = useState(false);
@@ -109,19 +111,6 @@ export const Game: React.FC = () => {
     }
   }, [game?.calledNumbers, game?.currentTurnUserId, user?.id, pendingPick]);
 
-  // Bulletproof Heartbeat Reconciliation:
-  // Poll authoritative match state every 1.5s while playing
-  useEffect(() => {
-    if (!code || !user) return;
-    if (game && game.status !== 'PLAYING') return;
-
-    const timer = setInterval(() => {
-      syncGameByRoomCode(code, user.id, true).catch(() => {});
-    }, 1500);
-
-    return () => clearInterval(timer);
-  }, [code, user?.id, game?.status, syncGameByRoomCode]);
-
   if (!user || !game || (isBingo && !board) || game.roomCode?.toUpperCase() !== code?.toUpperCase()) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4 px-4 text-center font-sans">
@@ -153,6 +142,8 @@ export const Game: React.FC = () => {
     if (!isMyTurn || calling || pendingPick !== null) return;
     if (game.calledNumbers.includes(value)) return;
 
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+
     soundService.playTileTap();
     soundService.playPickSuccess();
     setPendingPick(value);
@@ -165,14 +156,14 @@ export const Game: React.FC = () => {
 
     let socketSent = false;
     try {
-      socketSent = socketService.callNumber(game.id, value);
+      socketSent = socketService.callNumber(game.id, value, clientMoveId);
     } catch (e) {
       socketSent = false;
     }
 
     if (!socketSent) {
       try {
-        await gameApi.callNumber(game.id, value);
+        await gameApi.callNumber(game.id, value, clientMoveId);
       } catch (err: any) {
         if (!err.message?.includes('already')) {
           setError(err.response?.data?.message || 'Failed to call number');
@@ -186,7 +177,7 @@ export const Game: React.FC = () => {
         const latestGame = useGameStore.getState().game;
         if (latestGame && !latestGame.calledNumbers.includes(value) && latestGame.currentTurnUserId === user?.id) {
           try {
-            await gameApi.callNumber(game.id, value);
+            await gameApi.callNumber(game.id, value, clientMoveId);
           } catch (err: any) {}
         }
       }, 350);
@@ -197,6 +188,9 @@ export const Game: React.FC = () => {
   // --- TIC-TAC-TOE Move Handler ---
   const handleTttMove = async (row: number, col: number) => {
     if (!isMyTurn || calling) return;
+
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+
     soundService.playTileTap();
     setCalling(true);
     setError(null);
@@ -207,14 +201,14 @@ export const Game: React.FC = () => {
 
     let socketSent = false;
     try {
-      socketSent = socketService.sendTttMove(game.id, row, col);
+      socketSent = socketService.sendTttMove(game.id, row, col, clientMoveId);
     } catch (e) {
       socketSent = false;
     }
 
     if (!socketSent) {
       try {
-        await gameApi.makeTttMove(game.id, row, col);
+        await gameApi.makeTttMove(game.id, row, col, clientMoveId);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to make move');
       } finally {
@@ -227,7 +221,7 @@ export const Game: React.FC = () => {
         const index = row * size + col;
         if (latestGame && latestGame.tttBoard && !latestGame.tttBoard[index] && latestGame.currentTurnUserId === user?.id) {
           try {
-            await gameApi.makeTttMove(game.id, row, col);
+            await gameApi.makeTttMove(game.id, row, col, clientMoveId);
           } catch (err: any) {}
         }
       }, 350);
@@ -238,6 +232,9 @@ export const Game: React.FC = () => {
   // --- DOTS & BOXES Move Handler ---
   const handleDotsLine = async (lineType: 'H' | 'V', row: number, col: number) => {
     if (!isMyTurn || calling) return;
+
+    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+
     soundService.playTileTap();
     setCalling(true);
     setError(null);
@@ -248,14 +245,14 @@ export const Game: React.FC = () => {
 
     let socketSent = false;
     try {
-      socketSent = socketService.sendDotsLine(game.id, lineType, row, col);
+      socketSent = socketService.sendDotsLine(game.id, lineType, row, col, clientMoveId);
     } catch (e) {
       socketSent = false;
     }
 
     if (!socketSent) {
       try {
-        await gameApi.drawDotsLine(game.id, lineType, row, col);
+        await gameApi.drawDotsLine(game.id, lineType, row, col, clientMoveId);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to draw line');
       } finally {
@@ -267,7 +264,7 @@ export const Game: React.FC = () => {
         const lines = lineType === 'H' ? latestGame?.horizontalLines : latestGame?.verticalLines;
         if (latestGame && lines && !lines[row]?.[col] && latestGame.currentTurnUserId === user?.id) {
           try {
-            await gameApi.drawDotsLine(game.id, lineType, row, col);
+            await gameApi.drawDotsLine(game.id, lineType, row, col, clientMoveId);
           } catch (err: any) {}
         }
       }, 350);
@@ -316,6 +313,10 @@ export const Game: React.FC = () => {
           <span className="text-xs px-3 py-1 rounded-full bg-[#e6f7ef] border border-[#c3eed7] text-[#047857] font-black">
             {game.status}
           </span>
+          <ConnectionStatusPill
+            status={connectionStatus}
+            onRefresh={() => (code && user ? syncGameByRoomCode(code, user.id) : undefined)}
+          />
         </div>
       </div>
 

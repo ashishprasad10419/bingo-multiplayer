@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class TttMoveRequest {
     private int row;
     private int col;
+    private String clientMoveId;
 }

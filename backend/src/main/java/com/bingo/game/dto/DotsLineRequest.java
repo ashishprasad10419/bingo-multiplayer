@@ -11,4 +11,5 @@ public class DotsLineRequest {
     private String lineType; // "H" or "V"
     private int row;
     private int col;
+    private String clientMoveId;
 }

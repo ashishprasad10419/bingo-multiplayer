@@ -11,4 +11,5 @@ public class TttWsMove {
     private String gameId;
     private int row;
     private int col;
+    private String clientMoveId;
 }

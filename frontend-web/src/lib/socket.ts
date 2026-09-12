@@ -1,8 +1,10 @@
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { GameEventEnvelope } from './types';
+import { GameEventEnvelope, NetworkConnectionStatus } from './types';
 
 const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || '/ws';
+
+export type SocketConnectionStatus = NetworkConnectionStatus;
 
 class SocketService {
   private client: Client | null = null;
@@ -10,9 +12,32 @@ class SocketService {
   private subscribedRoomCode: string | null = null;
   private currentSubscription: any = null;
   private listeners: ((event: GameEventEnvelope) => void)[] = [];
+  private statusListeners: ((status: SocketConnectionStatus) => void)[] = [];
+  private currentStatus: SocketConnectionStatus = 'DISCONNECTED';
 
   public get connected(): boolean {
     return !!(this.client && this.client.connected);
+  }
+
+  public get connectionStatus(): SocketConnectionStatus {
+    return this.currentStatus;
+  }
+
+  public onStatusChange(callback: (status: SocketConnectionStatus) => void): () => void {
+    this.statusListeners.push(callback);
+    callback(this.currentStatus);
+    return () => {
+      this.statusListeners = this.statusListeners.filter((cb) => cb !== callback);
+    };
+  }
+
+  private setStatus(status: SocketConnectionStatus) {
+    if (this.currentStatus !== status) {
+      this.currentStatus = status;
+      this.statusListeners.forEach((cb) => {
+        try { cb(status); } catch (_) {}
+      });
+    }
   }
 
   public connect(roomCode: string, onEvent: (event: GameEventEnvelope) => void) {
@@ -21,11 +46,13 @@ class SocketService {
     this.listeners = [onEvent];
 
     if (this.client && this.client.connected) {
+      this.setStatus('CONNECTED');
       this.subscribe(roomCode);
       return;
     }
 
     const token = localStorage.getItem('bingo_token');
+    this.setStatus('RECONNECTING');
 
     this.client = new Client({
       webSocketFactory: () => new SockJS(WS_BASE_URL),
@@ -36,19 +63,26 @@ class SocketService {
       reconnectDelay: 2000,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
+      beforeConnect: () => {
+        this.setStatus('RECONNECTING');
+      },
       onConnect: () => {
+        this.setStatus('CONNECTED');
         if (this.currentRoomCode && this.client && this.client.connected) {
           this.subscribe(this.currentRoomCode);
         }
       },
       onDisconnect: () => {
+        this.setStatus('DISCONNECTED');
         this.currentSubscription = null;
         this.subscribedRoomCode = null;
       },
       onStompError: (frame) => {
         console.warn('Broker reported error: ' + frame.headers['message']);
+        this.setStatus('RECONNECTING');
       },
       onWebSocketClose: () => {
+        this.setStatus('RECONNECTING');
         this.currentSubscription = null;
       },
     });
@@ -90,7 +124,7 @@ class SocketService {
     }
   }
 
-  public callNumber(gameId: string, number: number) {
+  public callNumber(gameId: string, number: number, clientMoveId?: string) {
     if (!this.client || !this.client.connected) {
       return false;
     }
@@ -98,7 +132,7 @@ class SocketService {
     try {
       this.client.publish({
         destination: '/app/game/call-number',
-        body: JSON.stringify({ gameId, number }),
+        body: JSON.stringify({ gameId, number, clientMoveId }),
       });
       return true;
     } catch (e) {
@@ -107,14 +141,14 @@ class SocketService {
     }
   }
 
-  public sendTttMove(gameId: string, row: number, col: number): boolean {
+  public sendTttMove(gameId: string, row: number, col: number, clientMoveId?: string): boolean {
     if (!this.client || !this.client.connected) {
       return false;
     }
     try {
       this.client.publish({
         destination: '/app/game/tic-tac-toe/move',
-        body: JSON.stringify({ gameId, row, col }),
+        body: JSON.stringify({ gameId, row, col, clientMoveId }),
       });
       return true;
     } catch (e) {
@@ -123,14 +157,14 @@ class SocketService {
     }
   }
 
-  public sendDotsLine(gameId: string, lineType: 'H' | 'V', row: number, col: number): boolean {
+  public sendDotsLine(gameId: string, lineType: 'H' | 'V', row: number, col: number, clientMoveId?: string): boolean {
     if (!this.client || !this.client.connected) {
       return false;
     }
     try {
       this.client.publish({
         destination: '/app/game/dots-and-boxes/line',
-        body: JSON.stringify({ gameId, lineType, row, col }),
+        body: JSON.stringify({ gameId, lineType, row, col, clientMoveId }),
       });
       return true;
     } catch (e) {
@@ -160,6 +194,7 @@ class SocketService {
   }
 
   public disconnect() {
+    this.setStatus('DISCONNECTED');
     if (this.currentSubscription) {
       try {
         this.currentSubscription.unsubscribe();

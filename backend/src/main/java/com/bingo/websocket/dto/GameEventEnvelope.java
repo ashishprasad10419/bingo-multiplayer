@@ -17,5 +17,8 @@ public class GameEventEnvelope {
     @Builder.Default
     private long timestamp = System.currentTimeMillis();
 
+    @Builder.Default
+    private long gameVersion = 0;
+
     private Object data;
 }

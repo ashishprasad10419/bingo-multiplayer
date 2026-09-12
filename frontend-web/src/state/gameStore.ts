@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Room, Game, GameEventEnvelope, ActiveEmote } from '../lib/types';
+import { Room, Game, GameEventEnvelope, ActiveEmote, NetworkConnectionStatus } from '../lib/types';
 import { roomApi, gameApi } from '../lib/api';
 import { socketService } from '../lib/socket';
 
@@ -16,11 +16,14 @@ interface GameState {
   activeEmotes: ActiveEmote[];
   isLoading: boolean;
   error: string | null;
+  connectionStatus: NetworkConnectionStatus;
+  lastKnownVersion: number;
 
   setRoom: (room: Room | null) => void;
   setGame: (game: Game | null) => void;
   setBoard: (board: number[][] | null) => void;
   setSelectedPos: (pos: { row: number; column: number } | null) => void;
+  setConnectionStatus: (status: NetworkConnectionStatus) => void;
   addEmote: (emote: ActiveEmote) => void;
   clearEmotes: () => void;
   fetchRoom: (code: string) => Promise<Room>;
@@ -44,11 +47,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   activeEmotes: [],
   isLoading: false,
   error: null,
+  connectionStatus: socketService.connectionStatus,
+  lastKnownVersion: 0,
 
   setRoom: (room) => set({ room }),
   setGame: (game) => set({ game }),
   setBoard: (board) => set({ board }),
   setSelectedPos: (selectedPos) => set({ selectedPos }),
+  setConnectionStatus: (connectionStatus) => set({ connectionStatus }),
   addEmote: (emote) => set((state) => ({ activeEmotes: [...state.activeEmotes.slice(-15), emote] })),
   clearEmotes: () => set({ activeEmotes: [] }),
 
@@ -102,6 +108,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         calledByMap: newMap,
       };
 
+      if (game.version !== undefined) {
+        updates.lastKnownVersion = game.version;
+      }
+
       if (!silent) {
         updates.isLoading = false;
       }
@@ -123,8 +133,30 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   initSocketListeners: (roomCode: string, currentUserId: string) => {
+    socketService.onStatusChange((status) => {
+      set({ connectionStatus: status });
+      if (status === 'CONNECTED') {
+        const { game, room } = get();
+        if (game?.roomCode) {
+          get().syncGameByRoomCode(game.roomCode, currentUserId, true).catch(() => {});
+        } else if (room?.roomCode) {
+          get().fetchRoom(room.roomCode).catch(() => {});
+        }
+      }
+    });
+
     socketService.connect(roomCode, (event: GameEventEnvelope) => {
-      // console.log('Socket event received in store:', event);
+      // Sequence Gap Detection: If event version jumps past lastKnownVersion + 1, trigger silent resync
+      const evVer = event.gameVersion;
+      const curVer = get().lastKnownVersion;
+      if (evVer !== undefined && evVer > 0) {
+        if (curVer > 0 && evVer > curVer + 1) {
+          console.warn(`[Sync Gap] Local version ${curVer} behind event version ${evVer}. Resyncing.`);
+          get().syncGameByRoomCode(roomCode, currentUserId, true).catch(() => {});
+        }
+        set({ lastKnownVersion: Math.max(curVer, evVer) });
+      }
+
       const { room, game, calledByMap } = get();
 
       switch (event.type) {
@@ -331,6 +363,40 @@ export const useGameStore = create<GameState>((set, get) => ({
             }));
           }
           break;
+
+        case 'REMATCH_STARTED': {
+          const { room } = get();
+          if (room) {
+            set({
+              room: {
+                ...room,
+                status: event.data.status || 'BOARD_SETUP',
+              },
+              winnerInfo: null,
+              hasWon: false,
+              lastCalledNumber: null,
+              calledByMap: {},
+              lastKnownVersion: 0,
+            });
+          }
+          if (event.data.newGameId) {
+            gameApi.getGame(event.data.newGameId).then((newGame) => {
+              const myPlayer = newGame.players.find((p) => p.userId === currentUserId);
+              set({
+                game: newGame,
+                board: myPlayer?.board || null,
+                winnerInfo: null,
+                hasWon: false,
+                lastCalledNumber: null,
+                calledByMap: {},
+                lastKnownVersion: newGame.version || 0,
+              });
+            }).catch(() => {});
+          } else {
+            get().fetchRoom(roomCode).catch(() => {});
+          }
+          break;
+        }
       }
     });
   },
@@ -361,6 +427,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       hasWon: false,
       activeEmotes: [],
       error: null,
+      lastKnownVersion: 0,
+      connectionStatus: socketService.connectionStatus,
     });
   },
 }));
