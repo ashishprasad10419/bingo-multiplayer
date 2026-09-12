@@ -15,6 +15,8 @@ import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
 import { GameHub } from './pages/GameHub';
 import { useGameTheme } from './lib/useGameTheme';
+import { MobileNavBar } from './components/MobileNavBar';
+import { useThemeStore } from './state/themeStore';
 
 // Protected Route Guard
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -74,23 +76,26 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${theme.bgGradient} text-[#2a2050] flex flex-col font-sans selection:bg-[#8b7fe8]/20 transition-colors duration-500`}>
+    <div className={`min-h-screen bg-gradient-to-br ${theme.bgGradient} dark:from-[#0d0f17] dark:via-[#131623] dark:to-[#181a2b] text-[#2a2050] dark:text-[#f3f4f6] flex flex-col font-sans selection:bg-[#8b7fe8]/20 transition-colors duration-500`}>
       {!hideNavbar && <Navbar />}
-      <main className="flex-1 pb-10">{children}</main>
+      <main className="flex-1 pb-24 md:pb-10">{children}</main>
+      {!hideNavbar && <MobileNavBar />}
     </div>
   );
 };
 
 export const App: React.FC = () => {
   const { initAuth } = useAuthStore();
+  const { initTheme } = useThemeStore();
 
   useEffect(() => {
+    initTheme();
     initAuth();
     // Proactively ping server in background to initiate cold-start wakeup immediately
     const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
     const healthUrl = apiBase.replace(/\/api\/?$/, '/actuator/health');
     fetch(healthUrl, { method: 'GET', mode: 'no-cors' }).catch(() => {});
-  }, [initAuth]);
+  }, [initAuth, initTheme]);
 
   return (
     <BrowserRouter>

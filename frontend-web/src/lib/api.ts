@@ -63,12 +63,20 @@ export const authApi = {
 export const roomApi = {
   createRoom: async (options?: {
     gameType?: GameType;
+    bingoMode?: 'CLASSIC' | 'SPEED' | 'BLACKOUT';
     boardSize?: number;
     winningLines?: number;
     maxPlayers?: number;
     gridSize?: number;
   }): Promise<Room> => {
     const res = await apiClient.post<Room>('/rooms', options);
+    return res.data;
+  },
+  quickPlay: async (options?: {
+    gameType?: GameType;
+    bingoMode?: string;
+  }): Promise<Room> => {
+    const res = await apiClient.post<Room>('/rooms/quick-play', options);
     return res.data;
   },
   joinRoom: async (code: string): Promise<Room> => {

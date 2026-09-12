@@ -160,6 +160,24 @@ public class GameEngine {
     }
 
     /**
+     * Checks if all numbers on a board have been called (Blackout / Full House mode).
+     */
+    public boolean isBlackout(List<List<Integer>> board, Collection<Integer> calledNumbers) {
+        if (board == null || calledNumbers == null || board.isEmpty()) {
+            return false;
+        }
+        Set<Integer> calledSet = new HashSet<>(calledNumbers);
+        for (List<Integer> row : board) {
+            for (Integer num : row) {
+                if (!calledSet.contains(num)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
      * Gets the next turn player index using round-robin.
      */
     public int getNextPlayerIndex(int currentIndex, int totalPlayers) {

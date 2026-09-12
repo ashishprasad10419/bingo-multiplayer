@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#ece7f9] text-[#2a2050] min-h-screen overflow-x-hidden font-sans antialiased;
+    @apply bg-[#ece7f9] dark:bg-[#0d0f17] text-[#2a2050] dark:text-[#f3f4f6] min-h-screen overflow-x-hidden font-sans antialiased;
     -webkit-tap-highlight-color: transparent;
   }
 }
@@ -17,12 +17,21 @@
 ::-webkit-scrollbar-track {
   background: #ebe5fa;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #181a29;
+}
 ::-webkit-scrollbar-thumb {
   background: #c9bcf3;
   border-radius: 9999px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #3e4466;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #a996ea;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #5b6391;
 }
 
 /* 3D Claymorphic Utility Classes */
@@ -39,17 +48,17 @@
 
   /* Pastel Outline / Pill Button */
   .btn-pill-outline {
-    @apply inline-flex items-center justify-center font-semibold text-[#524872] rounded-full bg-white/90 border-2 border-[#ede8fa] shadow-sm hover:border-[#8b7fe8] hover:text-[#2a2050] hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200;
+    @apply inline-flex items-center justify-center font-semibold text-[#524872] dark:text-[#c4bedd] rounded-full bg-white/90 dark:bg-[#1c2033] border-2 border-[#ede8fa] dark:border-[#2b314d] shadow-sm hover:border-[#8b7fe8] hover:text-[#2a2050] dark:hover:text-white hover:bg-white dark:hover:bg-[#232840] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200;
   }
 
   /* Pill Input (Image 2 style) */
   .input-clay {
-    @apply w-full rounded-full px-5 py-3.5 bg-[#f4effc] text-[#2a2050] placeholder-[#9f96ba] border-2 border-transparent focus:border-[#8b7fe8] focus:bg-white focus:ring-4 focus:ring-[#8b7fe8]/15 outline-none transition-all duration-200 font-medium text-sm sm:text-base;
+    @apply w-full rounded-full px-5 py-3.5 bg-[#f4effc] dark:bg-[#1a1e30] text-[#2a2050] dark:text-[#f3f4f6] placeholder-[#9f96ba] dark:placeholder-[#697296] border-2 border-transparent focus:border-[#8b7fe8] focus:bg-white dark:focus:bg-[#22273e] focus:ring-4 focus:ring-[#8b7fe8]/15 outline-none transition-all duration-200 font-medium text-sm sm:text-base;
   }
 
   /* Elevated Clay Card Surface (Images 1 & 2) */
   .card-clay {
-    @apply bg-white rounded-[28px] sm:rounded-[32px] shadow-[0_14px_36px_rgba(135,115,215,0.12),0_2px_8px_rgba(135,115,215,0.06)] border border-[#ede8f8]/60;
+    @apply bg-white dark:bg-[#161926] rounded-[28px] sm:rounded-[32px] shadow-[0_14px_36px_rgba(135,115,215,0.12),0_2px_8px_rgba(135,115,215,0.06)] dark:shadow-[0_14px_36px_rgba(0,0,0,0.35)] border border-[#ede8f8]/60 dark:border-[#282d44];
   }
 }
 

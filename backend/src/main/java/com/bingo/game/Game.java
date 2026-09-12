@@ -34,6 +34,9 @@ public class Game {
     @Builder.Default
     private int winningLines = 5;
 
+    @Builder.Default
+    private String bingoMode = "CLASSIC";
+
     // --- Tic-Tac-Toe Specific State ---
     @Builder.Default
     private int tttGridSize = 3;

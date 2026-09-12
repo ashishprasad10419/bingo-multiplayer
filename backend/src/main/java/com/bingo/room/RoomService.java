@@ -63,11 +63,19 @@ public class RoomService {
             winningLines = (boardSize - 1) * (boardSize - 1); // total boxes to claim
         } else {
             // BINGO
+            String bingoMode = request.getBingoMode() != null ? request.getBingoMode().toUpperCase() : "CLASSIC";
             boardSize = (request.getBoardSize() != null && request.getBoardSize() >= 5 && request.getBoardSize() <= 10) ? request.getBoardSize() : 5;
-            winningLines = (request.getWinningLines() != null && request.getWinningLines() > 0 && request.getWinningLines() <= boardSize) ? request.getWinningLines() : boardSize;
+            if ("SPEED".equalsIgnoreCase(bingoMode)) {
+                winningLines = 3;
+            } else if ("BLACKOUT".equalsIgnoreCase(bingoMode)) {
+                winningLines = boardSize * boardSize;
+            } else {
+                winningLines = (request.getWinningLines() != null && request.getWinningLines() > 0 && request.getWinningLines() <= boardSize) ? request.getWinningLines() : boardSize;
+            }
             maxPlayers = (request.getMaxPlayers() != null && request.getMaxPlayers() >= 2 && request.getMaxPlayers() <= 6) ? request.getMaxPlayers() : 6;
         }
 
+        String bingoMode = (request.getBingoMode() != null) ? request.getBingoMode().toUpperCase() : "CLASSIC";
         boolean autoLock = (gameType != com.bingo.game.GameType.BINGO);
 
         RoomPlayer hostPlayer = RoomPlayer.builder()
@@ -84,6 +92,7 @@ public class RoomService {
                 .hostId(host.getId())
                 .status(RoomStatus.WAITING)
                 .gameType(gameType)
+                .bingoMode(bingoMode)
                 .boardSize(boardSize)
                 .winningLines(winningLines)
                 .maxPlayers(maxPlayers)
@@ -244,6 +253,7 @@ public class RoomService {
         Game.GameBuilder gameBuilder = Game.builder()
                 .roomCode(room.getRoomCode())
                 .gameType(room.getGameType())
+                .bingoMode(room.getBingoMode() != null ? room.getBingoMode() : "CLASSIC")
                 .boardSize(room.getBoardSize())
                 .winningLines(room.getWinningLines())
                 .status(GameStatus.PLAYING)
@@ -334,6 +344,58 @@ public class RoomService {
                     "status", "PLAYING"
             );
         }
+    }
+
+    public Room quickPlay(String userId, com.bingo.room.dto.QuickPlayRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        com.bingo.game.GameType gameType = (request != null && request.getGameType() != null)
+                ? request.getGameType()
+                : com.bingo.game.GameType.BINGO;
+
+        String bingoMode = (request != null && request.getBingoMode() != null)
+                ? request.getBingoMode().toUpperCase()
+                : "CLASSIC";
+
+        // 1. Look for existing open WAITING room for this game type with available slots
+        List<Room> openRooms = roomRepository.findByStatusAndGameType(RoomStatus.WAITING, gameType);
+        for (Room room : openRooms) {
+            if (room.getPlayers().size() < room.getMaxPlayers() && room.findPlayerData(userId) == null) {
+                // If Bingo, check mode match if specified
+                if (gameType == com.bingo.game.GameType.BINGO && room.getBingoMode() != null) {
+                    if (!room.getBingoMode().equalsIgnoreCase(bingoMode)) {
+                        continue;
+                    }
+                }
+                return joinRoom(room.getRoomCode(), userId, new com.bingo.room.dto.JoinRoomRequest());
+            }
+        }
+
+        // 2. No open room found: auto-create a standard room for quick match
+        CreateRoomRequest createReq = new CreateRoomRequest();
+        createReq.setGameType(gameType);
+        createReq.setBingoMode(bingoMode);
+
+        if (gameType == com.bingo.game.GameType.TIC_TAC_TOE) {
+            createReq.setMaxPlayers(2);
+            createReq.setGridSize(3);
+        } else if (gameType == com.bingo.game.GameType.DOTS_AND_BOXES) {
+            createReq.setMaxPlayers(2);
+            createReq.setGridSize(4);
+        } else {
+            createReq.setMaxPlayers(4);
+            createReq.setBoardSize(5);
+            if ("SPEED".equalsIgnoreCase(bingoMode)) {
+                createReq.setWinningLines(3);
+            } else if ("BLACKOUT".equalsIgnoreCase(bingoMode)) {
+                createReq.setWinningLines(25);
+            } else {
+                createReq.setWinningLines(5);
+            }
+        }
+
+        return createRoom(userId, createReq);
     }
 
     private String generateUniqueRoomCode() {

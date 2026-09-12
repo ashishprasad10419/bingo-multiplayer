@@ -36,6 +36,15 @@ public class RoomController {
         return ResponseEntity.ok(roomService.createRoom(userId, req));
     }
 
+    @PostMapping("/quick-play")
+    @Operation(summary = "Instant 1-click matchmaking: finds an open waiting room or auto-provisions one")
+    public ResponseEntity<Room> quickPlay(
+            @AuthenticationPrincipal String userId,
+            @RequestBody(required = false) com.bingo.room.dto.QuickPlayRequest request
+    ) {
+        return ResponseEntity.ok(roomService.quickPlay(userId, request));
+    }
+
     @PostMapping("/{code}/join")
     @Operation(summary = "Join an existing room by code")
     public ResponseEntity<Room> joinRoom(

@@ -78,6 +78,8 @@ public class GameService {
 
         // 3. Recalculate lineCount for every player
         GamePlayer potentialWinner = null;
+        boolean isBlackoutMode = "BLACKOUT".equalsIgnoreCase(game.getBingoMode());
+
         for (GamePlayer player : game.getPlayers()) {
             int previousLines = player.getLineCount();
             int newLines = gameEngine.calculateLineCount(player.getBoard(), game.getCalledNumbers(), game.getBoardSize());
@@ -90,8 +92,14 @@ public class GameService {
                 ), game.getVersion());
             }
 
-            if (potentialWinner == null && gameEngine.checkWinner(newLines, game.getWinningLines())) {
-                potentialWinner = player;
+            if (potentialWinner == null) {
+                if (isBlackoutMode) {
+                    if (gameEngine.isBlackout(player.getBoard(), game.getCalledNumbers())) {
+                        potentialWinner = player;
+                    }
+                } else if (gameEngine.checkWinner(newLines, game.getWinningLines())) {
+                    potentialWinner = player;
+                }
             }
         }
 

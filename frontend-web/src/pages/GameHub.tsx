@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../state/authStore';
+import { roomApi } from '../lib/api';
 import { GameType } from '../lib/types';
 import { GameVisualIcon } from '../components/games/GameVisualIcon';
 import { GAME_THEMES } from '../lib/gameThemes';
-import { Trophy, Shield, Plus, LogIn, Sparkles, Flame, Users, ArrowRight, Zap, Award, CheckCircle2 } from 'lucide-react';
+import { Trophy, Shield, Plus, LogIn, Sparkles, Flame, Users, Zap, Award, CheckCircle2 } from 'lucide-react';
 
 interface GameCardDef {
   type: GameType;
@@ -25,6 +26,19 @@ export const GameHub: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [quickCode, setQuickCode] = useState('');
+  const [matchingType, setMatchingType] = useState<GameType | null>(null);
+
+  const handleQuickPlay = async (type: GameType) => {
+    setMatchingType(type);
+    try {
+      const room = await roomApi.quickPlay({ gameType: type });
+      navigate(`/lobby/${room.roomCode}`);
+    } catch (err) {
+      navigate(`/create-room?game=${type}`);
+    } finally {
+      setMatchingType(null);
+    }
+  };
 
   const games: GameCardDef[] = [
     {
@@ -299,15 +313,23 @@ export const GameHub: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Button: Themed in that game's exact signature color */}
-            <div className="pt-3 border-t border-[#ede8f8]">
+            {/* Action Buttons: Quick Match (1-Click) & Custom Room */}
+            <div className="pt-3 border-t border-[#ede8f8] space-y-2">
+              <button
+                onClick={() => handleQuickPlay(g.type)}
+                disabled={matchingType !== null}
+                className={`w-full py-3 rounded-full text-xs font-black text-white bg-gradient-to-r ${g.buttonGrad} shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50`}
+              >
+                <Zap className={`w-3.5 h-3.5 ${matchingType === g.type ? 'animate-spin' : ''}`} />
+                <span>{matchingType === g.type ? 'Finding Match...' : '⚡ Quick Match (1-Click)'}</span>
+              </button>
+
               <button
                 onClick={() => handleSelectGame(g.type)}
-                className={`w-full py-3.5 rounded-full text-xs font-black text-white bg-gradient-to-r ${g.buttonGrad} shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer`}
+                className="w-full py-2.5 rounded-full text-xs font-bold text-[#524872] bg-[#f0ecfc] hover:bg-[#e4ddf8] transition flex items-center justify-center space-x-1.5 cursor-pointer"
               >
-                <Plus className="w-4 h-4" />
-                <span>Host {g.title}</span>
-                <ArrowRight className="w-3.5 h-3.5 opacity-80" />
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Custom Room</span>
               </button>
             </div>
           </div>

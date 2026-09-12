@@ -218,18 +218,23 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
                 onTouchStart={mode === 'setup' ? () => handleTouchStart(r, c) : undefined}
                 disabled={disabled || (mode === 'game' && (isCalled || isPendingThis || !isMyTurn))}
                 onClick={() => onCellClick && onCellClick(r, c, val)}
-                className={`relative flex flex-col items-center justify-center border transition-all duration-150 select-none touch-manipulation cursor-pointer ${cellTypeClass} ${bgStyle} ${extraGlow}`}
+                className={`relative flex flex-col items-center justify-center border transition-all duration-200 select-none touch-manipulation cursor-pointer ${cellTypeClass} ${bgStyle} ${extraGlow} ${
+                  mode === 'game' && isCalled ? 'animate-in zoom-in-75 duration-200' : ''
+                }`}
               >
-                <span className="font-extrabold">{val}</span>
+                <span className={`font-extrabold relative z-10 transition-transform ${isCalled ? 'scale-95' : ''}`}>
+                  {val}
+                </span>
 
                 {mode === 'game' && (isCalled || isPendingThis) && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                    {/* Juicy Stamp / Mark Badge */}
                     {isOpponentPick ? (
-                      <div className={`${badgeSizeClass} rounded-full bg-white/25 border border-white/70 flex items-center justify-center text-white animate-in fade-in zoom-in duration-150 shadow-xs`}>
+                      <div className={`${badgeSizeClass} rounded-full bg-white/30 border border-white/80 flex items-center justify-center text-white animate-in zoom-in-50 duration-200 shadow-md transform rotate-[-8deg]`}>
                         <Flame className={iconClass} />
                       </div>
                     ) : (
-                      <div className={`${badgeSizeClass} rounded-full bg-white/25 border border-white/70 flex items-center justify-center text-white animate-in fade-in zoom-in duration-150 shadow-xs`}>
+                      <div className={`${badgeSizeClass} rounded-full bg-white/30 border border-white/80 flex items-center justify-center text-white animate-in zoom-in-50 duration-200 shadow-md transform rotate-[8deg]`}>
                         <Check className={iconClass} />
                       </div>
                     )}

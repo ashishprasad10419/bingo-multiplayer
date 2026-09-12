@@ -14,6 +14,8 @@ import { FloatingEmotesOverlay } from '../components/FloatingEmotesOverlay';
 import { TicTacToeArena } from '../components/games/TicTacToeArena';
 import { DotsAndBoxesArena } from '../components/games/DotsAndBoxesArena';
 import { ConnectionStatusPill } from '../components/ConnectionStatusPill';
+import { CountdownOverlay } from '../components/CountdownOverlay';
+import { LastCalledCallout } from '../components/LastCalledCallout';
 import { getGameTheme } from '../lib/gameThemes';
 import { AlertCircle, Clock, Sparkles } from 'lucide-react';
 
@@ -36,9 +38,11 @@ export const Game: React.FC = () => {
   const [calling, setCalling] = useState(false);
   const [pendingPick, setPendingPick] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showCountdown, setShowCountdown] = useState(false);
 
   const prevTurnUserIdRef = useRef<string | null>(null);
   const prevLineCountRef = useRef(lineCount);
+  const hasShownCountdownRef = useRef<string | null>(null);
 
   const isBingo = !game?.gameType || game.gameType === 'BINGO';
   const isTtt = game?.gameType === 'TIC_TAC_TOE';
@@ -110,6 +114,16 @@ export const Game: React.FC = () => {
       }
     }
   }, [game?.calledNumbers, game?.currentTurnUserId, user?.id, pendingPick]);
+
+  // Trigger 3-2-1-GO Countdown at match start
+  useEffect(() => {
+    if (game?.id && game.status === 'PLAYING' && game.moveNumber === 0) {
+      if (hasShownCountdownRef.current !== game.id) {
+        hasShownCountdownRef.current = game.id;
+        setShowCountdown(true);
+      }
+    }
+  }, [game?.id, game?.status, game?.moveNumber]);
 
   if (!user || !game || (isBingo && !board) || game.roomCode?.toUpperCase() !== code?.toUpperCase()) {
     return (
@@ -280,8 +294,30 @@ export const Game: React.FC = () => {
     return 'Bingo';
   };
 
+  const lastCallerUserId = lastCalledNumber ? calledByMap[lastCalledNumber] : null;
+  const lastCallerPlayer = lastCallerUserId ? game.players.find((p) => p.userId === lastCallerUserId) : null;
+  const lastCallerUsername = lastCallerPlayer?.username;
+  const isMyPick = lastCallerUserId === user.id;
+
   return (
-    <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-4 font-sans">
+    <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-4 font-sans relative">
+      {/* 3... 2... 1... GO! Pre-Game Countdown */}
+      {showCountdown && (
+        <CountdownOverlay
+          onComplete={() => setShowCountdown(false)}
+          gameType={game.gameType}
+        />
+      )}
+
+      {/* Dramatic Last Number Called Overlay */}
+      {isBingo && (
+        <LastCalledCallout
+          number={lastCalledNumber}
+          calledByUsername={lastCallerUsername}
+          isMyPick={isMyPick}
+        />
+      )}
+
       {/* Match Header Bar with Game-Themed Badges */}
       <div className="flex items-center justify-between pb-1">
         <div className="flex items-center space-x-2">

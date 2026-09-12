@@ -43,6 +43,9 @@ public class Room {
     @Builder.Default
     private int maxPlayers = 6;
 
+    @Builder.Default
+    private String bingoMode = "CLASSIC";
+
     private String passwordHash;
 
     @Builder.Default

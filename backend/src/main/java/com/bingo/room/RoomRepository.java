@@ -14,4 +14,6 @@ public interface RoomRepository extends MongoRepository<Room, String> {
     boolean existsByRoomCode(String roomCode);
 
     List<Room> findByHostIdAndStatusIn(String hostId, List<RoomStatus> statuses);
+
+    List<Room> findByStatusAndGameType(RoomStatus status, com.bingo.game.GameType gameType);
 }

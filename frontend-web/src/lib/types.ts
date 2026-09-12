@@ -37,6 +37,7 @@ export interface Room {
   hostId: string;
   status: RoomStatus;
   gameType?: GameType;
+  bingoMode?: 'CLASSIC' | 'SPEED' | 'BLACKOUT';
   boardSize: number;
   winningLines: number;
   maxPlayers: number;
@@ -68,6 +69,7 @@ export interface Game {
   id: string;
   roomCode: string;
   gameType?: GameType;
+  bingoMode?: 'CLASSIC' | 'SPEED' | 'BLACKOUT';
   boardSize: number;
   winningLines: number;
   status: 'PLAYING' | 'FINISHED' | 'ABANDONED';

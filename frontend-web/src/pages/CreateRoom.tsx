@@ -20,6 +20,7 @@ export const CreateRoom: React.FC = () => {
   );
 
   // Bingo Config
+  const [bingoMode, setBingoMode] = useState<'CLASSIC' | 'SPEED' | 'BLACKOUT'>('CLASSIC');
   const [bingoBoardSize, setBingoBoardSize] = useState(5);
   const [bingoWinningLines, setBingoWinningLines] = useState(5);
   const [bingoMaxPlayers, setBingoMaxPlayers] = useState(6);
@@ -90,8 +91,9 @@ export const CreateRoom: React.FC = () => {
 
       let payload: any = { gameType };
       if (gameType === 'BINGO') {
+        payload.bingoMode = bingoMode;
         payload.boardSize = bingoBoardSize;
-        payload.winningLines = bingoWinningLines;
+        payload.winningLines = bingoMode === 'SPEED' ? 3 : bingoMode === 'BLACKOUT' ? bingoBoardSize * bingoBoardSize : bingoWinningLines;
         payload.maxPlayers = bingoMaxPlayers;
       } else if (gameType === 'TIC_TAC_TOE') {
         payload.gridSize = tttGridSize;
@@ -148,6 +150,48 @@ export const CreateRoom: React.FC = () => {
           {/* ============ BINGO CONFIG ============ */}
           {gameType === 'BINGO' && (
             <>
+              {/* Bingo Game Mode */}
+              <div className="bg-[#faf7fe] p-4 sm:p-5 rounded-2xl border border-[#ede8f8] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Trophy className="w-5 h-5 text-[#f59e0b]" />
+                    <div>
+                      <div className="text-xs font-extrabold text-[#2a2050]">Bingo Game Mode</div>
+                      <div className="text-[11px] text-[#7e749c] font-medium">
+                        {bingoMode === 'CLASSIC' ? 'Classic 5-Line race' : bingoMode === 'SPEED' ? 'Rapid 3-Line sprint' : 'Full board blackout'}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-extrabold px-3 py-1 bg-[#fef5db] text-[#b45309] border border-[#fde7ad] rounded-full">
+                    {bingoMode}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2.5 pt-1">
+                  {[
+                    { id: 'CLASSIC', name: 'Classic', desc: 'Standard lines' },
+                    { id: 'SPEED', name: 'Speed (3L)', desc: 'Rapid 3 lines' },
+                    { id: 'BLACKOUT', name: 'Blackout', desc: 'Full board house' },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setBingoMode(m.id as any)}
+                      className={`p-3 rounded-2xl text-center transition-all cursor-pointer ${
+                        bingoMode === m.id
+                          ? 'bg-gradient-to-r from-[#f8788a] to-[#8b7fe8] text-white shadow-md scale-[1.02] ring-2 ring-[#fbcfe8]'
+                          : 'bg-white hover:bg-[#f0ecfc] text-[#524872] border border-[#ede8f8] shadow-2xs'
+                      }`}
+                    >
+                      <div className="font-extrabold text-xs">{m.name}</div>
+                      <div className={`text-[10px] mt-0.5 ${bingoMode === m.id ? 'text-white/85' : 'text-[#7e749c]'}`}>
+                        {m.desc}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Board Grid Size */}
               <div className="bg-[#faf7fe] p-4 sm:p-5 rounded-2xl border border-[#ede8f8] space-y-3">
                 <div className="flex items-center justify-between">

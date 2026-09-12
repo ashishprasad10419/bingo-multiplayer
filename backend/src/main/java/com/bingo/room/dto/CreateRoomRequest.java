@@ -13,5 +13,6 @@ public class CreateRoomRequest {
     private Integer winningLines = 5;
     private Integer maxPlayers = 6;
     private Integer gridSize = 3; // for TicTacToe (3..5) or DotsAndBoxes (dots: 3..5)
+    private String bingoMode = "CLASSIC";
     private String password;
 }

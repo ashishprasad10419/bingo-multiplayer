@@ -230,6 +230,54 @@ class SoundEngine {
       osc.stop(ctx.currentTime + 0.1);
     } catch (_) {}
   }
+
+  /**
+   * Crisp rhythmic beep for countdown ticks (3, 2, 1)
+   */
+  public playCountdownTick() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, ctx.currentTime); // A4
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.13);
+    } catch (_) {}
+  }
+
+  /**
+   * Triumphant high burst for GO!
+   */
+  public playCountdownGo() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.32);
+    } catch (_) {}
+  }
 }
 
 export const soundService = new SoundEngine();

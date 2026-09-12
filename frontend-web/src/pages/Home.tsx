@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../state/authStore';
-import { PlusCircle, LogIn, Trophy, Flame, Shield, HelpCircle } from 'lucide-react';
+import { roomApi } from '../lib/api';
+import { PlusCircle, LogIn, Trophy, Flame, Shield, HelpCircle, Zap } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [quickPlayLoading, setQuickPlayLoading] = useState(false);
+
+  const handleQuickPlay = async () => {
+    setQuickPlayLoading(true);
+    try {
+      const room = await roomApi.quickPlay({ gameType: 'BINGO' });
+      navigate(`/lobby/${room.roomCode}`);
+    } catch (err) {
+      navigate('/create-room');
+    } finally {
+      setQuickPlayLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6 font-sans">
@@ -93,6 +107,26 @@ export const Home: React.FC = () => {
           <div className="text-[11px] font-bold text-[#0284c7] mt-1">{user?.xp || 0} XP</div>
         </div>
       </div>
+
+      {/* 1-Click Instant Quick Play Matchmaking Banner */}
+      <button
+        onClick={handleQuickPlay}
+        disabled={quickPlayLoading}
+        className="w-full bg-gradient-to-r from-[#8b7fe8] via-[#7c6ee6] to-[#ec4899] text-white p-5 rounded-[26px] shadow-[0_12px_32px_rgba(139,127,232,0.3)] flex items-center justify-between group transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+      >
+        <div className="flex items-center space-x-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
+            <Zap className={`w-7 h-7 text-white ${quickPlayLoading ? 'animate-spin' : 'animate-pulse'}`} />
+          </div>
+          <div className="text-left">
+            <div className="font-black text-lg">⚡ Instant Quick Play</div>
+            <div className="text-xs text-white/85">1-click automatic matchmaking into an open public room</div>
+          </div>
+        </div>
+        <span className="text-xs font-black px-4 py-2 bg-white/25 hover:bg-white/35 rounded-full backdrop-blur-sm transition">
+          {quickPlayLoading ? 'Matching...' : 'Play Now →'}
+        </span>
+      </button>
 
       {/* Main Game Mode CTA Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
