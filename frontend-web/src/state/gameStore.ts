@@ -11,7 +11,7 @@ interface GameState {
   lineCount: number;
   lastCalledNumber: number | null;
   calledByMap: Record<number, string>; // number -> calledByUserId
-  winnerInfo: { username: string; avatar?: string } | null;
+  winnerInfo: { username: string; avatar?: string; userId?: string } | null;
   hasWon: boolean;
   activeEmotes: ActiveEmote[];
   isLoading: boolean;
@@ -118,8 +118,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       if (game.status === 'FINISHED') {
         const winningPlayer = game.players.find((p) => p.userId === game.winnerId);
-        updates.winnerInfo = winningPlayer || null;
-        updates.hasWon = game.winnerId === currentUserId;
+        updates.winnerInfo = winningPlayer || (game.winnerId ? { username: 'Winner', userId: game.winnerId } : { username: 'Nobody (Draw)', userId: '' });
+        updates.hasWon = !!(game.winnerId && currentUserId && game.winnerId === currentUserId);
       }
 
       set(updates);
@@ -308,15 +308,15 @@ export const useGameStore = create<GameState>((set, get) => ({
           set({
             winnerInfo: event.data.winner,
             hasWon: event.data.winner?.userId === currentUserId,
-            game: game ? { ...game, status: 'FINISHED' } : null,
+            game: game ? { ...game, status: 'FINISHED', winnerId: event.data.winner?.userId } : null,
           });
           break;
 
         case 'GAME_DRAW':
           set({
-            winnerInfo: { username: 'Nobody (Draw)' },
+            winnerInfo: { username: 'Nobody (Draw)', userId: '' },
             hasWon: false,
-            game: game ? { ...game, status: 'FINISHED' } : null,
+            game: game ? { ...game, status: 'FINISHED', winnerId: '' } : null,
           });
           break;
 
@@ -341,6 +341,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                 ...game,
                 horizontalLines: event.data.horizontalLines || game.horizontalLines,
                 verticalLines: event.data.verticalLines || game.verticalLines,
+                lineOwners: event.data.lineOwners || game.lineOwners || {},
                 completedBoxes: event.data.completedBoxes || game.completedBoxes,
                 playerScores: event.data.playerScores || game.playerScores,
                 currentTurnUserId: event.data.nextTurn,

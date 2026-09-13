@@ -1,18 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGameStore } from '../state/gameStore';
 import { useAuthStore } from '../state/authStore';
-import { roomApi } from '../lib/api';
+import { roomApi, gameApi } from '../lib/api';
 import confetti from 'canvas-confetti';
 import { Trophy, Home, Award, Flame, Star, RotateCcw } from 'lucide-react';
 
 export const Winner: React.FC = () => {
   const navigate = useNavigate();
+  const { gameId } = useParams<{ gameId?: string }>();
   const { user, initAuth } = useAuthStore();
   const { winnerInfo, hasWon, resetGame, game, room } = useGameStore();
 
   const [requestingRematch, setRequestingRematch] = useState(false);
   const [rematchError, setRematchError] = useState<string | null>(null);
+
+  // Sync game from API if accessed directly or refreshed
+  useEffect(() => {
+    if ((!game || !game.winnerId) && gameId) {
+      gameApi.getGame(gameId).then((g) => {
+        if (g) {
+          const winningPlayer = g.players?.find((p) => p.userId === g.winnerId);
+          useGameStore.setState({
+            game: g,
+            winnerInfo: winningPlayer || (g.winnerId ? { username: 'Winner', userId: g.winnerId } : { username: 'Nobody (Draw)', userId: '' }),
+            hasWon: !!(g.winnerId && user?.id && g.winnerId === user.id),
+          });
+        }
+      }).catch(() => {});
+    }
+  }, [gameId, game?.id, user?.id]);
 
   useEffect(() => {
     // Fire festive fireworks confetti
@@ -76,7 +93,10 @@ export const Winner: React.FC = () => {
     navigate('/');
   };
 
-  const isDraw = (!game?.winnerId || game.winnerId === '') && game?.status === 'FINISHED';
+  const winnerUserId = winnerInfo?.userId || game?.winnerId;
+  const isDraw = winnerInfo?.username === 'Nobody (Draw)' || (!winnerUserId && game?.status === 'FINISHED');
+  const isWinner = (winnerUserId && user?.id && winnerUserId === user.id) || hasWon;
+  const winnerName = winnerInfo?.username || game?.players.find((p) => p.userId === winnerUserId)?.username || 'Opponent';
 
   return (
     <div className="max-w-md mx-auto px-4 sm:px-6 py-10 flex flex-col items-center justify-center min-h-[85vh] text-center font-sans">
@@ -99,15 +119,15 @@ export const Winner: React.FC = () => {
       <h1 className="text-3xl sm:text-4xl font-extrabold text-[#2a2050] tracking-tight">
         {isDraw
           ? "🤝 IT'S A DRAW!"
-          : hasWon
+          : isWinner
           ? '🏆 VICTORY! YOU WON!'
-          : `${winnerInfo?.username || 'Opponent'} Won!`}
+          : `${winnerName} Won!`}
       </h1>
 
       <p className="text-xs sm:text-sm font-medium text-[#7e749c] mt-2 max-w-xs leading-relaxed">
         {isDraw
           ? 'Both players played exceptionally well! No victor this round.'
-          : hasWon
+          : isWinner
           ? 'Incredible performance! You claimed the victory.'
           : 'Great match! Keep playing to claim the next win.'}
       </p>

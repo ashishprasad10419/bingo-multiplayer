@@ -163,6 +163,8 @@ export const Game: React.FC = () => {
   const isSimultaneousGame = isRps || isNumberRush || isWordScramble || isQuiz;
   const isMyTurn = isSimultaneousGame || game.currentTurnUserId === user.id;
   const currentTurnPlayer = game.players.find((p) => p.userId === game.currentTurnUserId);
+  const myRpsLocked = isRps && !!game.rpsChoices?.[user.id];
+  const opponentRpsLocked = isRps && game.players.some((p) => p.userId !== user.id && !!game.rpsChoices?.[p.userId]);
 
   // --- BINGO Move Handler ---
   const handleCellClick = async (_row: number, _col: number, value: number) => {
@@ -339,7 +341,12 @@ export const Game: React.FC = () => {
     }
     if (!socketSent) {
       try {
-        await gameApi.submitRpsChoice(game.id, choice, clientMoveId);
+        const updatedGame = await gameApi.submitRpsChoice(game.id, choice, clientMoveId);
+        if (updatedGame) {
+          useGameStore.setState((state) => ({
+            game: state.game ? { ...state.game, ...updatedGame } : updatedGame,
+          }));
+        }
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to submit choice');
       }
@@ -544,7 +551,13 @@ export const Game: React.FC = () => {
                   {isTtt && "IT'S YOUR TURN! Place your mark on the grid"}
                   {isDots && "IT'S YOUR TURN! Click a line between two dots"}
                   {isC4 && "IT'S YOUR TURN! Drop your chip in a column"}
-                  {isRps && "CHOOSE YOUR MOVE! Rock, Paper, or Scissors"}
+                  {isRps && (
+                    myRpsLocked
+                      ? "🔒 CHOICE LOCKED! Waiting for opponent to reveal..."
+                      : opponentRpsLocked
+                      ? "⚡ OPPONENT LOCKED MOVE! Choose Rock, Paper, or Scissors now!"
+                      : "CHOOSE YOUR MOVE! Rock, Paper, or Scissors"
+                  )}
                   {isMemory && "IT'S YOUR TURN! Flip cards to find matching pairs"}
                   {isNumberRush && "⚡ SPEED RACE! Tap numbers 1 to 25 as fast as you can!"}
                   {isWordScramble && "🔤 ANAGRAM RACE! Solve the scrambled word!"}

@@ -47,6 +47,13 @@ export const RockPaperScissorsArena: React.FC<RockPaperScissorsArenaProps> = ({
     onSubmitChoice(key);
   };
 
+  const getEmoji = (choiceKey?: string) => {
+    if (choiceKey === 'ROCK') return '✊';
+    if (choiceKey === 'PAPER') return '✋';
+    if (choiceKey === 'SCISSORS') return '✌️';
+    return '❓';
+  };
+
   return (
     <div className="flex flex-col items-center w-full max-w-[560px] space-y-4">
       {/* Round & Target Banner */}
@@ -76,18 +83,24 @@ export const RockPaperScissorsArena: React.FC<RockPaperScissorsArenaProps> = ({
           <div className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 mb-1">
             Round {lastResult.round} Result
           </div>
-          <div className="flex items-center justify-center space-x-4 text-2xl font-black my-1">
-            <span>{lastResult.user1Choice === 'ROCK' ? '✊' : lastResult.user1Choice === 'PAPER' ? '✋' : '✌️'}</span>
+          <div className="flex items-center justify-center space-x-5 text-xl font-black my-2">
+            <div className="flex flex-col items-center">
+              <span className="text-2xl filter drop-shadow-sm">{getEmoji(lastResult.user1Choice)}</span>
+              <span className="text-[10px] font-bold text-slate-500 mt-0.5">{player1?.username || 'P1'}</span>
+            </div>
             <Swords className="w-5 h-5 text-orange-500 animate-pulse" />
-            <span>{lastResult.user2Choice === 'ROCK' ? '✊' : lastResult.user2Choice === 'PAPER' ? '✋' : '✌️'}</span>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl filter drop-shadow-sm">{getEmoji(lastResult.user2Choice)}</span>
+              <span className="text-[10px] font-bold text-slate-500 mt-0.5">{player2?.username || 'P2'}</span>
+            </div>
           </div>
           <div className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
             {lastResult.isTie ? (
-              <span className="text-amber-600 dark:text-amber-400">It's a Tie! Replaying for point...</span>
+              <span className="text-amber-600 dark:text-amber-400 font-black">It's a Tie! Replaying for point...</span>
             ) : lastResult.roundWinnerId === currentUserId ? (
-              <span className="text-emerald-600 dark:text-emerald-400">🎉 You won this round!</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-black">🎉 You won this round!</span>
             ) : (
-              <span className="text-rose-600 dark:text-rose-400">Opponent scored a point!</span>
+              <span className="text-rose-600 dark:text-rose-400 font-black">Opponent won this round!</span>
             )}
           </div>
         </div>
@@ -131,7 +144,9 @@ export const RockPaperScissorsArena: React.FC<RockPaperScissorsArenaProps> = ({
         {hasSubmitted ? (
           <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold animate-pulse">
             <CheckCircle2 className="w-4 h-4" />
-            <span>Choice locked! Waiting for opponent to reveal...</span>
+            <span>
+              {selected ? `You picked ${selected === 'ROCK' ? '✊ Rock' : selected === 'PAPER' ? '✋ Paper' : '✌️ Scissors'} — ` : ''}Choice locked! Waiting for opponent...
+            </span>
           </div>
         ) : (
           <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">

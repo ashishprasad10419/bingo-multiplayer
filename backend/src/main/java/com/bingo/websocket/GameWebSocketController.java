@@ -88,7 +88,8 @@ public class GameWebSocketController {
                         "currentTurnUserId", game.getCurrentTurnUserId(),
                         "playerScores", game.getPlayerScores(),
                         "horizontalLines", game.getHorizontalLines(),
-                        "verticalLines", game.getVerticalLines()
+                        "verticalLines", game.getVerticalLines(),
+                        "lineOwners", game.getLineOwners()
                 ));
             } catch (Exception ignored) {
             }

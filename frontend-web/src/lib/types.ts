@@ -103,6 +103,7 @@ export interface Game {
   verticalLines?: string[];
   completedBoxes?: Record<string, string>;
   playerScores?: Record<string, number>;
+  lineOwners?: Record<string, string>;
 
   // Connect Four
   c4Cols?: number;

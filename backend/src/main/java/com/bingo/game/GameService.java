@@ -290,6 +290,12 @@ public class GameService {
 
         turnService.validateTurn(game, senderUserId);
 
+        if (game.getLineOwners() == null) {
+            game.setLineOwners(new HashMap<>());
+        }
+        String lineKey = lineType.toUpperCase() + "-" + row + "-" + col;
+        game.getLineOwners().put(lineKey, senderUserId);
+
         int dotsSize = game.getDotsGridSize() > 0 ? game.getDotsGridSize() : 4;
         com.bingo.game.engine.DotsAndBoxesEngine.MoveResult result = dotsAndBoxesEngine.drawLine(
                 dotsSize,
@@ -342,6 +348,7 @@ public class GameService {
         payload.put("playerScores", game.getPlayerScores());
         payload.put("horizontalLines", game.getHorizontalLines());
         payload.put("verticalLines", game.getVerticalLines());
+        payload.put("lineOwners", game.getLineOwners());
         payload.put("nextTurn", game.getCurrentTurnUserId());
         payload.put("status", game.getStatus().name());
 
@@ -428,9 +435,10 @@ public class GameService {
         game.setVersion(game.getVersion() + 1);
 
         // Check if both players submitted
-        if (game.getPlayers().size() >= 2 && game.getRpsChoices().size() >= 2) {
-            String p1 = game.getPlayers().get(0).getUserId();
-            String p2 = game.getPlayers().get(1).getUserId();
+        if (game.getRpsChoices().size() >= 2) {
+            List<String> submittingPlayers = new ArrayList<>(game.getRpsChoices().keySet());
+            String p1 = submittingPlayers.get(0);
+            String p2 = submittingPlayers.get(1);
 
             if (game.getRpsRoundWins() == null) game.setRpsRoundWins(new HashMap<>());
 
@@ -439,13 +447,21 @@ public class GameService {
 
             Map<String, Object> roundResultData = new HashMap<>();
             roundResultData.put("round", game.getRpsRound());
+            roundResultData.put("p1UserId", p1);
+            roundResultData.put("p2UserId", p2);
             roundResultData.put("user1Choice", result.getUser1Choice());
             roundResultData.put("user2Choice", result.getUser2Choice());
+            Map<String, String> choicesMap = new HashMap<>();
+            if (result.getUser1Choice() != null) choicesMap.put(p1, result.getUser1Choice());
+            if (result.getUser2Choice() != null) choicesMap.put(p2, result.getUser2Choice());
+            roundResultData.put("choices", choicesMap);
             roundResultData.put("roundWinnerId", result.getRoundWinnerId());
             roundResultData.put("isTie", result.isTie());
             roundResultData.put("roundScores", game.getRpsRoundWins());
+            roundResultData.put("isMatchWon", result.isMatchWon());
 
             game.setRpsLastRoundResult(roundResultData);
+            game.getRpsChoices().clear();
 
             if (result.isMatchWon()) {
                 GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
@@ -453,7 +469,6 @@ public class GameService {
                 game = gameRepository.save(game);
             } else {
                 game.setRpsRound(game.getRpsRound() + 1);
-                game.getRpsChoices().clear();
                 game = gameRepository.save(game);
             }
 
@@ -493,14 +508,25 @@ public class GameService {
         game.setVersion(game.getVersion() + 1);
 
         if (result.isAllMatched()) {
-            // Find player with highest score
-            String highestUser = game.getPlayerScores().entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .map(Map.Entry::getKey)
-                    .orElse(senderUserId);
-            GamePlayer winner = game.findPlayer(highestUser);
-            winnerService.handleGameFinished(game, winner);
-            game = gameRepository.save(game);
+            int maxScore = game.getPlayerScores().values().stream().mapToInt(Integer::intValue).max().orElse(0);
+            long countMax = game.getPlayerScores().values().stream().filter(s -> s == maxScore).count();
+            if (countMax > 1) {
+                game.setStatus(GameStatus.FINISHED);
+                game.setFinishedAt(java.time.Instant.now());
+                game = gameRepository.save(game);
+                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
+                        "scores", game.getPlayerScores()
+                ), game.getVersion());
+            } else {
+                String highestUser = game.getPlayerScores().entrySet().stream()
+                        .filter(e -> e.getValue() == maxScore)
+                        .map(Map.Entry::getKey)
+                        .findFirst()
+                        .orElse(senderUserId);
+                GamePlayer winner = game.findPlayer(highestUser);
+                winnerService.handleGameFinished(game, winner);
+                game = gameRepository.save(game);
+            }
         } else if (!result.isExtraTurn()) {
             // Mismatch: advance turn
             turnService.advanceTurn(game);
@@ -586,9 +612,20 @@ public class GameService {
         if (result.isCorrect()) {
             game.setScrambleLastWinnerId(senderUserId);
             if (result.isGameFinished()) {
-                GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
-                winnerService.handleGameFinished(game, winner);
-                game = gameRepository.save(game);
+                int maxScore = game.getPlayerScores().values().stream().mapToInt(Integer::intValue).max().orElse(0);
+                long countMax = game.getPlayerScores().values().stream().filter(s -> s == maxScore).count();
+                if (countMax > 1) {
+                    game.setStatus(GameStatus.FINISHED);
+                    game.setFinishedAt(java.time.Instant.now());
+                    game = gameRepository.save(game);
+                    gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
+                            "scores", game.getPlayerScores()
+                    ), game.getVersion());
+                } else {
+                    GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
+                    winnerService.handleGameFinished(game, winner);
+                    game = gameRepository.save(game);
+                }
             } else {
                 game.setScrambleCurrentRound(round + 1);
                 game = gameRepository.save(game);
@@ -644,9 +681,20 @@ public class GameService {
 
         if (result.isRoundComplete()) {
             if (result.isMatchComplete()) {
-                GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
-                winnerService.handleGameFinished(game, winner);
-                game = gameRepository.save(game);
+                int maxScore = game.getPlayerScores().values().stream().mapToInt(Integer::intValue).max().orElse(0);
+                long countMax = game.getPlayerScores().values().stream().filter(s -> s == maxScore).count();
+                if (countMax > 1) {
+                    game.setStatus(GameStatus.FINISHED);
+                    game.setFinishedAt(java.time.Instant.now());
+                    game = gameRepository.save(game);
+                    gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
+                            "scores", game.getPlayerScores()
+                    ), game.getVersion());
+                } else {
+                    GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
+                    winnerService.handleGameFinished(game, winner);
+                    game = gameRepository.save(game);
+                }
             } else {
                 game.setQuizCurrentQuestion(currentQ + 1);
                 game.getQuizAnswers().clear();

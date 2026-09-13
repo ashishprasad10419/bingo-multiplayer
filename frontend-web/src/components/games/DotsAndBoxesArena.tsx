@@ -78,8 +78,25 @@ export const DotsAndBoxesArena: React.FC<DotsAndBoxesArenaProps> = ({
     return game.players.findIndex((p) => p.userId === userId);
   };
 
+  const getLineColorClass = (lineType: 'H' | 'V', r: number, c: number) => {
+    const key = `${lineType}-${r}-${c}`;
+    const ownerId = game.lineOwners?.[key];
+    if (ownerId) {
+      const pIdx = getPlayerIndex(ownerId);
+      if (pIdx >= 0) {
+        const pColor = PLAYER_COLORS[pIdx % PLAYER_COLORS.length];
+        return lineType === 'H'
+          ? `bg-gradient-to-r ${pColor.gradient} shadow-sm ring-1 ring-white/50`
+          : `bg-gradient-to-b ${pColor.gradient} shadow-sm ring-1 ring-white/50`;
+      }
+    }
+    return lineType === 'H'
+      ? 'bg-gradient-to-r from-[#8b7fe8] to-[#6d5ebd] shadow-sm'
+      : 'bg-gradient-to-b from-[#8b7fe8] to-[#6d5ebd] shadow-sm';
+  };
+
   return (
-    <div className="w-full max-w-[540px] mx-auto space-y-4">
+    <div className="w-full max-w-[540px] mx-auto space-y-3.5">
       {/* Live Territory Scoreboard */}
       <div className="card-clay p-3 sm:p-4">
         <div className="text-[11px] font-extrabold text-[#7e749c] uppercase tracking-wider text-center mb-2.5">
@@ -108,6 +125,20 @@ export const DotsAndBoxesArena: React.FC<DotsAndBoxesArenaProps> = ({
                 <span className={`text-xs font-black px-2 py-0.5 rounded-full ${color.bgLight} ${color.text} border ${color.border}`}>
                   {score}
                 </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Player Line Colors Legend */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-3 pt-2.5 border-t border-[#ede8f8]">
+          {game.players.map((p, idx) => {
+            const color = PLAYER_COLORS[idx % PLAYER_COLORS.length];
+            const isMe = p.userId === currentUserId;
+            return (
+              <div key={`legend-${p.userId}`} className="flex items-center space-x-1.5 text-[11px] font-black text-[#2a2050]">
+                <span className={`w-3.5 h-2 rounded-full bg-gradient-to-r ${color.gradient} shadow-2xs`} />
+                <span>{p.username} {isMe ? '(Your Lines)' : '(Opponent Lines)'}</span>
               </div>
             );
           })}
@@ -150,7 +181,7 @@ export const DotsAndBoxesArena: React.FC<DotsAndBoxesArenaProps> = ({
                           <div
                             className={`w-full h-2 rounded-full transition-all ${
                               isHDrawn
-                                ? 'bg-gradient-to-r from-[#8b7fe8] to-[#6d5ebd] shadow-sm'
+                                ? getLineColorClass('H', r, c)
                                 : isMyTurn && !disabled
                                 ? 'bg-[#ede8f8] group-hover:bg-[#8b7fe8]/50 group-hover:h-2.5'
                                 : 'bg-[#ede8f8]'
@@ -194,7 +225,7 @@ export const DotsAndBoxesArena: React.FC<DotsAndBoxesArenaProps> = ({
                           <div
                             className={`h-full w-2 rounded-full transition-all ${
                               isVDrawn
-                                ? 'bg-gradient-to-b from-[#8b7fe8] to-[#6d5ebd] shadow-sm'
+                                ? getLineColorClass('V', r, c)
                                 : isMyTurn && !disabled
                                 ? 'bg-[#ede8f8] group-hover:bg-[#8b7fe8]/50 group-hover:w-2.5'
                                 : 'bg-[#ede8f8]'

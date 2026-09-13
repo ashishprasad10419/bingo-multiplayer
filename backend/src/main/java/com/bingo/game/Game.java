@@ -60,6 +60,9 @@ public class Game {
     @Builder.Default
     private java.util.Map<String, Integer> playerScores = new java.util.HashMap<>(); // userId -> score
 
+    @Builder.Default
+    private java.util.Map<String, String> lineOwners = new java.util.HashMap<>(); // "H-r-c" or "V-r-c" -> userId
+
     // --- Connect Four State ---
     @Builder.Default
     private int c4Cols = 7;

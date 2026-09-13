@@ -277,6 +277,7 @@ public class RoomService {
             gameBuilder.horizontalLines(new ArrayList<>());
             gameBuilder.verticalLines(new ArrayList<>());
             gameBuilder.completedBoxes(new HashMap<>());
+            gameBuilder.lineOwners(new HashMap<>());
             Map<String, Integer> initialScores = new HashMap<>();
             for (GamePlayer gp : gamePlayers) {
                 initialScores.put(gp.getUserId(), 0);

@@ -177,6 +177,17 @@ export const PlayerList: React.FC<PlayerListProps> = ({
                         Current Turn
                       </div>
                     )}
+                    {game?.gameType === 'ROCK_PAPER_SCISSORS' && (
+                      game.rpsChoices && game.rpsChoices[player.userId] ? (
+                        <div className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                          ✓ Locked
+                        </div>
+                      ) : (
+                        <div className="text-[10px] font-bold text-orange-500 animate-pulse mt-0.5">
+                          Choosing...
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
