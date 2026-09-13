@@ -114,6 +114,86 @@ export const Lobby: React.FC = () => {
 
   const theme = getGameTheme(room?.gameType);
 
+  const getGameLobbyDetails = () => {
+    switch (room.gameType) {
+      case 'TIC_TAC_TOE':
+        return {
+          icon: '❌',
+          readyTitle: 'Tic-Tac-Toe Ready',
+          gameName: 'Tic-Tac-Toe',
+          rule: `${room.boardSize || 3} in a row`,
+          readyDesc: '1v1 turn-based duel. Host can start when 2 players are present.',
+        };
+      case 'DOTS_AND_BOXES':
+        return {
+          icon: '📦',
+          readyTitle: 'Dots & Boxes Ready',
+          gameName: 'Dots & Boxes',
+          rule: `${(room.boardSize || 4) - 1}x${(room.boardSize || 4) - 1} Boxes`,
+          readyDesc: 'Connect lines and capture territory. Bonus turn on box completion!',
+        };
+      case 'CONNECT_FOUR':
+        return {
+          icon: '🔴',
+          readyTitle: 'Connect Four Ready',
+          gameName: 'Connect Four',
+          rule: '4 in a row',
+          readyDesc: 'Drop chips into 7 columns. Host can start when 2 players are present.',
+        };
+      case 'ROCK_PAPER_SCISSORS':
+        return {
+          icon: '✊',
+          readyTitle: 'RPS Arena Ready',
+          gameName: 'Rock Paper Scissors',
+          rule: 'First to 3 wins',
+          readyDesc: 'Simultaneous secret selection battle. Ready to clash!',
+        };
+      case 'MEMORY':
+        return {
+          icon: '🃏',
+          readyTitle: 'Memory Match Ready',
+          gameName: 'Memory Cards',
+          rule: '16 Cards (8 Pairs)',
+          readyDesc: 'Take turns flipping card pairs. Match cards to score points!',
+        };
+      case 'NUMBER_RUSH':
+        return {
+          icon: '🔢',
+          readyTitle: 'Number Rush Ready',
+          gameName: 'Number Rush',
+          rule: 'Speed race 1..25',
+          readyDesc: 'Simultaneous speed race! Tap numbers 1 to 25 faster than your rivals.',
+        };
+      case 'WORD_SCRAMBLE':
+        return {
+          icon: '📝',
+          readyTitle: 'Word Scramble Ready',
+          gameName: 'Word Scramble',
+          rule: '5 Word Rounds',
+          readyDesc: 'Race to solve scrambled anagrams. First correct guess claims the round!',
+        };
+      case 'QUIZ_BATTLE':
+        return {
+          icon: '🧠',
+          readyTitle: 'Quiz Battle Ready',
+          gameName: 'Quiz Battle',
+          rule: '5 Questions',
+          readyDesc: 'Answer rapid-fire trivia questions. Score points for correct answers!',
+        };
+      case 'BINGO':
+      default:
+        return {
+          icon: '🎱',
+          readyTitle: 'Bingo Ready',
+          gameName: 'Bingo',
+          rule: `${room.winningLines || 5} Lines`,
+          readyDesc: 'Arrange numbers and lock board before starting.',
+        };
+    }
+  };
+
+  const lobbyMeta = getGameLobbyDetails();
+
   return (
     <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 font-sans">
       {/* Header controls */}
@@ -261,14 +341,14 @@ export const Lobby: React.FC = () => {
           ) : (
             <div className="p-5 rounded-[28px] bg-[#e6f7ef] border border-[#c3eed7] shadow-2xs flex items-center space-x-3.5">
               <div className="w-12 h-12 rounded-2xl bg-[#10b981] text-white flex items-center justify-center shadow-xs font-extrabold text-xl">
-                {room.gameType === 'TIC_TAC_TOE' ? 'XO' : '📦'}
+                {lobbyMeta.icon}
               </div>
               <div>
                 <div className="text-sm font-extrabold text-[#2a2050]">
-                  {room.gameType === 'TIC_TAC_TOE' ? 'Tic-Tac-Toe Ready' : 'Dots & Boxes Ready'}
+                  {lobbyMeta.readyTitle}
                 </div>
                 <div className="text-xs text-[#7e749c] mt-0.5 font-medium">
-                  Instant start enabled! Host can start as soon as 2 players are present.
+                  {lobbyMeta.readyDesc}
                 </div>
               </div>
             </div>
@@ -279,13 +359,13 @@ export const Lobby: React.FC = () => {
             <div className="p-3 bg-[#f0ecfc] rounded-2xl border border-[#e0d6f8]">
               <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Game</div>
               <div className="text-xs font-extrabold text-[#2a2050] mt-0.5 truncate">
-                {room.gameType === 'TIC_TAC_TOE' ? 'Tic-Tac-Toe' : (room.gameType === 'DOTS_AND_BOXES' ? 'Dots & Boxes' : 'Bingo')}
+                {lobbyMeta.gameName}
               </div>
             </div>
             <div className="p-3 bg-[#fef5db] rounded-2xl border border-[#fde7ad]">
               <div className="text-[10px] text-[#7e749c] font-semibold uppercase">Rule</div>
-              <div className="text-xs font-extrabold text-[#b45309] mt-0.5">
-                {room.gameType === 'TIC_TAC_TOE' ? `${room.boardSize} in a row` : (room.gameType === 'DOTS_AND_BOXES' ? `${(room.boardSize - 1) * (room.boardSize - 1)} Boxes` : `${room.winningLines} Lines`)}
+              <div className="text-xs font-extrabold text-[#b45309] mt-0.5 truncate">
+                {lobbyMeta.rule}
               </div>
             </div>
             <div className="p-3 bg-[#e3f2fd] rounded-2xl border border-[#c7e5fc]">
@@ -320,7 +400,7 @@ export const Lobby: React.FC = () => {
                       ? 'Need at least 2 players to start'
                       : !isReadyToStart
                       ? 'Waiting for all players to lock board'
-                      : `Start ${room.gameType === 'TIC_TAC_TOE' ? 'Tic-Tac-Toe' : (room.gameType === 'DOTS_AND_BOXES' ? 'Dots & Boxes' : 'Bingo')} Game!`}
+                      : `Start ${lobbyMeta.gameName} Game!`}
                   </span>
                 </span>
               )}

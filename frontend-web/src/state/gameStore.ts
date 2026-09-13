@@ -393,18 +393,56 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         case 'MEMORY_FLIP_RESULT':
           if (game) {
-            set({
-              game: {
-                ...game,
-                memoryMatched: event.data.matched || game.memoryMatched,
-                playerScores: event.data.playerScores || game.playerScores,
-                currentTurnUserId: event.data.nextTurn || game.currentTurnUserId,
-                memoryFlippedIndices:
-                  event.data.status === 'FIRST_CARD_FLIPPED'
-                    ? [event.data.cardIndex]
-                    : [],
-              },
-            });
+            if (event.data.status === 'FIRST_CARD_FLIPPED') {
+              set({
+                game: {
+                  ...game,
+                  memoryFlippedIndices: [event.data.cardIndex],
+                },
+              });
+            } else if (event.data.status === 'MATCH') {
+              set({
+                game: {
+                  ...game,
+                  memoryMatched: event.data.matched || game.memoryMatched,
+                  playerScores: event.data.playerScores || game.playerScores,
+                  currentTurnUserId: event.data.nextTurn || game.currentTurnUserId,
+                  memoryFlippedIndices: [event.data.firstIndex, event.data.secondIndex],
+                },
+              });
+              setTimeout(() => {
+                const latest = get().game;
+                if (latest) {
+                  set({
+                    game: {
+                      ...latest,
+                      memoryFlippedIndices: [],
+                    },
+                  });
+                }
+              }, 600);
+            } else {
+              // MISMATCH: Show both cards for 1.2s so players can memorize before hiding
+              set({
+                game: {
+                  ...game,
+                  playerScores: event.data.playerScores || game.playerScores,
+                  currentTurnUserId: event.data.nextTurn || game.currentTurnUserId,
+                  memoryFlippedIndices: [event.data.firstIndex, event.data.secondIndex],
+                },
+              });
+              setTimeout(() => {
+                const latest = get().game;
+                if (latest) {
+                  set({
+                    game: {
+                      ...latest,
+                      memoryFlippedIndices: [],
+                    },
+                  });
+                }
+              }, 1200);
+            }
           }
           break;
 
@@ -426,6 +464,22 @@ export const useGameStore = create<GameState>((set, get) => ({
                 ...game,
                 scrambleCurrentRound: event.data.newRound ?? game.scrambleCurrentRound,
                 playerScores: event.data.scores || game.playerScores,
+                scrambleLastWinnerId: event.data.userId,
+              },
+            });
+          }
+          break;
+
+        case 'WORD_SCRAMBLE_INCORRECT':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                scrambleLastIncorrectGuess: {
+                  userId: event.data.userId,
+                  guess: event.data.guess,
+                  timestamp: Date.now(),
+                },
               },
             });
           }
@@ -439,6 +493,10 @@ export const useGameStore = create<GameState>((set, get) => ({
                 quizCurrentQuestion: event.data.nextQuestionIndex ?? game.quizCurrentQuestion,
                 playerScores: event.data.scores || game.playerScores,
                 quizAnswers: {},
+                quizLastRoundResult: {
+                  questionIndex: event.data.questionIndex,
+                  correctIndex: event.data.correctIndex,
+                },
               },
             });
           }

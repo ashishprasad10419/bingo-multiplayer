@@ -34,6 +34,53 @@ export const TicTacToeArena: React.FC<TicTacToeArenaProps> = ({
     onMakeMove(row, col);
   };
 
+  // Detect winning line indices for visual celebration
+  const getWinningIndices = (): number[] => {
+    // Check rows
+    for (let r = 0; r < size; r++) {
+      const first = board[r * size];
+      if (first) {
+        let win = true;
+        for (let c = 1; c < size; c++) {
+          if (board[r * size + c] !== first) { win = false; break; }
+        }
+        if (win) return Array.from({ length: size }, (_, c) => r * size + c);
+      }
+    }
+    // Check cols
+    for (let c = 0; c < size; c++) {
+      const first = board[c];
+      if (first) {
+        let win = true;
+        for (let r = 1; r < size; r++) {
+          if (board[r * size + c] !== first) { win = false; break; }
+        }
+        if (win) return Array.from({ length: size }, (_, r) => r * size + c);
+      }
+    }
+    // Diagonal 1
+    const d1First = board[0];
+    if (d1First) {
+      let win = true;
+      for (let i = 1; i < size; i++) {
+        if (board[i * size + i] !== d1First) { win = false; break; }
+      }
+      if (win) return Array.from({ length: size }, (_, i) => i * size + i);
+    }
+    // Diagonal 2
+    const d2First = board[size - 1];
+    if (d2First) {
+      let win = true;
+      for (let i = 1; i < size; i++) {
+        if (board[i * size + (size - 1 - i)] !== d2First) { win = false; break; }
+      }
+      if (win) return Array.from({ length: size }, (_, i) => i * size + (size - 1 - i));
+    }
+    return [];
+  };
+
+  const winningCells = getWinningIndices();
+
   return (
     <div className="w-full max-w-[480px] mx-auto space-y-4">
       {/* Player Symbols Legend */}
@@ -74,6 +121,7 @@ export const TicTacToeArena: React.FC<TicTacToeArenaProps> = ({
               const isCellEmpty = !cellUserId;
               const isX = cellUserId === playerX?.userId;
               const isO = cellUserId === playerO?.userId;
+              const isWinning = winningCells.includes(index);
 
               return (
                 <button
@@ -82,7 +130,9 @@ export const TicTacToeArena: React.FC<TicTacToeArenaProps> = ({
                   disabled={disabled || !isMyTurn || !isCellEmpty}
                   onClick={() => handleClick(r, c)}
                   className={`aspect-square rounded-[22px] border flex items-center justify-center transition-all select-none relative group ${
-                    isCellEmpty
+                    isWinning
+                      ? 'ring-4 ring-amber-400 border-amber-400 scale-105 shadow-lg z-10 animate-bounce-short'
+                      : isCellEmpty
                       ? isMyTurn && !disabled
                         ? 'bg-white hover:bg-[#faf7fe] hover:border-[#8b7fe8] border-[#ede8f8] shadow-2xs hover:shadow-md cursor-pointer transform hover:scale-[1.03] active:scale-[0.96]'
                         : 'bg-white/60 border-[#ede8f8] shadow-2xs cursor-not-allowed'

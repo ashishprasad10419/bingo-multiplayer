@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Game } from '../../lib/types';
 import { Swords, CheckCircle2 } from 'lucide-react';
 
@@ -27,6 +27,11 @@ export const RockPaperScissorsArena: React.FC<RockPaperScissorsArenaProps> = ({
   const targetWins = game.rpsTargetWins || 3;
   const roundWins = game.rpsRoundWins || {};
   const lastResult = game.rpsLastRoundResult;
+
+  // Auto-reset selection when round changes
+  useEffect(() => {
+    setSelected(null);
+  }, [round]);
 
   const player1 = game.players[0];
   const player2 = game.players[1];

@@ -139,6 +139,8 @@ export interface Game {
   quizCorrectIndices?: number[];
   quizCurrentQuestion?: number;
   quizAnswers?: Record<string, number>;
+  quizLastRoundResult?: { questionIndex: number; correctIndex: number };
+  scrambleLastIncorrectGuess?: { userId: string; guess: string; timestamp: number };
 }
 
 export interface Badge {

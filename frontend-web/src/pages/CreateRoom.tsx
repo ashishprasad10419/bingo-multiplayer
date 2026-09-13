@@ -13,8 +13,20 @@ export const CreateRoom: React.FC = () => {
 
   const { setRoom, resetGame } = useGameStore();
 
+  const VALID_GAMES: GameType[] = [
+    'BINGO',
+    'TIC_TAC_TOE',
+    'DOTS_AND_BOXES',
+    'CONNECT_FOUR',
+    'ROCK_PAPER_SCISSORS',
+    'MEMORY',
+    'NUMBER_RUSH',
+    'WORD_SCRAMBLE',
+    'QUIZ_BATTLE',
+  ];
+
   const [gameType, setGameType] = useState<GameType>(
-    initialGameParam && ['BINGO', 'TIC_TAC_TOE', 'DOTS_AND_BOXES'].includes(initialGameParam)
+    initialGameParam && VALID_GAMES.includes(initialGameParam)
       ? initialGameParam
       : 'BINGO'
   );
@@ -36,7 +48,7 @@ export const CreateRoom: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialGameParam && ['BINGO', 'TIC_TAC_TOE', 'DOTS_AND_BOXES'].includes(initialGameParam)) {
+    if (initialGameParam && VALID_GAMES.includes(initialGameParam)) {
       setGameType(initialGameParam);
     }
   }, [initialGameParam]);

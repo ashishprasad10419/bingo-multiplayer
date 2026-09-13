@@ -34,7 +34,7 @@ export const MemoryArena: React.FC<MemoryArenaProps> = ({
   const scores = game.playerScores || {};
 
   const handleCardClick = (idx: number) => {
-    if (!isMyTurn || disabled) return;
+    if (!isMyTurn || disabled || flippedIndices.length >= 2) return;
     if (matched[idx] || flippedIndices.includes(idx)) return;
     onFlipCard(idx);
   };
@@ -77,7 +77,7 @@ export const MemoryArena: React.FC<MemoryArenaProps> = ({
             <button
               key={`mem-card-${idx}`}
               onClick={() => handleCardClick(idx)}
-              disabled={!isMyTurn || disabled || isMatched || isFlipped}
+              disabled={!isMyTurn || disabled || isMatched || isFlipped || flippedIndices.length >= 2}
               className={`relative aspect-square rounded-2xl border-2 transition-all duration-300 flex items-center justify-center select-none ${
                 showFace
                   ? `${meta.bg} shadow-md scale-95 border-purple-300 dark:border-purple-600`

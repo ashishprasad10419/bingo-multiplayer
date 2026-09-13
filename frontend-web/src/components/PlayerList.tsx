@@ -1,10 +1,11 @@
 import React from 'react';
 import { Crown, CheckCircle2, Clock, Wifi, WifiOff } from 'lucide-react';
-import { RoomPlayer, GamePlayer } from '../lib/types';
+import { RoomPlayer, GamePlayer, Game } from '../lib/types';
 
 interface PlayerListProps {
   roomPlayers?: RoomPlayer[];
   gamePlayers?: GamePlayer[];
+  game?: Game | null;
   hostId?: string;
   currentTurnUserId?: string;
   currentUserId?: string;
@@ -13,11 +14,98 @@ interface PlayerListProps {
 export const PlayerList: React.FC<PlayerListProps> = ({
   roomPlayers,
   gamePlayers,
+  game,
   hostId,
   currentTurnUserId,
   currentUserId,
 }) => {
   const isGame = !!gamePlayers;
+  const isSimultaneous = game?.gameType && ['ROCK_PAPER_SCISSORS', 'NUMBER_RUSH', 'WORD_SCRAMBLE', 'QUIZ_BATTLE'].includes(game.gameType);
+
+  const renderPlayerScoreBadge = (player: GamePlayer) => {
+    if (!game || !game.gameType || game.gameType === 'BINGO') {
+      return (
+        <div className="text-xs font-black text-[#b45309] bg-[#fef5db] border border-[#fde7ad] px-2.5 py-1 rounded-full shadow-2xs">
+          {player.lineCount} / {game?.winningLines || 5} Lines
+        </div>
+      );
+    }
+
+    switch (game.gameType) {
+      case 'TIC_TAC_TOE': {
+        const isX = game.players[0]?.userId === player.userId;
+        return (
+          <div className={`text-xs font-black px-2.5 py-1 rounded-full shadow-2xs ${
+            isX ? 'bg-[#fee8ea] text-[#dc2626] border border-[#fcd3d7]' : 'bg-[#f0ecfc] text-[#6d5ebd] border border-[#e0d6f8]'
+          }`}>
+            Mark: {isX ? 'X' : 'O'}
+          </div>
+        );
+      }
+      case 'CONNECT_FOUR': {
+        const isP1 = game.players[0]?.userId === player.userId;
+        return (
+          <div className={`text-xs font-black px-2.5 py-1 rounded-full shadow-2xs flex items-center space-x-1.5 ${
+            isP1 ? 'bg-[#fee8ea] text-[#dc2626] border border-[#fcd3d7]' : 'bg-[#fef5db] text-[#b45309] border border-[#fde7ad]'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${isP1 ? 'bg-red-500' : 'bg-yellow-400'}`}></span>
+            <span>{isP1 ? 'Red' : 'Yellow'}</span>
+          </div>
+        );
+      }
+      case 'DOTS_AND_BOXES': {
+        const score = game.playerScores?.[player.userId] || 0;
+        return (
+          <div className="text-xs font-black text-[#047857] bg-[#e6f7ef] border border-[#c3eed7] px-2.5 py-1 rounded-full shadow-2xs">
+            {score} Boxes
+          </div>
+        );
+      }
+      case 'ROCK_PAPER_SCISSORS': {
+        const wins = game.rpsRoundWins?.[player.userId] || 0;
+        return (
+          <div className="text-xs font-black text-[#c2410c] bg-[#fff7ed] border border-[#fed7aa] px-2.5 py-1 rounded-full shadow-2xs">
+            {wins} / {game.rpsTargetWins || 3} Wins
+          </div>
+        );
+      }
+      case 'MEMORY': {
+        const score = game.playerScores?.[player.userId] || 0;
+        return (
+          <div className="text-xs font-black text-[#6d28d9] bg-[#f5f3ff] border border-[#ddd6fe] px-2.5 py-1 rounded-full shadow-2xs">
+            {score} Pairs
+          </div>
+        );
+      }
+      case 'NUMBER_RUSH': {
+        const nextNum = game.numberRushProgress?.[player.userId] || 1;
+        const progress = Math.min(25, nextNum - 1);
+        return (
+          <div className="text-xs font-black text-[#0f766e] bg-[#f0fdfa] border border-[#99f6e4] px-2.5 py-1 rounded-full shadow-2xs">
+            {progress} / 25
+          </div>
+        );
+      }
+      case 'WORD_SCRAMBLE': {
+        const score = game.playerScores?.[player.userId] || 0;
+        return (
+          <div className="text-xs font-black text-[#0f766e] bg-[#f0fdfa] border border-[#99f6e4] px-2.5 py-1 rounded-full shadow-2xs">
+            {score} pts
+          </div>
+        );
+      }
+      case 'QUIZ_BATTLE': {
+        const score = game.playerScores?.[player.userId] || 0;
+        return (
+          <div className="text-xs font-black text-[#7e22ce] bg-[#faf5ff] border border-[#e9d5ff] px-2.5 py-1 rounded-full shadow-2xs">
+            {score} pts
+          </div>
+        );
+      }
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="w-full mx-auto card-clay p-4 sm:p-5">
@@ -37,7 +125,7 @@ export const PlayerList: React.FC<PlayerListProps> = ({
               <div
                 key={player.userId}
                 className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
-                  isTurn
+                  isTurn && !isSimultaneous
                     ? 'bg-[#f0ecfc] border-2 border-[#8b7fe8] shadow-[0_4px_14px_rgba(139,127,232,0.2)] ring-4 ring-[#8b7fe8]/15'
                     : 'bg-[#faf7fe] border-[#ede8f8] shadow-2xs'
                 }`}
@@ -83,10 +171,8 @@ export const PlayerList: React.FC<PlayerListProps> = ({
                 {/* Score & Turn Badge */}
                 <div className="flex items-center space-x-2">
                   <div className="text-right">
-                    <div className="text-xs font-black text-[#b45309] bg-[#fef5db] border border-[#fde7ad] px-2.5 py-1 rounded-full shadow-2xs">
-                      {player.lineCount} / 5 Lines
-                    </div>
-                    {isTurn && (
+                    {renderPlayerScoreBadge(player)}
+                    {isTurn && !isSimultaneous && (
                       <div className="text-[10px] font-black text-[#8b7fe8] animate-pulse mt-0.5">
                         Current Turn
                       </div>

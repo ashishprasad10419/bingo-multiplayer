@@ -160,7 +160,8 @@ export const Game: React.FC = () => {
     );
   }
 
-  const isMyTurn = game.currentTurnUserId === user.id;
+  const isSimultaneousGame = isRps || isNumberRush || isWordScramble || isQuiz;
+  const isMyTurn = isSimultaneousGame || game.currentTurnUserId === user.id;
   const currentTurnPlayer = game.players.find((p) => p.userId === game.currentTurnUserId);
 
   // --- BINGO Move Handler ---
@@ -288,7 +289,8 @@ export const Game: React.FC = () => {
       setTimeout(async () => {
         const latestGame = useGameStore.getState().game;
         const lines = lineType === 'H' ? latestGame?.horizontalLines : latestGame?.verticalLines;
-        if (latestGame && lines && !lines[row]?.[col] && latestGame.currentTurnUserId === user?.id) {
+        const lineKey = `${row}-${col}`;
+        if (latestGame && lines && !lines.includes(lineKey) && latestGame.currentTurnUserId === user?.id) {
           try {
             await gameApi.drawDotsLine(game.id, lineType, row, col, clientMoveId);
           } catch (err: any) {}
@@ -694,6 +696,7 @@ export const Game: React.FC = () => {
           {/* Match Players Status */}
           <PlayerList
             gamePlayers={game.players}
+            game={game}
             currentTurnUserId={game.currentTurnUserId}
             currentUserId={user.id}
           />
@@ -716,6 +719,36 @@ export const Game: React.FC = () => {
             {isDots && (
               <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
                 Take turns drawing horizontal or vertical lines between adjacent dots. Completing the 4th side of any 1x1 box claims it for your score and grants you an immediate bonus turn!
+              </p>
+            )}
+            {isC4 && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Drop your colored chips into the columns. Be the first player to connect 4 chips horizontally, vertically, or diagonally!
+              </p>
+            )}
+            {isRps && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Secretly select Rock, Paper, or Scissors each round. Rock beats Scissors, Scissors beats Paper, and Paper beats Rock. First to 3 wins takes the match!
+              </p>
+            )}
+            {isMemory && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Flip two cards on your turn. If they match, you score a point and get an immediate bonus turn! Remember card locations to outscore your opponent.
+              </p>
+            )}
+            {isNumberRush && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Tap numbers in strict numerical order from 1 to 25 as fast as humanly possible! The first player to reach 25 wins instantly.
+              </p>
+            )}
+            {isWordScramble && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Solve the anagram from the jumbled letters and hint. First player to submit the correct word scores 100 points. Highest score after 5 rounds wins!
+              </p>
+            )}
+            {isQuiz && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Answer 5 trivia questions with 4 choices. Correct answers score 100 points. The player with the highest trivia score wins the battle!
               </p>
             )}
           </div>

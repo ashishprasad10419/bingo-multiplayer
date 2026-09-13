@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Game } from '../../lib/types';
-import { HelpCircle, CheckCircle2 } from 'lucide-react';
+import { HelpCircle, CheckCircle2, Award } from 'lucide-react';
 
 interface QuizBattleArenaProps {
   game: Game;
@@ -22,6 +22,12 @@ export const QuizBattleArena: React.FC<QuizBattleArenaProps> = ({
   const optionsList = game.quizOptions || [];
   const scores = game.playerScores || {};
   const userAnswers = game.quizAnswers || {};
+  const lastResult = game.quizLastRoundResult;
+
+  // Auto-reset selection when moving to next question
+  useEffect(() => {
+    setSelectedOption(null);
+  }, [currentQ]);
 
   const questionText = questions[currentQ] || 'Preparing next trivia question...';
   const options = optionsList[currentQ] || [];
@@ -50,6 +56,14 @@ export const QuizBattleArena: React.FC<QuizBattleArenaProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Previous Question Feedback */}
+      {lastResult && lastResult.questionIndex !== undefined && (
+        <div className="w-full px-4 py-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center space-x-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 animate-in fade-in">
+          <Award className="w-4 h-4 text-emerald-500" />
+          <span>Previous Question #{lastResult.questionIndex + 1} Answer was ({optionLabels[lastResult.correctIndex]})!</span>
+        </div>
+      )}
 
       {/* Question Card */}
       <div className="w-full p-6 sm:p-7 rounded-[32px] bg-gradient-to-b from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/80 border-2 border-purple-200 dark:border-purple-900/40 shadow-xl flex flex-col items-center text-center space-y-6">
