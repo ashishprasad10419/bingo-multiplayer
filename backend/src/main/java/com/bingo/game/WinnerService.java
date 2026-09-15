@@ -86,4 +86,51 @@ public class WinnerService {
                 "totalMoves", game.getMoveNumber()
         ));
     }
+
+    public void handleGameDraw(Game game, String reason) {
+        Instant now = Instant.now();
+        game.setStatus(GameStatus.FINISHED);
+        game.setWinnerId("");
+        game.setFinishedAt(now);
+
+        long durationSeconds = (game.getStartedAt() != null)
+                ? Duration.between(game.getStartedAt(), now).getSeconds()
+                : 0;
+
+        List<String> playerIds = game.getPlayers().stream().map(GamePlayer::getUserId).toList();
+
+        // 1. Write permanent game_history record for draw
+        GameHistory history = GameHistory.builder()
+                .gameId(game.getId())
+                .roomCode(game.getRoomCode())
+                .players(playerIds)
+                .winnerId("")
+                .winnerUsername("Nobody (Draw)")
+                .boardSize(game.getBoardSize())
+                .totalMoves(game.getMoveNumber())
+                .startedAt(game.getStartedAt())
+                .finishedAt(now)
+                .durationSeconds(durationSeconds)
+                .build();
+        gameHistoryRepository.save(history);
+
+        // 2. Update stats for all players (50 XP for draw, increment gamesPlayed, reset win streak)
+        for (GamePlayer player : game.getPlayers()) {
+            userRepository.findById(player.getUserId()).ifPresent(user -> {
+                user.getStats().setGamesPlayed(user.getStats().getGamesPlayed() + 1);
+                user.getStats().setCurrentWinStreak(0);
+                user.setXp(user.getXp() + 50);
+                user.setLevel((user.getXp() / 200) + 1);
+                userRepository.save(user);
+
+                badgeService.checkAndAwardBadges(user.getId());
+            });
+        }
+
+        // 3. Broadcast GAME_DRAW event
+        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
+                "reason", reason != null ? reason : "Match ended in a draw",
+                "scores", game.getPlayerScores() != null ? game.getPlayerScores() : Map.of()
+        ));
+    }
 }

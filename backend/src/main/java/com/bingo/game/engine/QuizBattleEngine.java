@@ -102,6 +102,17 @@ public class QuizBattleEngine {
             throw new IllegalArgumentException("Option index must be 0, 1, 2, or 3");
         }
 
+        if (currentAnswers.containsKey(userId)) {
+            return AnswerResult.builder()
+                    .answered(false)
+                    .correct(false)
+                    .correctIndex(correctIndex)
+                    .earnedPoints(0)
+                    .roundComplete(currentAnswers.size() >= totalPlayers)
+                    .matchComplete(false)
+                    .build();
+        }
+
         currentAnswers.put(userId, selectedOption);
 
         boolean isCorrect = (selectedOption == correctIndex);

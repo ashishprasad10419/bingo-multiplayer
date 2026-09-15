@@ -136,7 +136,13 @@ export const ConnectFourArena: React.FC<ConnectFourArenaProps> = ({
 
                 {/* Ghost chip on hover */}
                 {!chip && isHoveredCol && (
-                  <div className="relative w-[85%] h-[85%] rounded-full border-2 border-dashed border-white/40 animate-pulse"></div>
+                  <div
+                    className={`relative w-[85%] h-[85%] rounded-full border-2 border-dashed animate-pulse ${
+                      getChipColor(currentUserId)?.isRed
+                        ? 'border-rose-400/80 bg-rose-500/20'
+                        : 'border-amber-300/80 bg-amber-400/20'
+                    }`}
+                  ></div>
                 )}
               </button>
             );

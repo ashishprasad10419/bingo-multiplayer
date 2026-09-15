@@ -78,7 +78,7 @@ export const QuizBattleArena: React.FC<QuizBattleArenaProps> = ({
         {/* 4 Choices Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
           {options.map((opt, i) => {
-            const isSelected = selectedOption === i || userAnswers[currentUserId] === i;
+            const isSelected = selectedOption === i;
 
             return (
               <button

@@ -243,12 +243,8 @@ public class GameService {
             winnerService.handleGameFinished(game, winner);
             game = gameRepository.save(game);
         } else if (result == com.bingo.game.engine.TicTacToeEngine.Result.DRAW) {
-            game.setStatus(GameStatus.FINISHED);
-            game.setFinishedAt(java.time.Instant.now());
+            winnerService.handleGameDraw(game, "Board is full");
             game = gameRepository.save(game);
-            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
-                    "reason", "Board is full"
-            ), game.getVersion());
         } else {
             turnService.advanceTurn(game);
             game = gameRepository.save(game);
@@ -263,9 +259,11 @@ public class GameService {
                 "status", game.getStatus().name()
         ), game.getVersion());
 
-        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
-                "currentTurnUserId", game.getCurrentTurnUserId()
-        ), game.getVersion());
+        if (game.getStatus() == GameStatus.PLAYING) {
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
+                    "currentTurnUserId", game.getCurrentTurnUserId()
+            ), game.getVersion());
+        }
 
         return game;
     }
@@ -314,12 +312,8 @@ public class GameService {
 
         if (result.isGameFinished()) {
             if (result.isDraw()) {
-                game.setStatus(GameStatus.FINISHED);
-                game.setFinishedAt(java.time.Instant.now());
+                winnerService.handleGameDraw(game, "Tied score: " + game.getPlayerScores());
                 game = gameRepository.save(game);
-                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
-                        "scores", game.getPlayerScores()
-                ), game.getVersion());
             } else {
                 GamePlayer winner = game.findPlayer(result.getWinnerId());
                 winnerService.handleGameFinished(game, winner);
@@ -354,9 +348,11 @@ public class GameService {
 
         gameEventService.publishEvent(game.getRoomCode(), game.getId(), "DOTS_LINE_DRAWN", payload, game.getVersion());
 
-        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
-                "currentTurnUserId", game.getCurrentTurnUserId()
-        ), game.getVersion());
+        if (game.getStatus() == GameStatus.PLAYING) {
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
+                    "currentTurnUserId", game.getCurrentTurnUserId()
+            ), game.getVersion());
+        }
 
         return game;
     }
@@ -390,12 +386,8 @@ public class GameService {
             winnerService.handleGameFinished(game, winner);
             game = gameRepository.save(game);
         } else if (result.getStatus() == com.bingo.game.engine.ConnectFourEngine.Status.DRAW) {
-            game.setStatus(GameStatus.FINISHED);
-            game.setFinishedAt(java.time.Instant.now());
+            winnerService.handleGameDraw(game, "Board is full");
             game = gameRepository.save(game);
-            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
-                    "reason", "Board is full"
-            ), game.getVersion());
         } else {
             turnService.advanceTurn(game);
             game = gameRepository.save(game);
@@ -411,9 +403,11 @@ public class GameService {
                 "status", game.getStatus().name()
         ), game.getVersion());
 
-        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
-                "currentTurnUserId", game.getCurrentTurnUserId()
-        ), game.getVersion());
+        if (game.getStatus() == GameStatus.PLAYING) {
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
+                    "currentTurnUserId", game.getCurrentTurnUserId()
+            ), game.getVersion());
+        }
 
         return game;
     }
@@ -423,6 +417,19 @@ public class GameService {
     // ==========================================
     public synchronized Game processRpsChoice(String senderUserId, String gameId, String choice, String clientMoveId) {
         Game game = getGameById(gameId);
+
+        if (game.getStatus() != GameStatus.PLAYING) {
+            return game;
+        }
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds() == null) game.setProcessedMoveIds(new HashSet<>());
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate RPS choice ignored: {}", clientMoveId);
+                return game;
+            }
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
 
         if (!rockPaperScissorsEngine.isValidChoice(choice)) {
             throw new IllegalArgumentException("Invalid RPS choice: " + choice);
@@ -436,9 +443,8 @@ public class GameService {
 
         // Check if both players submitted
         if (game.getRpsChoices().size() >= 2) {
-            List<String> submittingPlayers = new ArrayList<>(game.getRpsChoices().keySet());
-            String p1 = submittingPlayers.get(0);
-            String p2 = submittingPlayers.get(1);
+            String p1 = game.getPlayers().get(0).getUserId();
+            String p2 = game.getPlayers().get(1).getUserId();
 
             if (game.getRpsRoundWins() == null) game.setRpsRoundWins(new HashMap<>());
 
@@ -490,6 +496,19 @@ public class GameService {
     public synchronized Game processMemoryFlip(String senderUserId, String gameId, int cardIndex, String clientMoveId) {
         Game game = getGameById(gameId);
 
+        if (game.getStatus() != GameStatus.PLAYING) {
+            return game;
+        }
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds() == null) game.setProcessedMoveIds(new HashSet<>());
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate memory flip ignored by clientMoveId: {}", clientMoveId);
+                return game;
+            }
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
         turnService.validateTurn(game, senderUserId);
 
         if (game.getPlayerScores() == null) game.setPlayerScores(new HashMap<>());
@@ -511,12 +530,8 @@ public class GameService {
             int maxScore = game.getPlayerScores().values().stream().mapToInt(Integer::intValue).max().orElse(0);
             long countMax = game.getPlayerScores().values().stream().filter(s -> s == maxScore).count();
             if (countMax > 1) {
-                game.setStatus(GameStatus.FINISHED);
-                game.setFinishedAt(java.time.Instant.now());
+                winnerService.handleGameDraw(game, "Tied pairs matched");
                 game = gameRepository.save(game);
-                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
-                        "scores", game.getPlayerScores()
-                ), game.getVersion());
             } else {
                 String highestUser = game.getPlayerScores().entrySet().stream()
                         .filter(e -> e.getValue() == maxScore)
@@ -549,9 +564,12 @@ public class GameService {
         flipData.put("nextTurn", game.getCurrentTurnUserId());
 
         gameEventService.publishEvent(game.getRoomCode(), game.getId(), "MEMORY_FLIP_RESULT", flipData, game.getVersion());
-        gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
-                "currentTurnUserId", game.getCurrentTurnUserId()
-        ), game.getVersion());
+
+        if (game.getStatus() == GameStatus.PLAYING) {
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "TURN_CHANGED", Map.of(
+                    "currentTurnUserId", game.getCurrentTurnUserId()
+            ), game.getVersion());
+        }
 
         return game;
     }
@@ -561,6 +579,19 @@ public class GameService {
     // ==========================================
     public synchronized Game processNumberRushTap(String senderUserId, String gameId, int tappedNumber, String clientMoveId) {
         Game game = getGameById(gameId);
+
+        if (game.getStatus() != GameStatus.PLAYING) {
+            return game;
+        }
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds() == null) game.setProcessedMoveIds(new HashSet<>());
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate Number Rush tap ignored: {}", clientMoveId);
+                return game;
+            }
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
 
         if (game.getNumberRushProgress() == null) game.setNumberRushProgress(new HashMap<>());
 
@@ -596,6 +627,19 @@ public class GameService {
     public synchronized Game processWordScrambleGuess(String senderUserId, String gameId, String guess, String clientMoveId) {
         Game game = getGameById(gameId);
 
+        if (game.getStatus() != GameStatus.PLAYING) {
+            return game;
+        }
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds() == null) game.setProcessedMoveIds(new HashSet<>());
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate Word Scramble guess ignored: {}", clientMoveId);
+                return game;
+            }
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
         if (game.getPlayerScores() == null) game.setPlayerScores(new HashMap<>());
         int round = game.getScrambleCurrentRound();
         if (round >= game.getScrambleWords().size()) {
@@ -615,12 +659,8 @@ public class GameService {
                 int maxScore = game.getPlayerScores().values().stream().mapToInt(Integer::intValue).max().orElse(0);
                 long countMax = game.getPlayerScores().values().stream().filter(s -> s == maxScore).count();
                 if (countMax > 1) {
-                    game.setStatus(GameStatus.FINISHED);
-                    game.setFinishedAt(java.time.Instant.now());
+                    winnerService.handleGameDraw(game, "Tied score in word scramble");
                     game = gameRepository.save(game);
-                    gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
-                            "scores", game.getPlayerScores()
-                    ), game.getVersion());
                 } else {
                     GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
                     winnerService.handleGameFinished(game, winner);
@@ -655,6 +695,24 @@ public class GameService {
     public synchronized Game processQuizAnswer(String senderUserId, String gameId, int answerIndex, String clientMoveId) {
         Game game = getGameById(gameId);
 
+        if (game.getStatus() != GameStatus.PLAYING) {
+            return game;
+        }
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds() == null) game.setProcessedMoveIds(new HashSet<>());
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate Quiz answer ignored: {}", clientMoveId);
+                return game;
+            }
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
+        if (game.getQuizAnswers() != null && game.getQuizAnswers().containsKey(senderUserId)) {
+            log.info("User {} already submitted answer for question {}", senderUserId, game.getQuizCurrentQuestion());
+            return game;
+        }
+
         if (game.getPlayerScores() == null) game.setPlayerScores(new HashMap<>());
         if (game.getQuizAnswers() == null) game.setQuizAnswers(new HashMap<>());
 
@@ -684,12 +742,8 @@ public class GameService {
                 int maxScore = game.getPlayerScores().values().stream().mapToInt(Integer::intValue).max().orElse(0);
                 long countMax = game.getPlayerScores().values().stream().filter(s -> s == maxScore).count();
                 if (countMax > 1) {
-                    game.setStatus(GameStatus.FINISHED);
-                    game.setFinishedAt(java.time.Instant.now());
+                    winnerService.handleGameDraw(game, "Tied score in quiz battle");
                     game = gameRepository.save(game);
-                    gameEventService.publishEvent(game.getRoomCode(), game.getId(), "GAME_DRAW", Map.of(
-                            "scores", game.getPlayerScores()
-                    ), game.getVersion());
                 } else {
                     GamePlayer winner = game.findPlayer(result.getMatchWinnerId());
                     winnerService.handleGameFinished(game, winner);

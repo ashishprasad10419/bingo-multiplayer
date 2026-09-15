@@ -54,6 +54,16 @@ export const RockPaperScissorsArena: React.FC<RockPaperScissorsArenaProps> = ({
     return '❓';
   };
 
+  const getChoiceForUser = (uid?: string) => {
+    if (!uid || !lastResult) return undefined;
+    if (lastResult.choices && lastResult.choices[uid]) {
+      return lastResult.choices[uid];
+    }
+    if (lastResult.p1UserId === uid) return lastResult.user1Choice;
+    if (lastResult.p2UserId === uid) return lastResult.user2Choice;
+    return undefined;
+  };
+
   return (
     <div className="flex flex-col items-center w-full max-w-[560px] space-y-4">
       {/* Round & Target Banner */}
@@ -85,12 +95,12 @@ export const RockPaperScissorsArena: React.FC<RockPaperScissorsArenaProps> = ({
           </div>
           <div className="flex items-center justify-center space-x-5 text-xl font-black my-2">
             <div className="flex flex-col items-center">
-              <span className="text-2xl filter drop-shadow-sm">{getEmoji(lastResult.user1Choice)}</span>
+              <span className="text-2xl filter drop-shadow-sm">{getEmoji(getChoiceForUser(player1?.userId))}</span>
               <span className="text-[10px] font-bold text-slate-500 mt-0.5">{player1?.username || 'P1'}</span>
             </div>
             <Swords className="w-5 h-5 text-orange-500 animate-pulse" />
             <div className="flex flex-col items-center">
-              <span className="text-2xl filter drop-shadow-sm">{getEmoji(lastResult.user2Choice)}</span>
+              <span className="text-2xl filter drop-shadow-sm">{getEmoji(getChoiceForUser(player2?.userId))}</span>
               <span className="text-[10px] font-bold text-slate-500 mt-0.5">{player2?.username || 'P2'}</span>
             </div>
           </div>
