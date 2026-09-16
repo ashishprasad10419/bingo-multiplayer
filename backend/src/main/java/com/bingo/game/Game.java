@@ -110,6 +110,10 @@ public class Game {
     private int scrambleCurrentRound = 0;
     @Builder.Default
     private String scrambleLastWinnerId = null;
+    @Builder.Default
+    private java.util.Map<String, Object> scrambleLastSolveResult = new java.util.HashMap<>();
+    @Builder.Default
+    private List<java.util.Map<String, Object>> scrambleRoundHistory = new ArrayList<>();
 
     // --- Quiz Battle State ---
     @Builder.Default

@@ -88,7 +88,6 @@ export const NumberRushArena: React.FC<NumberRushArenaProps> = ({
       <div className="grid grid-cols-5 gap-2 sm:gap-2.5 w-full p-3 sm:p-4 rounded-[32px] bg-gradient-to-b from-cyan-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800/80 border-2 border-cyan-200 dark:border-cyan-900/40 shadow-lg">
         {myBoard.map((num) => {
           const isCompleted = num < myNextExpected;
-          const isTarget = num === myNextExpected;
           const isShaking = shakeId === num;
 
           return (
@@ -99,10 +98,8 @@ export const NumberRushArena: React.FC<NumberRushArenaProps> = ({
               className={`relative aspect-square rounded-2xl border-2 font-black text-lg sm:text-xl transition-all duration-150 flex items-center justify-center select-none ${
                 isCompleted
                   ? 'bg-emerald-500/20 border-emerald-400 text-emerald-600 dark:text-emerald-400 opacity-40 scale-95 cursor-default'
-                  : isTarget
-                  ? 'bg-white dark:bg-slate-800 border-cyan-400 text-cyan-600 dark:text-cyan-400 shadow-md ring-4 ring-cyan-400/30 scale-105 cursor-pointer active:scale-95'
                   : isShaking
-                  ? 'bg-rose-500 text-white border-rose-600 animate-shake'
+                  ? 'bg-rose-500 text-white border-rose-600 animate-shake shadow-md'
                   : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-cyan-400 hover:scale-102 cursor-pointer active:scale-95 shadow-xs'
               }`}
             >

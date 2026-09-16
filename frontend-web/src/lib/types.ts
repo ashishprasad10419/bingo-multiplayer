@@ -132,6 +132,8 @@ export interface Game {
   scrambleJumbled?: string[];
   scrambleCurrentRound?: number;
   scrambleLastWinnerId?: string;
+  scrambleLastSolveResult?: ScrambleSolveRecord;
+  scrambleRoundHistory?: ScrambleSolveRecord[];
 
   // Quiz Battle
   quizQuestions?: string[];
@@ -141,6 +143,15 @@ export interface Game {
   quizAnswers?: Record<string, number>;
   quizLastRoundResult?: { questionIndex: number; correctIndex: number };
   scrambleLastIncorrectGuess?: { userId: string; guess: string; timestamp: number };
+}
+
+export interface ScrambleSolveRecord {
+  round: number;
+  targetWord: string;
+  solvedByUserId: string;
+  solverUsername: string;
+  pointsAwarded: number;
+  timestamp: number;
 }
 
 export interface Badge {

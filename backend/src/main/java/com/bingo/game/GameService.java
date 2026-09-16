@@ -655,6 +655,25 @@ public class GameService {
 
         if (result.isCorrect()) {
             game.setScrambleLastWinnerId(senderUserId);
+            GamePlayer solverPlayer = game.findPlayer(senderUserId);
+            String solverName = (solverPlayer != null && solverPlayer.getUsername() != null)
+                    ? solverPlayer.getUsername()
+                    : "Player";
+
+            Map<String, Object> solveRecord = new HashMap<>();
+            solveRecord.put("round", round + 1);
+            solveRecord.put("targetWord", targetWord);
+            solveRecord.put("solvedByUserId", senderUserId);
+            solveRecord.put("solverUsername", solverName);
+            solveRecord.put("pointsAwarded", 100);
+            solveRecord.put("timestamp", System.currentTimeMillis());
+
+            game.setScrambleLastSolveResult(solveRecord);
+            if (game.getScrambleRoundHistory() == null) {
+                game.setScrambleRoundHistory(new ArrayList<>());
+            }
+            game.getScrambleRoundHistory().add(solveRecord);
+
             if (result.isGameFinished()) {
                 int maxScore = game.getPlayerScores().values().stream().mapToInt(Integer::intValue).max().orElse(0);
                 long countMax = game.getPlayerScores().values().stream().filter(s -> s == maxScore).count();
@@ -671,14 +690,19 @@ public class GameService {
                 game = gameRepository.save(game);
             }
 
-            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "WORD_SCRAMBLE_SOLVED", Map.of(
-                    "userId", senderUserId,
-                    "targetWord", targetWord,
-                    "guess", guess,
-                    "newRound", game.getScrambleCurrentRound(),
-                    "scores", game.getPlayerScores(),
-                    "isGameFinished", result.isGameFinished()
-            ), game.getVersion());
+            Map<String, Object> eventData = new HashMap<>();
+            eventData.put("userId", senderUserId);
+            eventData.put("solverUsername", solverName);
+            eventData.put("targetWord", targetWord);
+            eventData.put("guess", guess);
+            eventData.put("pointsAwarded", 100);
+            eventData.put("solveRecord", solveRecord);
+            eventData.put("roundHistory", game.getScrambleRoundHistory());
+            eventData.put("newRound", game.getScrambleCurrentRound());
+            eventData.put("scores", game.getPlayerScores());
+            eventData.put("isGameFinished", result.isGameFinished());
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "WORD_SCRAMBLE_SOLVED", eventData, game.getVersion());
         } else {
             gameEventService.publishEvent(game.getRoomCode(), game.getId(), "WORD_SCRAMBLE_INCORRECT", Map.of(
                     "userId", senderUserId,

@@ -460,12 +460,19 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         case 'WORD_SCRAMBLE_SOLVED':
           if (game) {
+            const updatedHistory = event.data.roundHistory || (
+              event.data.solveRecord
+                ? [...(game.scrambleRoundHistory || []), event.data.solveRecord]
+                : game.scrambleRoundHistory
+            );
             set({
               game: {
                 ...game,
                 scrambleCurrentRound: event.data.newRound ?? game.scrambleCurrentRound,
                 playerScores: event.data.scores || game.playerScores,
                 scrambleLastWinnerId: event.data.userId,
+                scrambleLastSolveResult: event.data.solveRecord || game.scrambleLastSolveResult,
+                scrambleRoundHistory: updatedHistory,
               },
             });
           }
