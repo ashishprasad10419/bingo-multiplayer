@@ -18,7 +18,6 @@ import { RockPaperScissorsArena } from '../components/games/RockPaperScissorsAre
 import { MemoryArena } from '../components/games/MemoryArena';
 import { NumberRushArena } from '../components/games/NumberRushArena';
 import { WordScrambleArena } from '../components/games/WordScrambleArena';
-import { QuizBattleArena } from '../components/games/QuizBattleArena';
 import { ConnectionStatusPill } from '../components/ConnectionStatusPill';
 import { CountdownOverlay } from '../components/CountdownOverlay';
 import { LastCalledCallout } from '../components/LastCalledCallout';
@@ -58,7 +57,6 @@ export const Game: React.FC = () => {
   const isMemory = game?.gameType === 'MEMORY';
   const isNumberRush = game?.gameType === 'NUMBER_RUSH';
   const isWordScramble = game?.gameType === 'WORD_SCRAMBLE';
-  const isQuiz = game?.gameType === 'QUIZ_BATTLE';
 
   // Audio Cue: Alert player when it becomes their turn
   useEffect(() => {
@@ -160,7 +158,7 @@ export const Game: React.FC = () => {
     );
   }
 
-  const isSimultaneousGame = isRps || isNumberRush || isWordScramble || isQuiz;
+  const isSimultaneousGame = isRps || isNumberRush || isWordScramble;
   const isMyTurn = isSimultaneousGame || game.currentTurnUserId === user.id;
   const currentTurnPlayer = game.players.find((p) => p.userId === game.currentTurnUserId);
   const myRpsLocked = isRps && !!game.rpsChoices?.[user.id];
@@ -414,26 +412,6 @@ export const Game: React.FC = () => {
     }
   };
 
-  // --- QUIZ BATTLE Move Handler ---
-  const handleQuizAnswer = async (answerIndex: number) => {
-    const clientMoveId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
-    soundService.playTileTap();
-    setError(null);
-    let socketSent = false;
-    try {
-      socketSent = socketService.sendQuizAnswer(game.id, answerIndex, clientMoveId);
-    } catch (_) {
-      socketSent = false;
-    }
-    if (!socketSent) {
-      try {
-        await gameApi.submitQuizAnswer(game.id, answerIndex, clientMoveId);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to submit answer');
-      }
-    }
-  };
-
   const theme = getGameTheme(game?.gameType);
 
   const getGameTitle = () => {
@@ -444,7 +422,6 @@ export const Game: React.FC = () => {
     if (isMemory) return 'Memory Match';
     if (isNumberRush) return 'Number Rush';
     if (isWordScramble) return 'Word Scramble';
-    if (isQuiz) return 'Quiz Battle';
     return 'Bingo';
   };
 
@@ -561,7 +538,6 @@ export const Game: React.FC = () => {
                   {isMemory && "IT'S YOUR TURN! Flip cards to find matching pairs"}
                   {isNumberRush && "⚡ SPEED RACE! Tap numbers 1 to 25 as fast as you can!"}
                   {isWordScramble && "🔤 ANAGRAM RACE! Solve the scrambled word!"}
-                  {isQuiz && "🧠 TRIVIA BATTLE! Answer fast for maximum points!"}
                 </div>
               </div>
             ) : (
@@ -687,17 +663,6 @@ export const Game: React.FC = () => {
             </div>
           )}
 
-          {isQuiz && (
-            <div className="w-full max-w-[560px] flex justify-center">
-              <QuizBattleArena
-                game={game}
-                currentUserId={user.id}
-                onSubmitAnswer={handleQuizAnswer}
-                disabled={game.status !== 'PLAYING'}
-              />
-            </div>
-          )}
-
           {/* In-Game Emote Reactions Bar */}
           <div className="w-full pt-1 flex justify-center">
             <EmoteBar gameId={game.id} roomCode={game.roomCode} />
@@ -757,11 +722,6 @@ export const Game: React.FC = () => {
             {isWordScramble && (
               <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
                 Solve the anagram from the jumbled letters and hint. First player to submit the correct word scores 100 points. Highest score after 5 rounds wins!
-              </p>
-            )}
-            {isQuiz && (
-              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
-                Answer 5 trivia questions with 4 choices. Correct answers score 100 points. The player with the highest trivia score wins the battle!
               </p>
             )}
           </div>

@@ -22,7 +22,6 @@ export const CreateRoom: React.FC = () => {
     'MEMORY',
     'NUMBER_RUSH',
     'WORD_SCRAMBLE',
-    'QUIZ_BATTLE',
   ];
 
   const [gameType, setGameType] = useState<GameType>(
@@ -125,15 +124,6 @@ export const CreateRoom: React.FC = () => {
           buttonLabel: 'Create Word Scramble Room',
           iconGradient: 'from-[#0d9488] via-[#14b8a6] to-[#f59e0b]',
         };
-      case 'QUIZ_BATTLE':
-        return {
-          title: 'Create Quiz Battle Room',
-          subtitle: 'Answer 5 rapid trivia questions with speed score multipliers',
-          badge: '🧠 Trivia Battle',
-          badgeStyle: 'bg-[#faf5ff] border-[#e9d5ff] text-[#7e22ce]',
-          buttonLabel: 'Create Quiz Battle Room',
-          iconGradient: 'from-[#9333ea] via-[#a855f7] to-[#f97316]',
-        };
       case 'BINGO':
       default:
         return {
@@ -182,9 +172,6 @@ export const CreateRoom: React.FC = () => {
         payload.boardSize = 5;
         payload.maxPlayers = 6;
       } else if (gameType === 'WORD_SCRAMBLE') {
-        payload.boardSize = 5;
-        payload.maxPlayers = 6;
-      } else if (gameType === 'QUIZ_BATTLE') {
         payload.boardSize = 5;
         payload.maxPlayers = 6;
       }

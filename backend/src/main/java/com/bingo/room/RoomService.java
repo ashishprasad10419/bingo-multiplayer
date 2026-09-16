@@ -53,6 +53,10 @@ public class RoomService {
         String roomCode = generateUniqueRoomCode();
         com.bingo.game.GameType gameType = request.getGameType() != null ? request.getGameType() : com.bingo.game.GameType.BINGO;
 
+        if (gameType == com.bingo.game.GameType.QUIZ_BATTLE) {
+            throw new IllegalArgumentException("Trivia Showdown game is no longer available");
+        }
+
         int boardSize = 5;
         int winningLines = 5;
         int maxPlayers = 6;

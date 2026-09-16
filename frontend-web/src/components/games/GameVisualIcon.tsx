@@ -218,14 +218,6 @@ export const GameVisualIcon: React.FC<GameVisualIconProps> = ({
     );
   }
 
-  if (type === 'QUIZ_BATTLE') {
-    return (
-      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
-        <span className="text-3xl select-none filter drop-shadow-md">🧠💡</span>
-      </div>
-    );
-  }
-
   // Default: BINGO
   return (
     <div className={`relative flex items-center justify-center ${dim} ${className}`}>

@@ -132,18 +132,6 @@ export const GameHub: React.FC = () => {
       btnQuick: 'bg-[#f97316] hover:bg-[#ea580c] text-white shadow-[0_4px_0_#9a3412]',
       btnCustom: 'bg-white dark:bg-slate-800 text-[#c2410c] dark:text-[#ffedd5] border-2 border-[#fed7aa] hover:bg-[#ffedd5]',
     },
-    {
-      type: 'QUIZ_BATTLE',
-      title: 'Quiz Battle',
-      badge: '🧠 Trivia Showdown',
-      cardBg: 'bg-[#fdf2f8] dark:bg-[#260818]',
-      cardBorder: 'border-[#ec4899]',
-      cardShadow: 'shadow-[0_8px_0_#be185d]',
-      bannerGrad: 'from-[#f472b6] via-[#ec4899] to-[#db2777]',
-      titleColor: 'text-[#831843] dark:text-[#fce7f3]',
-      btnQuick: 'bg-[#ec4899] hover:bg-[#db2777] text-white shadow-[0_4px_0_#9d174d]',
-      btnCustom: 'bg-white dark:bg-slate-800 text-[#be185d] dark:text-[#fce7f3] border-2 border-[#fbcfe8] hover:bg-[#fce7f3]',
-    },
   ];
 
   const handleSelectGame = (gameType: GameType) => {

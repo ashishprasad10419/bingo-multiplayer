@@ -35,8 +35,7 @@ export type GameType =
   | 'ROCK_PAPER_SCISSORS'
   | 'MEMORY'
   | 'NUMBER_RUSH'
-  | 'WORD_SCRAMBLE'
-  | 'QUIZ_BATTLE';
+  | 'WORD_SCRAMBLE';
 
 export type RoomStatus = 'WAITING' | 'BOARD_SETUP' | 'READY' | 'PLAYING' | 'FINISHED' | 'CANCELLED';
 

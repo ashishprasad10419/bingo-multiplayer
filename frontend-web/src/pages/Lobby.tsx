@@ -172,14 +172,6 @@ export const Lobby: React.FC = () => {
           rule: '5 Word Rounds',
           readyDesc: 'Race to solve scrambled anagrams. First correct guess claims the round!',
         };
-      case 'QUIZ_BATTLE':
-        return {
-          icon: '🧠',
-          readyTitle: 'Quiz Battle Ready',
-          gameName: 'Quiz Battle',
-          rule: '5 Questions',
-          readyDesc: 'Answer rapid-fire trivia questions. Score points for correct answers!',
-        };
       case 'BINGO':
       default:
         return {

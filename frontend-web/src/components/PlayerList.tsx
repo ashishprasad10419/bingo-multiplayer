@@ -20,7 +20,7 @@ export const PlayerList: React.FC<PlayerListProps> = ({
   currentUserId,
 }) => {
   const isGame = !!gamePlayers;
-  const isSimultaneous = game?.gameType && ['ROCK_PAPER_SCISSORS', 'NUMBER_RUSH', 'WORD_SCRAMBLE', 'QUIZ_BATTLE'].includes(game.gameType);
+  const isSimultaneous = game?.gameType && ['ROCK_PAPER_SCISSORS', 'NUMBER_RUSH', 'WORD_SCRAMBLE'].includes(game.gameType);
 
   const renderPlayerScoreBadge = (player: GamePlayer) => {
     if (!game || !game.gameType || game.gameType === 'BINGO') {
@@ -90,14 +90,6 @@ export const PlayerList: React.FC<PlayerListProps> = ({
         const score = game.playerScores?.[player.userId] || 0;
         return (
           <div className="text-xs font-black text-[#0f766e] bg-[#f0fdfa] border border-[#99f6e4] px-2.5 py-1 rounded-full shadow-2xs">
-            {score} pts
-          </div>
-        );
-      }
-      case 'QUIZ_BATTLE': {
-        const score = game.playerScores?.[player.userId] || 0;
-        return (
-          <div className="text-xs font-black text-[#7e22ce] bg-[#faf5ff] border border-[#e9d5ff] px-2.5 py-1 rounded-full shadow-2xs">
             {score} pts
           </div>
         );
