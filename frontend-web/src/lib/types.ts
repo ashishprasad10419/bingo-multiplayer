@@ -171,7 +171,7 @@ export interface ShipCoordinate {
 }
 
 export interface ShipPlacement {
-  shipType: string;
+  shipType: ShipType;
   row: number;
   col: number;
   orientation: 'HORIZONTAL' | 'VERTICAL';
