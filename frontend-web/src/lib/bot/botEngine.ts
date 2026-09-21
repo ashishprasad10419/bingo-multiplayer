@@ -224,7 +224,7 @@ export function createOfflineGame(
     }
 
     case 'SHIP_BATTLE': {
-      baseGame.boardSize = 10;
+      baseGame.boardSize = 8;
       baseGame.winningLines = 5;
       baseGame.shipPhase = 'SETUP';
       baseGame.shipFleets = {
@@ -806,6 +806,7 @@ export function chooseShipBattleTarget(
   previousAttacks: { row: number; col: number; result: 'MISS' | 'HIT' | 'SUNK' }[],
   difficulty: BotDifficulty
 ): { row: number; col: number } {
+  const BOARD_SIZE = 8;
   const attackedSet = new Set(previousAttacks.map((a) => `${a.row}-${a.col}`));
 
   // Check for unsunk hits
@@ -825,7 +826,7 @@ export function chooseShipBattleTarget(
       for (const d of deltas) {
         const nr = h.row + d.r;
         const nc = h.col + d.c;
-        if (nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && !attackedSet.has(`${nr}-${nc}`)) {
+        if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && !attackedSet.has(`${nr}-${nc}`)) {
           candidates.push({ row: nr, col: nc });
         }
       }
@@ -839,8 +840,8 @@ export function chooseShipBattleTarget(
   if (difficulty === 'HARD') {
     // Parity search: only check even parity squares (checkerboard)
     const parityCandidates: { row: number; col: number }[] = [];
-    for (let r = 0; r < 10; r++) {
-      for (let c = 0; c < 10; c++) {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
         if ((r + c) % 2 === 0 && !attackedSet.has(`${r}-${c}`)) {
           parityCandidates.push({ row: r, col: c });
         }
@@ -853,8 +854,8 @@ export function chooseShipBattleTarget(
 
   // Fallback: any unattacked cell
   const unattacked: { row: number; col: number }[] = [];
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 10; c++) {
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
       if (!attackedSet.has(`${r}-${c}`)) {
         unattacked.push({ row: r, col: c });
       }
@@ -866,6 +867,7 @@ export function chooseShipBattleTarget(
 }
 
 export function generateOfflineBotFleet(): any[] {
+  const BOARD_SIZE = 8;
   const defs = [
     { type: 'CARRIER', size: 5 },
     { type: 'BATTLESHIP', size: 4 },
@@ -879,12 +881,12 @@ export function generateOfflineBotFleet(): any[] {
   for (const def of defs) {
     let placed = false;
     let attempts = 0;
-    while (!placed && attempts < 500) {
+    while (!placed && attempts < 1000) {
       attempts++;
       const horizontal = Math.random() > 0.5;
       const orientation = horizontal ? 'HORIZONTAL' : 'VERTICAL';
-      const startR = horizontal ? Math.floor(Math.random() * 10) : Math.floor(Math.random() * (10 - def.size + 1));
-      const startC = horizontal ? Math.floor(Math.random() * (10 - def.size + 1)) : Math.floor(Math.random() * 10);
+      const startR = horizontal ? Math.floor(Math.random() * BOARD_SIZE) : Math.floor(Math.random() * (BOARD_SIZE - def.size + 1));
+      const startC = horizontal ? Math.floor(Math.random() * (BOARD_SIZE - def.size + 1)) : Math.floor(Math.random() * BOARD_SIZE);
 
       const cells: { row: number; col: number }[] = [];
       let collision = false;
@@ -911,5 +913,6 @@ export function generateOfflineBotFleet(): any[] {
       }
     }
   }
+
   return fleet;
 }

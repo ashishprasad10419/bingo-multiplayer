@@ -11,7 +11,7 @@ import java.util.*;
 @Component
 public class ShipBattleEngine {
 
-    public static final int BOARD_SIZE = 10;
+    public static final int BOARD_SIZE = 8;
     public static final int TOTAL_SHIP_CELLS = 17; // 5 + 4 + 3 + 3 + 2
 
     public enum ShipType {
@@ -154,7 +154,7 @@ public class ShipBattleEngine {
             for (ShipCoordinate coord : cells) {
                 if (coord.getRow() < 0 || coord.getRow() >= BOARD_SIZE ||
                     coord.getCol() < 0 || coord.getCol() >= BOARD_SIZE) {
-                    throw new IllegalArgumentException("Ship cell (" + coord.getRow() + "," + coord.getCol() + ") is outside the 10x10 board bounds");
+                    throw new IllegalArgumentException("Ship cell (" + coord.getRow() + "," + coord.getCol() + ") is outside the " + BOARD_SIZE + "x" + BOARD_SIZE + " board bounds");
                 }
 
                 String key = coord.getRow() + "-" + coord.getCol();
@@ -219,7 +219,7 @@ public class ShipBattleEngine {
      */
     public AttackOutcome processAttack(List<ShipPlacement> defenderFleet, List<ShipAttack> previousAttacks, int row, int col) {
         if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
-            throw new IllegalArgumentException("Attack coordinate (" + row + "," + col + ") out of bounds (0-9)");
+            throw new IllegalArgumentException("Attack coordinate (" + row + "," + col + ") out of bounds (0-" + (BOARD_SIZE - 1) + ")");
         }
 
         // Check if cell was already attacked

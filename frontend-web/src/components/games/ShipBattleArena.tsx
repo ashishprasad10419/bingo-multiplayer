@@ -19,6 +19,10 @@ interface ShipDefinition {
   label: string;
 }
 
+// 8x8 Grid Configuration as requested by user
+export const GRID_SIZE = 8;
+export const CELL_PCT = 100 / GRID_SIZE; // 12.5%
+
 const SHIP_DEFS: ShipDefinition[] = [
   { type: 'CARRIER', size: 5, label: 'Carrier' },
   { type: 'BATTLESHIP', size: 4, label: 'Battleship' },
@@ -27,7 +31,7 @@ const SHIP_DEFS: ShipDefinition[] = [
   { type: 'DESTROYER', size: 2, label: 'Patrol Boat' },
 ];
 
-// --- Cartoon SVG Ships (Exact aesthetic from 2 Player Games: Sea Battle) ---
+// --- Cartoon SVG Ships (Exact aesthetic, perfectly fitted horizontally & vertically) ---
 const CartoonShipGraphic: React.FC<{
   type: ShipType;
   orientation: 'HORIZONTAL' | 'VERTICAL';
@@ -42,6 +46,17 @@ const CartoonShipGraphic: React.FC<{
   isSelected = false,
 }) => {
   const isHoriz = orientation === 'HORIZONTAL';
+  const def = SHIP_DEFS.find((d) => d.type === type)!;
+  const size = def.size;
+
+  // ViewBox dimensions:
+  // When Horizontal: width = size * 40, height = 40
+  // When Vertical: width = 40, height = size * 40
+  // Rotating around center of first cell (20, 20) by 90deg maps:
+  // (x, y) -> (40 - y, x), strictly bounded by [0, 40] x [0, size * 40]
+  const vbW = isHoriz ? size * 40 : 40;
+  const vbH = isHoriz ? 40 : size * 40;
+  const transform = isHoriz ? undefined : 'rotate(90 20 20)';
 
   return (
     <div
@@ -49,16 +64,14 @@ const CartoonShipGraphic: React.FC<{
         isSelected ? 'scale-[1.03]' : ''
       }`}
     >
-      <div
-        className="w-full h-full flex items-center justify-center pointer-events-none select-none"
-        style={{
-          transform: isHoriz ? 'none' : 'rotate(90deg)',
-          transformOrigin: 'center center',
-        }}
-      >
-        {type === 'CARRIER' && (
-          // 5-cell Aircraft Carrier: angled flight deck, catapult deck lines, 3 black fighter jet silhouettes
-          <svg viewBox="0 0 200 40" className="w-full h-full drop-shadow-md overflow-visible">
+      {type === 'CARRIER' && (
+        <svg
+          viewBox={`0 0 ${vbW} ${vbH}`}
+          className="w-full h-full drop-shadow-md overflow-visible"
+          preserveAspectRatio="none"
+        >
+          <g transform={transform}>
+            {/* Carrier Hull */}
             <path
               d="M 6 22 L 20 6 L 180 6 L 194 14 L 194 28 L 182 34 L 16 34 Z"
               fill={color}
@@ -66,24 +79,34 @@ const CartoonShipGraphic: React.FC<{
               strokeWidth="3.5"
               strokeLinejoin="round"
             />
+            {/* Flight Deck Runway Line */}
             <line x1="28" y1="20" x2="165" y2="20" stroke="#ffffff" strokeWidth="2" strokeDasharray="8 6" opacity="0.8" />
+            {/* Catapult Stripe */}
             <line x1="170" y1="12" x2="188" y2="12" stroke="#ffffff" strokeWidth="2.5" opacity="0.8" />
+            {/* 3 Fighter Jet Silhouettes on Deck */}
             <g fill="#1e272e" opacity="0.9">
               <path d="M 46 20 L 52 14 L 56 16 L 54 20 L 56 24 L 52 26 Z" />
               <path d="M 64 20 L 70 14 L 74 16 L 72 20 L 74 24 L 70 26 Z" />
               <path d="M 82 20 L 88 14 L 92 16 L 90 20 L 92 24 L 88 26 Z" />
             </g>
+            {/* Island Bridge Tower */}
             <rect x="110" y="7" width="26" height="7" rx="2" fill="#1e272e" opacity="0.85" />
             <rect x="122" y="3" width="10" height="5" rx="1.5" fill="#f5f6fa" />
+            {/* Vents */}
             <line x1="145" y1="12" x2="145" y2="28" stroke="#1e272e" strokeWidth="2.5" strokeLinecap="round" />
             <line x1="151" y1="12" x2="151" y2="28" stroke="#1e272e" strokeWidth="2.5" strokeLinecap="round" />
             <line x1="157" y1="12" x2="157" y2="28" stroke="#1e272e" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-        )}
+          </g>
+        </svg>
+      )}
 
-        {type === 'BATTLESHIP' && (
-          // 4-cell Battleship: pointed naval bow, bridge citadel, forward and aft gun turrets
-          <svg viewBox="0 0 160 40" className="w-full h-full drop-shadow-md overflow-visible">
+      {type === 'BATTLESHIP' && (
+        <svg
+          viewBox={`0 0 ${vbW} ${vbH}`}
+          className="w-full h-full drop-shadow-md overflow-visible"
+          preserveAspectRatio="none"
+        >
+          <g transform={transform}>
             <path
               d="M 8 20 Q 20 8 50 8 L 135 8 Q 155 14 155 20 Q 155 26 135 32 L 50 32 Q 20 32 8 20 Z"
               fill={color}
@@ -104,12 +127,17 @@ const CartoonShipGraphic: React.FC<{
 
             <circle cx="138" cy="20" r="7" fill="#1e272e" />
             <line x1="138" y1="20" x2="152" y2="20" stroke="#1e272e" strokeWidth="3.5" strokeLinecap="round" />
-          </svg>
-        )}
+          </g>
+        </svg>
+      )}
 
-        {type === 'CRUISER' && (
-          // 3-cell Cruiser: sleek fast boat with side fins and missile hatch
-          <svg viewBox="0 0 120 40" className="w-full h-full drop-shadow-md overflow-visible">
+      {type === 'CRUISER' && (
+        <svg
+          viewBox={`0 0 ${vbW} ${vbH}`}
+          className="w-full h-full drop-shadow-md overflow-visible"
+          preserveAspectRatio="none"
+        >
+          <g transform={transform}>
             <path
               d="M 6 20 Q 24 7 60 7 L 95 7 Q 115 13 115 20 Q 115 27 95 33 L 60 33 Q 24 33 6 20 Z"
               fill={color}
@@ -123,24 +151,34 @@ const CartoonShipGraphic: React.FC<{
             <line x1="78" y1="14" x2="78" y2="26" stroke="#1e272e" strokeWidth="2.5" strokeLinecap="round" />
             <line x1="84" y1="14" x2="84" y2="26" stroke="#1e272e" strokeWidth="2.5" strokeLinecap="round" />
             <circle cx="98" cy="20" r="4.5" fill="#1e272e" />
-          </svg>
-        )}
+          </g>
+        </svg>
+      )}
 
-        {type === 'SUBMARINE' && (
-          // 3-cell Submarine: rounded bulbous nose, conning tower, side fins & rear propeller
-          <svg viewBox="0 0 120 40" className="w-full h-full drop-shadow-md overflow-visible">
+      {type === 'SUBMARINE' && (
+        <svg
+          viewBox={`0 0 ${vbW} ${vbH}`}
+          className="w-full h-full drop-shadow-md overflow-visible"
+          preserveAspectRatio="none"
+        >
+          <g transform={transform}>
             <rect x="52" y="3" width="16" height="34" rx="4" fill={color} stroke={outlineColor} strokeWidth="3" />
             <rect x="14" y="9" width="92" height="22" rx="11" fill={color} stroke={outlineColor} strokeWidth="3.5" />
             <rect x="50" y="14" width="20" height="12" rx="4" fill="#ffffff" stroke="#1e272e" strokeWidth="2" />
             <circle cx="60" cy="20" r="3" fill="#1e272e" />
             <path d="M 12 12 L 6 8 L 6 32 L 12 28 Z" fill="#1e272e" />
             <circle cx="98" cy="20" r="4" fill="#1e272e" />
-          </svg>
-        )}
+          </g>
+        </svg>
+      )}
 
-        {type === 'DESTROYER' && (
-          // 2-cell Patrol Boat: compact rounded boat with twin gun barrels and vents
-          <svg viewBox="0 0 80 40" className="w-full h-full drop-shadow-md overflow-visible">
+      {type === 'DESTROYER' && (
+        <svg
+          viewBox={`0 0 ${vbW} ${vbH}`}
+          className="w-full h-full drop-shadow-md overflow-visible"
+          preserveAspectRatio="none"
+        >
+          <g transform={transform}>
             <rect x="6" y="8" width="68" height="24" rx="9" fill={color} stroke={outlineColor} strokeWidth="3.5" />
             <circle cx="20" cy="15" r="4.5" fill="#1e272e" />
             <circle cx="20" cy="25" r="4.5" fill="#1e272e" />
@@ -150,9 +188,9 @@ const CartoonShipGraphic: React.FC<{
             <line x1="44" y1="14" x2="44" y2="26" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
             <line x1="50" y1="14" x2="50" y2="26" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
             <rect x="60" y="14" width="8" height="12" rx="3" fill="#1e272e" />
-          </svg>
-        )}
-      </div>
+          </g>
+        </svg>
+      )}
     </div>
   );
 };
@@ -164,17 +202,17 @@ const MiniShipSilhouette: React.FC<{
   isSunk?: boolean;
 }> = ({ type, color, isSunk = false }) => {
   const def = SHIP_DEFS.find((d) => d.type === type)!;
-  const widthPx = def.size * 9;
+  const widthPx = def.size * 10;
 
   return (
     <div
       style={{ width: `${widthPx}px` }}
-      className={`h-3 rounded-full flex items-center justify-center transition-all duration-300 relative ${
+      className={`h-3.5 rounded-full flex items-center justify-center transition-all duration-300 relative ${
         isSunk ? 'opacity-30 line-through grayscale' : 'opacity-100 shadow-xs'
       }`}
     >
       <div
-        className="w-full h-2 rounded-full border border-black/40"
+        className="w-full h-2.5 rounded-full border border-black/40"
         style={{ backgroundColor: isSunk ? '#7f8c8d' : color }}
       />
       {isSunk && (
@@ -186,7 +224,7 @@ const MiniShipSilhouette: React.FC<{
   );
 };
 
-// --- Giant 3D Cartoon Cannon (Exact aesthetic from Images 1, 2, 3) ---
+// --- Giant 3D Cartoon Cannon (Exact aesthetic from Screenshots 1, 2, 3) ---
 const CartoonCannon: React.FC<{
   isFiring: boolean;
   aimAngle?: number;
@@ -287,7 +325,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
   const playerCannonRef = useRef<HTMLDivElement>(null);
   const enemyCannonRef = useRef<HTMLDivElement>(null);
 
-  // Helper: compute ship cells
+  // Helper: compute ship cells on 8x8 grid
   const computeCells = (type: ShipType, r: number, c: number, orient: 'HORIZONTAL' | 'VERTICAL'): ShipCoordinate[] => {
     const size = SHIP_DEFS.find((d) => d.type === type)?.size || 2;
     const cells: ShipCoordinate[] = [];
@@ -300,11 +338,11 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     return cells;
   };
 
-  // Helper: check placement validity
+  // Helper: check placement validity on 8x8 grid
   const isValidPlacement = useCallback(
     (newCells: ShipCoordinate[], currentList: ShipPlacement[], excludeType?: string) => {
       for (const cell of newCells) {
-        if (cell.row < 0 || cell.row >= 10 || cell.col < 0 || cell.col >= 10) {
+        if (cell.row < 0 || cell.row >= GRID_SIZE || cell.col < 0 || cell.col >= GRID_SIZE) {
           return false;
         }
       }
@@ -321,7 +359,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     []
   );
 
-  // Setup: Randomize Fleet
+  // Setup: Randomize Fleet on 8x8 grid
   const handleRandomize = useCallback(() => {
     if (isLocked) return;
     setPlacementError(null);
@@ -333,8 +371,12 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
       while (!placed && attempts < 1000) {
         attempts++;
         const orient: 'HORIZONTAL' | 'VERTICAL' = Math.random() > 0.5 ? 'HORIZONTAL' : 'VERTICAL';
-        const startR = orient === 'HORIZONTAL' ? Math.floor(Math.random() * 10) : Math.floor(Math.random() * (10 - def.size + 1));
-        const startC = orient === 'HORIZONTAL' ? Math.floor(Math.random() * (10 - def.size + 1)) : Math.floor(Math.random() * 10);
+        const startR = orient === 'HORIZONTAL'
+          ? Math.floor(Math.random() * GRID_SIZE)
+          : Math.floor(Math.random() * (GRID_SIZE - def.size + 1));
+        const startC = orient === 'HORIZONTAL'
+          ? Math.floor(Math.random() * (GRID_SIZE - def.size + 1))
+          : Math.floor(Math.random() * GRID_SIZE);
         const cells = computeCells(def.type, startR, startC, orient);
 
         if (isValidPlacement(cells, newFleet)) {
@@ -362,7 +404,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     }
   }, [game.shipFleets, currentUserId, isLocked, handleRandomize]);
 
-  // Setup: Rotate ship by index
+  // Setup: Rotate ship by index on 8x8 grid
   const handleRotateShip = (index: number) => {
     if (isLocked) return;
     const targetShip = placedShips[index];
@@ -372,15 +414,15 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     let newCells = computeCells(targetShip.shipType, targetShip.row, targetShip.col, newOrient);
 
     if (!isValidPlacement(newCells, placedShips, targetShip.shipType)) {
-      // Try shifting if it goes out of bounds
+      // Try shifting if it goes out of 8x8 bounds
       let shiftedR = targetShip.row;
       let shiftedC = targetShip.col;
       const size = SHIP_DEFS.find((d) => d.type === targetShip.shipType)?.size || 2;
 
-      if (newOrient === 'HORIZONTAL' && shiftedC + size > 10) {
-        shiftedC = 10 - size;
-      } else if (newOrient === 'VERTICAL' && shiftedR + size > 10) {
-        shiftedR = 10 - size;
+      if (newOrient === 'HORIZONTAL' && shiftedC + size > GRID_SIZE) {
+        shiftedC = GRID_SIZE - size;
+      } else if (newOrient === 'VERTICAL' && shiftedR + size > GRID_SIZE) {
+        shiftedR = GRID_SIZE - size;
       }
 
       const shiftedCells = computeCells(targetShip.shipType, shiftedR, shiftedC, newOrient);
@@ -422,8 +464,8 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     if (!boardEl) return;
 
     const boardRect = boardEl.getBoundingClientRect();
-    const cellWidth = boardRect.width / 10;
-    const cellHeight = boardRect.height / 10;
+    const cellWidth = boardRect.width / GRID_SIZE;
+    const cellHeight = boardRect.height / GRID_SIZE;
 
     const clickCol = Math.floor((e.clientX - boardRect.left) / cellWidth);
     const clickRow = Math.floor((e.clientY - boardRect.top) / cellHeight);
@@ -456,8 +498,8 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     }
 
     const boardRect = boardEl.getBoundingClientRect();
-    const cellWidth = boardRect.width / 10;
-    const cellHeight = boardRect.height / 10;
+    const cellWidth = boardRect.width / GRID_SIZE;
+    const cellHeight = boardRect.height / GRID_SIZE;
 
     const ship = placedShips[draggingShipIndex];
     if (!ship) return;
@@ -470,8 +512,8 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     const rawCol = Math.floor((e.clientX - boardRect.left) / cellWidth) - dragOffset.col;
     const rawRow = Math.floor((e.clientY - boardRect.top) / cellHeight) - dragOffset.row;
 
-    const clampedCol = Math.max(0, Math.min(10 - shipW, rawCol));
-    const clampedRow = Math.max(0, Math.min(10 - shipH, rawRow));
+    const clampedCol = Math.max(0, Math.min(GRID_SIZE - shipW, rawCol));
+    const clampedRow = Math.max(0, Math.min(GRID_SIZE - shipH, rawRow));
 
     const candidateCells = computeCells(ship.shipType, clampedRow, clampedCol, ship.orientation);
     const valid = isValidPlacement(candidateCells, placedShips, ship.shipType);
@@ -536,7 +578,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
   const opponentAttacksOnMe = (opponentUserId && game.shipAttacks?.[opponentUserId]) || [];
   const myAttacksOnOpponent = game.shipAttacks?.[currentUserId] || [];
 
-  // Attacks on Opponent Map (Top Grid)
+  // Attacks on Opponent Map (Top 8x8 Grid)
   const myAttackResultsMap = new Map<string, { result: 'MISS' | 'HIT' | 'SUNK'; sunkShipType?: string }>();
   myAttacksOnOpponent.forEach((att) => {
     myAttackResultsMap.set(`${att.row}-${att.col}`, {
@@ -545,7 +587,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     });
   });
 
-  // Attacks on Player Map (Bottom Grid)
+  // Attacks on Player Map (Bottom 8x8 Grid)
   const opponentAttackResultsMap = new Map<string, { result: 'MISS' | 'HIT' | 'SUNK'; sunkShipType?: string }>();
   opponentAttacksOnMe.forEach((att) => {
     opponentAttackResultsMap.set(`${att.row}-${att.col}`, {
@@ -558,7 +600,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
   const opponentSunkShips = game.shipSunkTypes?.[opponentUserId] || [];
   const mySunkShips = game.shipSunkTypes?.[currentUserId] || [];
 
-  // Firing at enemy cell
+  // Firing at enemy cell on 8x8 grid
   const handleFireAttack = (r: number, c: number) => {
     if (!isBattle || !isMyTurn || disabled || game.status !== 'PLAYING') return;
     const key = `${r}-${c}`;
@@ -574,8 +616,8 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
       const cannonRect = playerCannonRef.current.getBoundingClientRect();
       const topRect = topBoardRef.current.getBoundingClientRect();
 
-      const cellW = topRect.width / 10;
-      const cellH = topRect.height / 10;
+      const cellW = topRect.width / GRID_SIZE;
+      const cellH = topRect.height / GRID_SIZE;
 
       const targetX = topRect.left + c * cellW + cellW / 2 - arenaRect.left;
       const targetY = topRect.top + r * cellH + cellH / 2 - arenaRect.top;
@@ -612,8 +654,8 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
         const cannonRect = enemyCannonRef.current.getBoundingClientRect();
         const bottomRect = bottomBoardRef.current.getBoundingClientRect();
 
-        const cellW = bottomRect.width / 10;
-        const cellH = bottomRect.height / 10;
+        const cellW = bottomRect.width / GRID_SIZE;
+        const cellH = bottomRect.height / GRID_SIZE;
 
         const targetX = bottomRect.left + lastAttack.col * cellW + cellW / 2 - arenaRect.left;
         const targetY = bottomRect.top + lastAttack.row * cellH + cellH / 2 - arenaRect.top;
@@ -648,7 +690,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
       className="w-full flex flex-col items-center justify-center select-none font-sans relative"
     >
       {/* ========================================================================= */}
-      {/* 1. DEPLOYMENT SCREEN (Exact recreation of Screenshot 5)                  */}
+      {/* 1. DEPLOYMENT SCREEN (Exact recreation of Screenshot 5 on 8x8 Grid)      */}
       {/* ========================================================================= */}
       {isSetup && !isLocked && (
         <div className="w-full max-w-[420px] rounded-[32px] overflow-hidden shadow-2xl border-4 border-[#1e272e] flex flex-col relative bg-[#e08b73]">
@@ -697,18 +739,18 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
             )}
           </div>
 
-          {/* Bottom Panel (Terracotta Coral Grid with Cartoon Ships) */}
+          {/* Bottom Panel (Terracotta Coral 8x8 Grid with Large Comfortable Blocks) */}
           <div className="bg-[#e08b73] p-3 sm:p-4 flex flex-col items-center justify-center relative">
-            {/* 10x10 Terracotta Grid Container */}
+            {/* 8x8 Terracotta Grid Container */}
             <div
               ref={setupBoardRef}
-              className="w-full aspect-square max-w-[370px] bg-[#e08b73] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-10 grid-rows-10 gap-1 relative shadow-inner touch-none"
+              className="w-full aspect-square max-w-[370px] bg-[#e08b73] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-8 grid-rows-8 gap-1.5 relative shadow-inner touch-none"
             >
-              {/* Grid Cells */}
-              {Array.from({ length: 100 }).map((_, idx) => (
+              {/* 64 Grid Cells */}
+              {Array.from({ length: 64 }).map((_, idx) => (
                 <div
                   key={idx}
-                  className="w-full h-full bg-[#9c5240] rounded-[4px] relative"
+                  className="w-full h-full bg-[#9c5240] rounded-[6px] relative shadow-inner"
                 />
               ))}
 
@@ -717,17 +759,17 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                 <div
                   style={{
                     position: 'absolute',
-                    left: `${dragPreview.col * 10}%`,
-                    top: `${dragPreview.row * 10}%`,
+                    left: `${dragPreview.col * CELL_PCT}%`,
+                    top: `${dragPreview.row * CELL_PCT}%`,
                     width: `${
                       placedShips[draggingShipIndex].orientation === 'HORIZONTAL'
-                        ? (SHIP_DEFS.find((d) => d.type === placedShips[draggingShipIndex].shipType)?.size || 2) * 10
-                        : 10
+                        ? (SHIP_DEFS.find((d) => d.type === placedShips[draggingShipIndex].shipType)?.size || 2) * CELL_PCT
+                        : CELL_PCT
                     }%`,
                     height: `${
                       placedShips[draggingShipIndex].orientation === 'VERTICAL'
-                        ? (SHIP_DEFS.find((d) => d.type === placedShips[draggingShipIndex].shipType)?.size || 2) * 10
-                        : 10
+                        ? (SHIP_DEFS.find((d) => d.type === placedShips[draggingShipIndex].shipType)?.size || 2) * CELL_PCT
+                        : CELL_PCT
                     }%`,
                     zIndex: 25,
                   }}
@@ -743,11 +785,11 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                 const def = SHIP_DEFS.find((d) => d.type === ship.shipType)!;
                 const isBeingDragged = draggingShipIndex === index;
 
-                // Exact coordinate layout in grid percent
-                const leftPct = (isBeingDragged && dragPreview ? dragPreview.col : ship.col) * 10;
-                const topPct = (isBeingDragged && dragPreview ? dragPreview.row : ship.row) * 10;
-                const widthPct = isHoriz ? def.size * 10 : 10;
-                const heightPct = isHoriz ? 10 : def.size * 10;
+                // Exact coordinate layout in 8x8 grid percent
+                const leftPct = (isBeingDragged && dragPreview ? dragPreview.col : ship.col) * CELL_PCT;
+                const topPct = (isBeingDragged && dragPreview ? dragPreview.row : ship.row) * CELL_PCT;
+                const widthPct = isHoriz ? def.size * CELL_PCT : CELL_PCT;
+                const heightPct = isHoriz ? CELL_PCT : def.size * CELL_PCT;
 
                 return (
                   <div
@@ -763,7 +805,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                       height: `${heightPct}%`,
                       zIndex: isBeingDragged ? 30 : 15,
                     }}
-                    className="p-0.5 cursor-grab active:cursor-grabbing select-none relative group touch-none"
+                    className="p-1 cursor-grab active:cursor-grabbing select-none relative group touch-none"
                   >
                     <CartoonShipGraphic
                       type={ship.shipType}
@@ -813,7 +855,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
       {/* ========================================================================= */}
       {isSetup && isLocked && !isOpponentLocked && (
         <div className="w-full max-w-[420px] rounded-[32px] overflow-hidden shadow-2xl border-4 border-[#1e272e] flex flex-col bg-[#2e64b6]">
-          {/* Top Half: Sea-blue Grid & Silhouettes */}
+          {/* Top Half: Sea-blue 8x8 Grid & Silhouettes */}
           <div className="bg-[#5dade2] p-4 flex flex-col items-center justify-center relative border-b-4 border-[#1e272e]">
             {/* White EXIT Pill Button */}
             <button
@@ -823,10 +865,10 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               EXIT
             </button>
 
-            {/* 10x10 Enemy Grid */}
-            <div className="w-full aspect-square max-w-[340px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-10 grid-rows-10 gap-1 relative shadow-inner">
-              {Array.from({ length: 100 }).map((_, idx) => (
-                <div key={idx} className="w-full h-full bg-[#34495e] rounded-[3px]" />
+            {/* 8x8 Enemy Grid */}
+            <div className="w-full aspect-square max-w-[340px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-8 grid-rows-8 gap-1.5 relative shadow-inner">
+              {Array.from({ length: 64 }).map((_, idx) => (
+                <div key={idx} className="w-full h-full bg-[#34495e] rounded-[5px]" />
               ))}
             </div>
 
@@ -853,7 +895,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 3. DUAL BATTLE ARENA (Exact recreation of Screenshots 1, 2, 3)            */}
+      {/* 3. DUAL BATTLE ARENA (Exact recreation of Screenshots 1, 2, 3 on 8x8 Grid) */}
       {/* ========================================================================= */}
       {isBattle && (
         <div
@@ -878,7 +920,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               }}
               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#4a4a4a] via-[#1a1a1a] to-black border-2 border-black shadow-[0_10px_20px_rgba(0,0,0,0.6)] pointer-events-none flex items-center justify-center"
             >
-              {/* Highlight circle on cannonball */}
               <div className="w-2.5 h-2.5 rounded-full bg-white/40 -translate-x-1 -translate-y-1" />
             </div>
           )}
@@ -927,11 +968,11 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               <CartoonCannon isFiring={isEnemyFiring} isEnemy={true} />
             </div>
 
-            {/* 10x10 Enemy Grid */}
-            <div className="w-full aspect-square max-w-[350px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-10 grid-rows-10 gap-1 relative shadow-inner">
-              {Array.from({ length: 100 }).map((_, idx) => {
-                const r = Math.floor(idx / 10);
-                const c = idx % 10;
+            {/* 8x8 Enemy Grid with Large, Readable Blocks */}
+            <div className="w-full aspect-square max-w-[350px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-8 grid-rows-8 gap-1.5 relative shadow-inner">
+              {Array.from({ length: 64 }).map((_, idx) => {
+                const r = Math.floor(idx / GRID_SIZE);
+                const c = idx % GRID_SIZE;
                 const key = `${r}-${c}`;
                 const att = myAttackResultsMap.get(key);
                 const isHit = att && (att.result === 'HIT' || att.result === 'SUNK');
@@ -942,7 +983,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                   <div
                     key={idx}
                     onClick={() => handleFireAttack(r, c)}
-                    className={`w-full h-full rounded-[3px] relative flex items-center justify-center transition-all ${
+                    className={`w-full h-full rounded-[5px] relative flex items-center justify-center transition-all ${
                       isHit
                         ? 'bg-[#1e272e] z-10 shadow-inner' // Charred hit square
                         : isMiss
@@ -955,16 +996,16 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                     {/* Aiming Reticle Crosshair (Exact from Screenshot 1) */}
                     {isTargetHover && isPlayerFiring && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                        <div className="w-7 h-7 rounded-full border-2 border-white relative flex items-center justify-center animate-pulse">
-                          <div className="w-9 h-0.5 bg-white absolute" />
-                          <div className="h-9 w-0.5 bg-white absolute" />
+                        <div className="w-8 h-8 rounded-full border-2 border-white relative flex items-center justify-center animate-pulse">
+                          <div className="w-10 h-0.5 bg-white absolute" />
+                          <div className="h-10 w-0.5 bg-white absolute" />
                         </div>
                       </div>
                     )}
 
                     {/* Miss Marker: Subtle Grey ✖ (Screenshot 1) */}
                     {isMiss && (
-                      <span className="text-[#95a5a6] font-black text-sm sm:text-base select-none leading-none">
+                      <span className="text-[#95a5a6] font-black text-base sm:text-lg select-none leading-none">
                         ✖
                       </span>
                     )}
@@ -972,23 +1013,23 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                     {/* Hit Marker: Two Overlapping 45-deg Orange & Yellow Diamonds (Screenshot 1 & 3) */}
                     {isHit && (
                       <div className="relative flex items-center justify-center select-none">
-                        <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#f39c12] rotate-45 rounded-[2px] shadow-[0_0_8px_#f1c40f] animate-pulse" />
-                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#e74c3c] rotate-45 rounded-[1px] absolute" />
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#f39c12] rotate-45 rounded-[2px] shadow-[0_0_8px_#f1c40f] animate-pulse" />
+                        <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-[#e74c3c] rotate-45 rounded-[1px] absolute" />
                       </div>
                     )}
                   </div>
                 );
               })}
 
-              {/* End-Game: Opponent Fleet Reveal */}
+              {/* End-Game: Opponent Fleet Reveal on 8x8 Grid */}
               {game.status === 'FINISHED' &&
                 game.shipFleets?.[opponentUserId]?.map((ship) => {
                   const isHoriz = ship.orientation === 'HORIZONTAL';
                   const def = SHIP_DEFS.find((d) => d.type === ship.shipType)!;
-                  const leftPct = ship.col * 10;
-                  const topPct = ship.row * 10;
-                  const widthPct = isHoriz ? def.size * 10 : 10;
-                  const heightPct = isHoriz ? 10 : def.size * 10;
+                  const leftPct = ship.col * CELL_PCT;
+                  const topPct = ship.row * CELL_PCT;
+                  const widthPct = isHoriz ? def.size * CELL_PCT : CELL_PCT;
+                  const heightPct = isHoriz ? CELL_PCT : def.size * CELL_PCT;
 
                   return (
                     <div
@@ -1002,7 +1043,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                         zIndex: 15,
                         opacity: 0.75,
                       }}
-                      className="p-0.5 pointer-events-none"
+                      className="p-1 pointer-events-none"
                     >
                       <CartoonShipGraphic
                         type={ship.shipType}
@@ -1074,17 +1115,17 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
           </div>
 
           {/* ===================================================================== */}
-          {/* BOTTOM FIELD: PLAYER WATERS (Coral / Terracotta Theme)                */}
+          {/* BOTTOM FIELD: PLAYER WATERS (Coral / Terracotta 8x8 Grid Theme)       */}
           {/* ===================================================================== */}
           <div
             ref={bottomBoardRef}
             className="bg-[#e08b73] p-3 sm:p-4 flex flex-col items-center justify-center relative pb-16 sm:pb-20"
           >
-            {/* 10x10 Player Grid */}
-            <div className="w-full aspect-square max-w-[350px] bg-[#d37861] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-10 grid-rows-10 gap-1 relative shadow-inner">
-              {Array.from({ length: 100 }).map((_, idx) => {
-                const r = Math.floor(idx / 10);
-                const c = idx % 10;
+            {/* 8x8 Player Grid with Large Blocks */}
+            <div className="w-full aspect-square max-w-[350px] bg-[#d37861] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-8 grid-rows-8 gap-1.5 relative shadow-inner">
+              {Array.from({ length: 64 }).map((_, idx) => {
+                const r = Math.floor(idx / GRID_SIZE);
+                const c = idx % GRID_SIZE;
                 const key = `${r}-${c}`;
                 const att = opponentAttackResultsMap.get(key);
                 const isHit = att && (att.result === 'HIT' || att.result === 'SUNK');
@@ -1093,7 +1134,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                 return (
                   <div
                     key={idx}
-                    className={`w-full h-full rounded-[3px] relative flex items-center justify-center select-none ${
+                    className={`w-full h-full rounded-[5px] relative flex items-center justify-center select-none ${
                       isHit
                         ? 'bg-[#111827] z-20 shadow-inner' // Charred square on player ship
                         : isMiss
@@ -1102,29 +1143,29 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                     }`}
                   >
                     {isMiss && (
-                      <span className="text-[#d5b0a8] font-black text-sm sm:text-base leading-none">
+                      <span className="text-[#d5b0a8] font-black text-base sm:text-lg leading-none">
                         ✖
                       </span>
                     )}
 
                     {isHit && (
                       <div className="relative flex items-center justify-center">
-                        <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#f39c12] rotate-45 rounded-[2px] shadow-[0_0_8px_#f1c40f] animate-pulse" />
-                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#e74c3c] rotate-45 rounded-[1px] absolute" />
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#f39c12] rotate-45 rounded-[2px] shadow-[0_0_8px_#f1c40f] animate-pulse" />
+                        <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-[#e74c3c] rotate-45 rounded-[1px] absolute" />
                       </div>
                     )}
                   </div>
                 );
               })}
 
-              {/* Player Placed Ships (Drawn over grid) */}
+              {/* Player Placed Ships (Drawn over 8x8 grid) */}
               {myFleet.map((ship) => {
                 const isHoriz = ship.orientation === 'HORIZONTAL';
                 const def = SHIP_DEFS.find((d) => d.type === ship.shipType)!;
-                const leftPct = ship.col * 10;
-                const topPct = ship.row * 10;
-                const widthPct = isHoriz ? def.size * 10 : 10;
-                const heightPct = isHoriz ? 10 : def.size * 10;
+                const leftPct = ship.col * CELL_PCT;
+                const topPct = ship.row * CELL_PCT;
+                const widthPct = isHoriz ? def.size * CELL_PCT : CELL_PCT;
+                const heightPct = isHoriz ? CELL_PCT : def.size * CELL_PCT;
 
                 return (
                   <div
@@ -1137,7 +1178,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                       height: `${heightPct}%`,
                       zIndex: 10,
                     }}
-                    className="p-0.5 pointer-events-none"
+                    className="p-1 pointer-events-none"
                   >
                     <CartoonShipGraphic
                       type={ship.shipType}
@@ -1157,7 +1198,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
             >
               <CartoonCannon
                 isFiring={isPlayerFiring}
-                aimAngle={aimTarget ? (aimTarget.col - 4.5) * 5 : 0}
+                aimAngle={aimTarget ? (aimTarget.col - 3.5) * 8 : 0}
                 isEnemy={false}
               />
             </div>

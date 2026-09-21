@@ -71,7 +71,7 @@ public class RoomService {
             boardSize = (request.getGridSize() != null && request.getGridSize() >= 3 && request.getGridSize() <= 5) ? request.getGridSize() : 4;
         } else if (gameType == com.bingo.game.GameType.SHIP_BATTLE) {
             maxPlayers = 2;
-            boardSize = 10;
+            boardSize = 8;
             winningLines = 5;
         } else {
             // BINGO
@@ -382,7 +382,7 @@ public class RoomService {
             }
             gameBuilder.playerScores(initialScores);
         } else if (room.getGameType() == com.bingo.game.GameType.SHIP_BATTLE) {
-            gameBuilder.boardSize(10);
+            gameBuilder.boardSize(8);
             gameBuilder.shipPhase("SETUP");
             gameBuilder.shipFleets(new HashMap<>());
             Map<String, Boolean> lockedMap = new HashMap<>();
@@ -504,7 +504,7 @@ public class RoomService {
             createReq.setGridSize(4);
         } else if (gameType == com.bingo.game.GameType.SHIP_BATTLE) {
             createReq.setMaxPlayers(2);
-            createReq.setBoardSize(10);
+            createReq.setBoardSize(8);
             createReq.setWinningLines(5);
         } else {
             createReq.setMaxPlayers(4);
