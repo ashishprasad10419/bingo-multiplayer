@@ -278,6 +278,116 @@ class SoundEngine {
       osc.stop(ctx.currentTime + 0.32);
     } catch (_) {}
   }
+
+  /**
+   * Deep naval cannon blast
+   */
+  public playCannonFire() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      // Low boom pitch drop
+      const osc = ctx.createOscillator();
+      const oscGain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(140, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(32, ctx.currentTime + 0.28);
+      oscGain.gain.setValueAtTime(0.5, ctx.currentTime);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.connect(oscGain);
+      oscGain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.32);
+
+      // Noise blast
+      const bufferSize = Math.floor(ctx.sampleRate * 0.25);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, ctx.currentTime);
+      filter.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.25);
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.4, ctx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noise.start();
+    } catch (_) {}
+  }
+
+  /**
+   * Powerful ship hit explosion
+   */
+  public playExplosionHit() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const bufferSize = Math.floor(ctx.sampleRate * 0.45);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(900, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.4);
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.6, ctx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noise.start();
+    } catch (_) {}
+  }
+
+  /**
+   * Water splash sound for miss
+   */
+  public playWaterSplash() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const bufferSize = Math.floor(ctx.sampleRate * 0.22);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(400, ctx.currentTime);
+      filter.frequency.linearRampToValueAtTime(1400, ctx.currentTime + 0.1);
+      filter.frequency.linearRampToValueAtTime(300, ctx.currentTime + 0.2);
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.3, ctx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noise.start();
+    } catch (_) {}
+  }
 }
 
 export const soundService = new SoundEngine();

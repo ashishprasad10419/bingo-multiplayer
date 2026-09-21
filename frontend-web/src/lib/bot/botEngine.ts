@@ -231,7 +231,7 @@ export function createOfflineGame(
         [botId]: generateOfflineBotFleet(),
       };
       baseGame.shipFleetsLocked = {
-        [botId]: true,
+        [botId]: false,
         [playerId]: false,
       };
       baseGame.shipAttacks = {

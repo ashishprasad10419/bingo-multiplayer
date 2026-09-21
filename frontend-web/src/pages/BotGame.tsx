@@ -935,9 +935,10 @@ export const BotGame: React.FC = () => {
   // --- SHIP BATTLE OFFLINE ---
   const handleShipLockFleet = (fleet: ShipPlacement[]) => {
     soundService.playCountdownGo();
+    // 1. Lock player fleet while bot is "placing ships"
     setGame((prev) => ({
       ...prev,
-      shipPhase: 'BATTLE',
+      shipPhase: 'SETUP',
       shipFleets: {
         ...(prev.shipFleets || {}),
         [playerId]: fleet,
@@ -945,9 +946,23 @@ export const BotGame: React.FC = () => {
       shipFleetsLocked: {
         ...(prev.shipFleetsLocked || {}),
         [playerId]: true,
+        [botId]: false,
       },
-      currentTurnUserId: playerId,
     }));
+
+    // 2. After 1.6s delay, bot finishes placing fleet and battle commences!
+    setTimeout(() => {
+      setGame((prev) => ({
+        ...prev,
+        shipPhase: 'BATTLE',
+        shipFleetsLocked: {
+          ...(prev.shipFleetsLocked || {}),
+          [botId]: true,
+        },
+        currentTurnUserId: playerId,
+      }));
+      soundService.playTurnChime();
+    }, 1600);
   };
 
   const handleShipAttack = (r: number, c: number) => {
