@@ -105,6 +105,7 @@ public class RoomService {
                 .winningLines(winningLines)
                 .maxPlayers(maxPlayers)
                 .players(new ArrayList<>(List.of(hostPlayer)))
+                .allowMatchmaking(false)
                 .createdAt(Instant.now())
                 .build();
 
@@ -439,8 +440,8 @@ public class RoomService {
                 ? request.getBingoMode().toUpperCase()
                 : "CLASSIC";
 
-        // 1. Look for existing open WAITING room for this game type with available slots
-        List<Room> openRooms = roomRepository.findByStatusAndGameType(RoomStatus.WAITING, gameType);
+        // 1. Look for existing open WAITING room for this game type with available slots and allowMatchmaking enabled
+        List<Room> openRooms = roomRepository.findByStatusAndGameTypeAndAllowMatchmakingTrue(RoomStatus.WAITING, gameType);
         for (Room room : openRooms) {
             if (room.getPlayers().size() < room.getMaxPlayers() && room.findPlayerData(userId) == null) {
                 // If Bingo, check mode match if specified
@@ -453,7 +454,7 @@ public class RoomService {
             }
         }
 
-        // 2. No open room found: auto-create a standard room for quick match
+        // 2. No open room found: auto-create a standard room for quick match with allowMatchmaking enabled
         CreateRoomRequest createReq = new CreateRoomRequest();
         createReq.setGameType(gameType);
         createReq.setBingoMode(bingoMode);
@@ -476,7 +477,9 @@ public class RoomService {
             }
         }
 
-        return createRoom(userId, createReq);
+        Room room = createRoom(userId, createReq);
+        room.setAllowMatchmaking(true);
+        return roomRepository.save(room);
     }
 
     private String generateUniqueRoomCode() {

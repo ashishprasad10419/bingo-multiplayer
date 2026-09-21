@@ -51,6 +51,9 @@ public class Room {
     @Builder.Default
     private List<RoomPlayer> players = new ArrayList<>();
 
+    @Builder.Default
+    private boolean allowMatchmaking = false;
+
     @CreatedDate
     private Instant createdAt;
 

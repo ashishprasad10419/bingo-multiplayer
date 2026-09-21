@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { roomApi } from '../lib/api';
 import { GameType } from '../lib/types';
 import { GameVisualIcon } from '../components/games/GameVisualIcon';
-import { Trophy, Shield, Plus, LogIn, Sparkles, Zap } from 'lucide-react';
+import { Trophy, Shield, Plus, LogIn, Sparkles, Zap, Bot } from 'lucide-react';
+import { BotDifficultyModal } from '../components/BotDifficultyModal';
 
 interface GameCardDef {
   type: GameType;
@@ -22,6 +23,7 @@ export const GameHub: React.FC = () => {
   const navigate = useNavigate();
   const [quickCode, setQuickCode] = useState('');
   const [matchingType, setMatchingType] = useState<GameType | null>(null);
+  const [botModalGame, setBotModalGame] = useState<GameType | null>(null);
 
   const handleQuickPlay = async (type: GameType) => {
     setMatchingType(type);
@@ -227,24 +229,36 @@ export const GameHub: React.FC = () => {
               </h3>
             </div>
 
-            {/* Action Buttons: Quick Match (1-Click) & Custom Room */}
-            <div className="pt-4 space-y-2.5">
+            {/* Action Buttons: Play vs Bot, Create Room, Quick Match */}
+            <div className="pt-4 space-y-2">
               <button
-                onClick={() => handleQuickPlay(g.type)}
-                disabled={matchingType !== null}
-                className={`w-full py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider ${g.btnQuick} transition-all duration-150 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 active:translate-y-1 active:shadow-none hover:brightness-105`}
+                onClick={() => setBotModalGame(g.type)}
+                className="w-full py-3 rounded-2xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:brightness-110 text-white shadow-[0_4px_0_#4338ca] transition-all duration-150 flex items-center justify-center space-x-2 cursor-pointer active:translate-y-1 active:shadow-none"
               >
-                <Zap className={`w-4 h-4 ${matchingType === g.type ? 'animate-spin' : ''}`} />
-                <span>{matchingType === g.type ? 'Finding Match...' : '⚡ Quick Match (1-Click)'}</span>
+                <Bot className="w-4 h-4" />
+                <span>🤖 Play vs Bot (Offline)</span>
               </button>
 
-              <button
-                onClick={() => handleSelectGame(g.type)}
-                className={`w-full py-2.5 rounded-2xl text-xs font-black uppercase tracking-wide ${g.btnCustom} transition-all flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95`}
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                <span>Create Room</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleSelectGame(g.type)}
+                  className={`py-2.5 px-2 rounded-2xl text-[11px] font-black uppercase tracking-tight ${g.btnCustom} transition-all flex items-center justify-center space-x-1 cursor-pointer active:scale-95`}
+                  title="Create a private room with custom rules and invite friends"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Create Room</span>
+                </button>
+
+                <button
+                  onClick={() => handleQuickPlay(g.type)}
+                  disabled={matchingType !== null}
+                  className={`py-2.5 px-2 rounded-2xl text-[11px] font-black uppercase tracking-tight ${g.btnQuick} transition-all duration-150 flex items-center justify-center space-x-1 cursor-pointer disabled:opacity-50 active:translate-y-0.5 active:shadow-none hover:brightness-105`}
+                  title="Find an online player"
+                >
+                  <Zap className={`w-3.5 h-3.5 ${matchingType === g.type ? 'animate-spin' : ''}`} />
+                  <span>{matchingType === g.type ? 'Matching...' : '⚡ Quick Match'}</span>
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -300,6 +314,12 @@ export const GameHub: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Bot Difficulty Selection Modal */}
+      <BotDifficultyModal
+        gameType={botModalGame}
+        onClose={() => setBotModalGame(null)}
+      />
     </div>
   );
 };

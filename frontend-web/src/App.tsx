@@ -14,6 +14,7 @@ import { Winner } from './pages/Winner';
 import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
 import { GameHub } from './pages/GameHub';
+import { BotGame } from './pages/BotGame';
 import { useGameTheme } from './lib/useGameTheme';
 import { MobileNavBar } from './components/MobileNavBar';
 import { useThemeStore } from './state/themeStore';
@@ -103,6 +104,7 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/splash" element={<Splash />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/bot-game" element={<BotGame />} />
 
           <Route
             path="/"
