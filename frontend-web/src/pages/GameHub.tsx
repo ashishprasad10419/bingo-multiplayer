@@ -17,6 +17,9 @@ interface GameCardDef {
   titleColor: string;
   btnQuick: string;
   btnCustom: string;
+  isPlayable?: boolean;
+  sequenceNo?: number;
+  statusBadge?: string;
 }
 
 export const GameHub: React.FC = () => {
@@ -24,6 +27,8 @@ export const GameHub: React.FC = () => {
   const [quickCode, setQuickCode] = useState('');
   const [matchingType, setMatchingType] = useState<GameType | null>(null);
   const [botModalGame, setBotModalGame] = useState<GameType | null>(null);
+  const [filterTab, setFilterTab] = useState<'ALL' | 'PLAYABLE' | 'ROADMAP'>('ALL');
+  const [upcomingModalGame, setUpcomingModalGame] = useState<GameCardDef | null>(null);
 
   const handleQuickPlay = async (type: GameType) => {
     setMatchingType(type);
@@ -145,6 +150,144 @@ export const GameHub: React.FC = () => {
       titleColor: 'text-[#0c4a6e] dark:text-[#bae6fd]',
       btnQuick: 'bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-[0_4px_0_#075985]',
       btnCustom: 'bg-white dark:bg-slate-800 text-[#0369a1] dark:text-[#bae6fd] border-2 border-[#7dd3fc] hover:bg-[#e0f2fe]',
+      isPlayable: true,
+      sequenceNo: 10,
+      statusBadge: '🟢 Live & Playable',
+    },
+    {
+      type: 'MASTERMIND',
+      title: 'Mastermind',
+      badge: '🧩 Codebreaker',
+      cardBg: 'bg-[#eef2ff] dark:bg-[#13112c]',
+      cardBorder: 'border-[#6366f1]',
+      cardShadow: 'shadow-[0_8px_0_#4338ca]',
+      bannerGrad: 'from-[#818cf8] via-[#6366f1] to-[#4338ca]',
+      titleColor: 'text-[#312e81] dark:text-[#c7d2fe]',
+      btnQuick: 'bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-[0_4px_0_#3730a3]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#4f46e5] dark:text-[#c7d2fe] border-2 border-[#a5b4fc] hover:bg-[#e0e7ff]',
+      isPlayable: false,
+      sequenceNo: 11,
+      statusBadge: '🔨 Game 11: Next Up',
+    },
+    {
+      type: 'LUDO',
+      title: 'Ludo Party',
+      badge: '🎲 Classic 4P',
+      cardBg: 'bg-[#fefce8] dark:bg-[#251f05]',
+      cardBorder: 'border-[#eab308]',
+      cardShadow: 'shadow-[0_8px_0_#ca8a04]',
+      bannerGrad: 'from-[#fde047] via-[#eab308] to-[#ca8a04]',
+      titleColor: 'text-[#713f12] dark:text-[#fef08a]',
+      btnQuick: 'bg-[#eab308] hover:bg-[#ca8a04] text-white shadow-[0_4px_0_#a16207]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#ca8a04] dark:text-[#fef08a] border-2 border-[#fef08a] hover:bg-[#fef9c3]',
+      isPlayable: false,
+      sequenceNo: 12,
+      statusBadge: '🕒 Game 12: In Queue',
+    },
+    {
+      type: 'DETECTIVE_MYSTERY',
+      title: 'Detective Mystery',
+      badge: '🔍 Clue Deduction',
+      cardBg: 'bg-[#fffbeb] dark:bg-[#261b05]',
+      cardBorder: 'border-[#d97706]',
+      cardShadow: 'shadow-[0_8px_0_#b45309]',
+      bannerGrad: 'from-[#fbbf24] via-[#d97706] to-[#92400e]',
+      titleColor: 'text-[#78350f] dark:text-[#fef3c7]',
+      btnQuick: 'bg-[#d97706] hover:bg-[#b45309] text-white shadow-[0_4px_0_#78350f]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#b45309] dark:text-[#fef3c7] border-2 border-[#fde68a] hover:bg-[#fef3c7]',
+      isPlayable: false,
+      sequenceNo: 13,
+      statusBadge: '🕒 Game 13: In Queue',
+    },
+    {
+      type: 'SUDOKU_BATTLE',
+      title: 'Sudoku Battle',
+      badge: '🔢 Number Duel',
+      cardBg: 'bg-[#ecfeff] dark:bg-[#062329]',
+      cardBorder: 'border-[#06b6d4]',
+      cardShadow: 'shadow-[0_8px_0_#0891b2]',
+      bannerGrad: 'from-[#22d3ee] via-[#06b6d4] to-[#0e7490]',
+      titleColor: 'text-[#164e63] dark:text-[#cffafe]',
+      btnQuick: 'bg-[#06b6d4] hover:bg-[#0891b2] text-white shadow-[0_4px_0_#155e75]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#0891b2] dark:text-[#cffafe] border-2 border-[#a5f3fc] hover:bg-[#cffafe]',
+      isPlayable: false,
+      sequenceNo: 14,
+      statusBadge: '🕒 Game 14: In Queue',
+    },
+    {
+      type: 'BATTLE_2048',
+      title: '2048 Battle',
+      badge: '⚡ Tile Clash',
+      cardBg: 'bg-[#fff7ed] dark:bg-[#281507]',
+      cardBorder: 'border-[#f97316]',
+      cardShadow: 'shadow-[0_8px_0_#ea580c]',
+      bannerGrad: 'from-[#fb923c] via-[#f97316] to-[#c2410c]',
+      titleColor: 'text-[#7c2d12] dark:text-[#ffedd5]',
+      btnQuick: 'bg-[#f97316] hover:bg-[#ea580c] text-white shadow-[0_4px_0_#9a3412]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#ea580c] dark:text-[#ffedd5] border-2 border-[#fed7aa] hover:bg-[#ffedd5]',
+      isPlayable: false,
+      sequenceNo: 15,
+      statusBadge: '🕒 Game 15: In Queue',
+    },
+    {
+      type: 'CHECKERS',
+      title: 'Checkers Duel',
+      badge: '👑 Board Jump',
+      cardBg: 'bg-[#fefce8] dark:bg-[#241c05]',
+      cardBorder: 'border-[#b45309]',
+      cardShadow: 'shadow-[0_8px_0_#78350f]',
+      bannerGrad: 'from-[#d97706] via-[#b45309] to-[#78350f]',
+      titleColor: 'text-[#451a03] dark:text-[#fef3c7]',
+      btnQuick: 'bg-[#b45309] hover:bg-[#92400e] text-white shadow-[0_4px_0_#78350f]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#92400e] dark:text-[#fef3c7] border-2 border-[#fde68a] hover:bg-[#fef3c7]',
+      isPlayable: false,
+      sequenceNo: 16,
+      statusBadge: '🕒 Game 16: In Queue',
+    },
+    {
+      type: 'CARD_BATTLE',
+      title: 'Card Battle',
+      badge: '🃏 Deck Strategy',
+      cardBg: 'bg-[#fff1f2] dark:bg-[#260a12]',
+      cardBorder: 'border-[#f43f5e]',
+      cardShadow: 'shadow-[0_8px_0_#e11d48]',
+      bannerGrad: 'from-[#fb7185] via-[#f43f5e] to-[#be123c]',
+      titleColor: 'text-[#881337] dark:text-[#ffe4e6]',
+      btnQuick: 'bg-[#f43f5e] hover:bg-[#e11d48] text-white shadow-[0_4px_0_#9f1239]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#e11d48] dark:text-[#ffe4e6] border-2 border-[#fecdd3] hover:bg-[#ffe4e6]',
+      isPlayable: false,
+      sequenceNo: 17,
+      statusBadge: '🕒 Game 17: In Queue',
+    },
+    {
+      type: 'CHESS',
+      title: 'Chess Grandmaster',
+      badge: '♟️ Tactical Duel',
+      cardBg: 'bg-[#eef2ff] dark:bg-[#0e1026]',
+      cardBorder: 'border-[#4338ca]',
+      cardShadow: 'shadow-[0_8px_0_#312e81]',
+      bannerGrad: 'from-[#6366f1] via-[#4338ca] to-[#312e81]',
+      titleColor: 'text-[#1e1b4b] dark:text-[#e0e7ff]',
+      btnQuick: 'bg-[#4338ca] hover:bg-[#3730a3] text-white shadow-[0_4px_0_#1e1b4b]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#3730a3] dark:text-[#e0e7ff] border-2 border-[#c7d2fe] hover:bg-[#e0e7ff]',
+      isPlayable: false,
+      sequenceNo: 18,
+      statusBadge: '🕒 Game 18: In Queue',
+    },
+    {
+      type: 'PIRATE_BATTLE',
+      title: 'Pirate Battle',
+      badge: '🏴‍☠️ High Seas',
+      cardBg: 'bg-[#f8fafc] dark:bg-[#0b1120]',
+      cardBorder: 'border-[#0f172a]',
+      cardShadow: 'shadow-[0_8px_0_#020617]',
+      bannerGrad: 'from-[#334155] via-[#1e293b] to-[#0f172a]',
+      titleColor: 'text-[#020617] dark:text-[#f1f5f9]',
+      btnQuick: 'bg-[#0f172a] hover:bg-[#1e293b] text-white shadow-[0_4px_0_#020617]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#1e293b] dark:text-[#f1f5f9] border-2 border-[#cbd5e1] hover:bg-[#e2e8f0]',
+      isPlayable: false,
+      sequenceNo: 19,
+      statusBadge: '🕒 Game 19: In Queue',
     },
   ];
 
@@ -207,11 +350,56 @@ export const GameHub: React.FC = () => {
         </div>
       </div>
 
+      {/* Category & Roadmap Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <button
+          onClick={() => setFilterTab('ALL')}
+          className={`px-4 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer flex items-center space-x-1.5 whitespace-nowrap ${
+            filterTab === 'ALL'
+              ? 'bg-[#2a2050] text-white shadow-md'
+              : 'bg-white/80 dark:bg-slate-800 text-[#7e749c] hover:text-[#2a2050] dark:text-slate-400 border border-[#ede8f8] dark:border-slate-700'
+          }`}
+        >
+          <span>🎮 All Games</span>
+          <span className="px-2 py-0.5 text-[10px] rounded-full bg-white/20 text-white font-bold">{games.length}</span>
+        </button>
+
+        <button
+          onClick={() => setFilterTab('PLAYABLE')}
+          className={`px-4 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer flex items-center space-x-1.5 whitespace-nowrap ${
+            filterTab === 'PLAYABLE'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'bg-white/80 dark:bg-slate-800 text-[#7e749c] hover:text-[#2a2050] dark:text-slate-400 border border-[#ede8f8] dark:border-slate-700'
+          }`}
+        >
+          <span>🟢 Playable Now</span>
+          <span className="px-2 py-0.5 text-[10px] rounded-full bg-emerald-100 text-emerald-800 font-bold">9</span>
+        </button>
+
+        <button
+          onClick={() => setFilterTab('ROADMAP')}
+          className={`px-4 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer flex items-center space-x-1.5 whitespace-nowrap ${
+            filterTab === 'ROADMAP'
+              ? 'bg-indigo-600 text-white shadow-md'
+              : 'bg-white/80 dark:bg-slate-800 text-[#7e749c] hover:text-[#2a2050] dark:text-slate-400 border border-[#ede8f8] dark:border-slate-700'
+          }`}
+        >
+          <span>🚀 10 New Games</span>
+          <span className="px-2 py-0.5 text-[10px] rounded-full bg-indigo-100 text-indigo-800 font-bold">10</span>
+        </button>
+      </div>
+
       {/* ========================================================================= */}
       {/* 3. VIBRANT CARTOONISH ARCADE SHOWCASE (Big visual art, colorful, clean)  */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-        {games.map((g) => (
+        {games
+          .filter((g) => {
+            if (filterTab === 'PLAYABLE') return g.isPlayable !== false;
+            if (filterTab === 'ROADMAP') return (g.sequenceNo ?? 0) >= 10;
+            return true;
+          })
+          .map((g) => (
           <div
             key={g.type}
             className={`${g.cardBg} ${g.cardBorder} ${g.cardShadow} border-[3.5px] rounded-[32px] p-5 sm:p-6 flex flex-col justify-between group transition-all duration-300 hover:-translate-y-2 relative overflow-hidden`}
@@ -228,10 +416,15 @@ export const GameHub: React.FC = () => {
                 </div>
 
                 {/* Cute Cartoon Pill Badge */}
-                <div className="z-10 flex flex-col items-end">
+                <div className="z-10 flex flex-col items-end space-y-1">
                   <span className="text-xs font-black uppercase px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-slate-900/90 text-slate-800 dark:text-white shadow-md tracking-wider border border-white/40">
                     {g.badge}
                   </span>
+                  {g.statusBadge && (
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-black/50 text-white backdrop-blur-sm shadow-xs">
+                      {g.statusBadge}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -241,37 +434,54 @@ export const GameHub: React.FC = () => {
               </h3>
             </div>
 
-            {/* Action Buttons: Play vs Bot, Create Room, Quick Match */}
-            <div className="pt-4 space-y-2">
-              <button
-                onClick={() => setBotModalGame(g.type)}
-                className="w-full py-3 rounded-2xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:brightness-110 text-white shadow-[0_4px_0_#4338ca] transition-all duration-150 flex items-center justify-center space-x-2 cursor-pointer active:translate-y-1 active:shadow-none"
-              >
-                <Bot className="w-4 h-4" />
-                <span>🤖 Play vs Bot (Offline)</span>
-              </button>
-
-              <div className="grid grid-cols-2 gap-2">
+            {/* Action Buttons: Play vs Bot, Create Room, Quick Match (or Roadmap status) */}
+            {g.isPlayable !== false ? (
+              <div className="pt-4 space-y-2">
                 <button
-                  onClick={() => handleSelectGame(g.type)}
-                  className={`py-2.5 px-2 rounded-2xl text-[11px] font-black uppercase tracking-tight ${g.btnCustom} transition-all flex items-center justify-center space-x-1 cursor-pointer active:scale-95`}
-                  title="Create a private room with custom rules and invite friends"
+                  onClick={() => setBotModalGame(g.type)}
+                  className="w-full py-3 rounded-2xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:brightness-110 text-white shadow-[0_4px_0_#4338ca] transition-all duration-150 flex items-center justify-center space-x-2 cursor-pointer active:translate-y-1 active:shadow-none"
                 >
-                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                  <span>Create Room</span>
+                  <Bot className="w-4 h-4" />
+                  <span>🤖 Play vs Bot (Offline)</span>
                 </button>
 
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => handleSelectGame(g.type)}
+                    className={`py-2.5 px-2 rounded-2xl text-[11px] font-black uppercase tracking-tight ${g.btnCustom} transition-all flex items-center justify-center space-x-1 cursor-pointer active:scale-95`}
+                    title="Create a private room with custom rules and invite friends"
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                    <span>Create Room</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleQuickPlay(g.type)}
+                    disabled={matchingType !== null}
+                    className={`py-2.5 px-2 rounded-2xl text-[11px] font-black uppercase tracking-tight ${g.btnQuick} transition-all duration-150 flex items-center justify-center space-x-1 cursor-pointer disabled:opacity-50 active:translate-y-0.5 active:shadow-none hover:brightness-105`}
+                    title="Find an online player"
+                  >
+                    <Zap className={`w-3.5 h-3.5 ${matchingType === g.type ? 'animate-spin' : ''}`} />
+                    <span>{matchingType === g.type ? 'Matching...' : '⚡ Quick Match'}</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="pt-4 space-y-2">
+                <div className="w-full py-2.5 px-3 rounded-2xl bg-white/70 dark:bg-slate-800/80 border border-indigo-200 dark:border-indigo-900 text-center">
+                  <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                    {g.statusBadge || 'Coming Soon'}
+                  </span>
+                </div>
                 <button
-                  onClick={() => handleQuickPlay(g.type)}
-                  disabled={matchingType !== null}
-                  className={`py-2.5 px-2 rounded-2xl text-[11px] font-black uppercase tracking-tight ${g.btnQuick} transition-all duration-150 flex items-center justify-center space-x-1 cursor-pointer disabled:opacity-50 active:translate-y-0.5 active:shadow-none hover:brightness-105`}
-                  title="Find an online player"
+                  onClick={() => setUpcomingModalGame(g)}
+                  className="w-full py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer"
                 >
-                  <Zap className={`w-3.5 h-3.5 ${matchingType === g.type ? 'animate-spin' : ''}`} />
-                  <span>{matchingType === g.type ? 'Matching...' : '⚡ Quick Match'}</span>
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>View Details & Rules</span>
                 </button>
               </div>
-            </div>
+            )}
           </div>
         ))}
       </div>
@@ -326,6 +536,48 @@ export const GameHub: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Upcoming Game Roadmap Modal */}
+      {upcomingModalGame && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[32px] p-6 sm:p-7 shadow-2xl border-2 border-[#e0d6f8] dark:border-slate-800 relative space-y-4 animate-in zoom-in-95 text-center">
+            <button
+              onClick={() => setUpcomingModalGame(null)}
+              className="absolute right-5 top-5 p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
+            >
+              ✕
+            </button>
+            <div className="w-18 h-18 rounded-[22px] bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center mx-auto shadow-md p-2">
+              <GameVisualIcon type={upcomingModalGame.type} size="lg" />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              {upcomingModalGame.title}
+            </h3>
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-black bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+              {upcomingModalGame.statusBadge}
+            </span>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+              We are building the 10 requested multiplayer games strictly <strong>one at a time</strong>.
+              <br /><br />
+              <strong>⚓ Game 10: Ship Battle (Battleship)</strong> is 100% finished, tested, and playable right now with online multiplayer & offline bots!
+              <br /><br />
+              <strong>🧩 Game 11: Mastermind</strong> is next in queue.
+            </p>
+            <div className="pt-2">
+              <button
+                onClick={() => {
+                  const type = 'SHIP_BATTLE';
+                  setUpcomingModalGame(null);
+                  navigate(`/create-room?game=${type}`);
+                }}
+                className="w-full btn-gradient py-3 rounded-2xl text-xs font-black text-white shadow-lg cursor-pointer hover:brightness-105 active:scale-95 transition"
+              >
+                ⚓ Play Ship Battle Now →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bot Difficulty Selection Modal */}
       <BotDifficultyModal

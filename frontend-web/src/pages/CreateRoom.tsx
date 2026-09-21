@@ -211,6 +211,24 @@ export const CreateRoom: React.FC = () => {
       </button>
 
       <div className="card-clay p-6 sm:p-8">
+        {/* Game Switcher Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-4 no-scrollbar border-b border-[#ede8f8] dark:border-slate-800">
+          {VALID_GAMES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setGameType(t)}
+              className={`px-3 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center space-x-1.5 ${
+                gameType === t
+                  ? 'bg-[#2a2050] text-white shadow-md'
+                  : 'bg-white/80 dark:bg-slate-800 text-[#7e749c] hover:text-[#2a2050] border border-[#ede8f8] dark:border-slate-700'
+              }`}
+            >
+              <span>{t.replace(/_/g, ' ')}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="text-center mb-6">
           <div className={`w-20 h-20 rounded-[26px] bg-gradient-to-tr ${meta.iconGradient} flex items-center justify-center mx-auto mb-3 shadow-[0_8px_20px_rgba(139,127,232,0.25)] p-2`}>
             <GameVisualIcon type={gameType} size="xl" />

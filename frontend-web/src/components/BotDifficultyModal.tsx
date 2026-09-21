@@ -68,6 +68,8 @@ export const BotDifficultyModal: React.FC<BotDifficultyModalProps> = ({ gameType
       case 'MEMORY': return 'Memory Match';
       case 'NUMBER_RUSH': return 'Number Rush';
       case 'WORD_SCRAMBLE': return 'Word Scramble';
+      case 'SHIP_BATTLE': return 'Ship Battle';
+      case 'MASTERMIND': return 'Mastermind';
       default: return t;
     }
   };

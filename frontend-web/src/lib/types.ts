@@ -36,7 +36,16 @@ export type GameType =
   | 'MEMORY'
   | 'NUMBER_RUSH'
   | 'WORD_SCRAMBLE'
-  | 'SHIP_BATTLE';
+  | 'SHIP_BATTLE'
+  | 'MASTERMIND'
+  | 'LUDO'
+  | 'DETECTIVE_MYSTERY'
+  | 'SUDOKU_BATTLE'
+  | 'BATTLE_2048'
+  | 'CHECKERS'
+  | 'CARD_BATTLE'
+  | 'CHESS'
+  | 'PIRATE_BATTLE';
 
 export type RoomStatus = 'WAITING' | 'BOARD_SETUP' | 'READY' | 'PLAYING' | 'FINISHED' | 'CANCELLED';
 

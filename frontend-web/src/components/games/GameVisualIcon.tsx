@@ -279,6 +279,158 @@ export const GameVisualIcon: React.FC<GameVisualIconProps> = ({
     );
   }
 
+  if (type === 'MASTERMIND') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          {/* Mastermind decoder board */}
+          <rect x="8" y="10" width="48" height="44" rx="10" fill="#1e1b4b" stroke="#818cf8" strokeWidth="2.5" />
+          {/* Peg slots & colored pegs */}
+          <circle cx="20" cy="24" r="6" fill="#ef4444" stroke="#fca5a5" strokeWidth="1.5" />
+          <circle cx="32" cy="24" r="6" fill="#3b82f6" stroke="#93c5fd" strokeWidth="1.5" />
+          <circle cx="44" cy="24" r="6" fill="#10b981" stroke="#6ee7b7" strokeWidth="1.5" />
+          {/* Key feedback pegs */}
+          <circle cx="20" cy="40" r="3" fill="#f59e0b" />
+          <circle cx="28" cy="40" r="3" fill="#ffffff" />
+          <circle cx="36" cy="40" r="3" fill="#ef4444" />
+          <circle cx="44" cy="40" r="3" fill="#6366f1" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'LUDO') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          <rect x="8" y="8" width="48" height="48" rx="8" fill="#ffffff" stroke="#e2e8f0" strokeWidth="2" />
+          {/* 4 Quadrants: Red, Green, Yellow, Blue */}
+          <rect x="10" y="10" width="20" height="20" rx="4" fill="#ef4444" />
+          <rect x="34" y="10" width="20" height="20" rx="4" fill="#22c55e" />
+          <rect x="10" y="34" width="20" height="20" rx="4" fill="#3b82f6" />
+          <rect x="34" y="34" width="20" height="20" rx="4" fill="#eab308" />
+          {/* Center dice */}
+          <rect x="25" y="25" width="14" height="14" rx="3" fill="#1e293b" />
+          <circle cx="32" cy="32" r="2" fill="#ffffff" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'DETECTIVE_MYSTERY') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          {/* Magnifying glass & fingerprint */}
+          <circle cx="28" cy="28" r="16" stroke="#ca8a04" strokeWidth="4.5" fill="#fef08a" fillOpacity="0.3" />
+          <line x1="39" y1="39" x2="54" y2="54" stroke="#854d0e" strokeWidth="6" strokeLinecap="round" />
+          <circle cx="28" cy="28" r="8" stroke="#ca8a04" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
+          <circle cx="28" cy="28" r="3" fill="#ca8a04" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'SUDOKU_BATTLE') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          <rect x="8" y="8" width="48" height="48" rx="8" fill="#f8fafc" stroke="#6366f1" strokeWidth="2.5" />
+          <line x1="24" y1="8" x2="24" y2="56" stroke="#6366f1" strokeWidth="2" />
+          <line x1="40" y1="8" x2="40" y2="56" stroke="#6366f1" strokeWidth="2" />
+          <line x1="8" y1="24" x2="56" y2="24" stroke="#6366f1" strokeWidth="2" />
+          <line x1="8" y1="40" x2="56" y2="40" stroke="#6366f1" strokeWidth="2" />
+          <text x="16" y="20" fontSize="10" fontWeight="900" fill="#4f46e5" textAnchor="middle">7</text>
+          <text x="32" y="36" fontSize="11" fontWeight="900" fill="#ec4899" textAnchor="middle">5</text>
+          <text x="48" y="52" fontSize="10" fontWeight="900" fill="#06b6d4" textAnchor="middle">9</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'BATTLE_2048') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          <rect x="8" y="8" width="48" height="48" rx="10" fill="#bbada0" />
+          <rect x="12" y="12" width="18" height="18" rx="4" fill="#eee4da" />
+          <rect x="34" y="12" width="18" height="18" rx="4" fill="#ede0c8" />
+          <rect x="12" y="34" width="18" height="18" rx="4" fill="#f2b179" />
+          <rect x="34" y="34" width="18" height="18" rx="4" fill="#edc22e" />
+          <text x="43" y="47" fontSize="9" fontWeight="900" fill="#ffffff" textAnchor="middle">2048</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'CHECKERS') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          <rect x="8" y="8" width="48" height="48" rx="8" fill="#78350f" stroke="#b45309" strokeWidth="2" />
+          {/* Checkered pattern */}
+          <rect x="8" y="8" width="24" height="24" fill="#fef3c7" />
+          <rect x="32" y="32" width="24" height="24" fill="#fef3c7" />
+          {/* Crown piece */}
+          <circle cx="20" cy="20" r="8" fill="#dc2626" stroke="#fecaca" strokeWidth="1.5" />
+          <circle cx="44" cy="44" r="8" fill="#1e293b" stroke="#94a3b8" strokeWidth="1.5" />
+          <path d="M 17 21 L 18 17 L 20 19 L 22 17 L 23 21 Z" fill="#fbbf24" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'CARD_BATTLE') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          {/* Overlapping duel cards */}
+          <rect x="12" y="14" width="24" height="36" rx="5" fill="#f43f5e" stroke="#ffe4e6" strokeWidth="2" transform="rotate(-10 24 32)" />
+          <rect x="28" y="14" width="24" height="36" rx="5" fill="#0ea5e9" stroke="#e0f2fe" strokeWidth="2" transform="rotate(10 40 32)" />
+          <circle cx="23" cy="30" r="5" fill="#ffffff" />
+          <polygon points="40,25 43,32 37,32" fill="#ffffff" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'CHESS') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          <circle cx="32" cy="32" r="26" fill="#312e81" stroke="#a5b4fc" strokeWidth="2" />
+          {/* Chess Knight / Queen Crown */}
+          <path
+            d="M 32 14 L 35 22 L 43 18 L 40 28 L 48 30 L 42 38 L 44 46 L 32 42 L 20 46 L 22 38 L 16 30 L 24 28 L 21 18 L 29 22 Z"
+            fill="#facc15"
+            stroke="#eab308"
+            strokeWidth="1.5"
+          />
+          <circle cx="32" cy="28" r="3" fill="#ffffff" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === 'PIRATE_BATTLE') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          {/* Pirate skull & crossed cutlasses */}
+          <circle cx="32" cy="30" r="24" fill="#0f172a" stroke="#f59e0b" strokeWidth="2" />
+          {/* Crossed swords */}
+          <line x1="16" y1="46" x2="48" y2="18" stroke="#cbd5e1" strokeWidth="3" strokeLinecap="round" />
+          <line x1="16" y1="18" x2="48" y2="46" stroke="#cbd5e1" strokeWidth="3" strokeLinecap="round" />
+          {/* Skull */}
+          <circle cx="32" cy="28" r="10" fill="#f8fafc" />
+          <circle cx="28" cy="27" r="2.5" fill="#0f172a" />
+          <circle cx="36" cy="27" r="2.5" fill="#0f172a" />
+          <rect x="29" y="34" width="6" height="5" rx="1" fill="#f8fafc" />
+        </svg>
+      </div>
+    );
+  }
+
   // Default: BINGO
   return (
     <div className={`relative flex items-center justify-center ${dim} ${className}`}>
