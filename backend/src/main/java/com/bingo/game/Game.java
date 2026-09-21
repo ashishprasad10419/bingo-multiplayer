@@ -127,6 +127,20 @@ public class Game {
     @Builder.Default
     private java.util.Map<String, Integer> quizAnswers = new java.util.HashMap<>(); // userId -> selected option index
 
+    // --- Ship Battle State ---
+    @Builder.Default
+    private String shipPhase = "SETUP"; // "SETUP" or "BATTLE"
+    @Builder.Default
+    private java.util.Map<String, List<com.bingo.game.engine.ShipBattleEngine.ShipPlacement>> shipFleets = new java.util.HashMap<>();
+    @Builder.Default
+    private java.util.Map<String, Boolean> shipFleetsLocked = new java.util.HashMap<>();
+    @Builder.Default
+    private java.util.Map<String, List<com.bingo.game.engine.ShipBattleEngine.ShipAttack>> shipAttacks = new java.util.HashMap<>();
+    @Builder.Default
+    private java.util.Map<String, List<String>> shipSunkTypes = new java.util.HashMap<>();
+    @Builder.Default
+    private java.util.Map<String, Object> shipLastAttackResult = new java.util.HashMap<>();
+
     @Indexed
     @Builder.Default
     private GameStatus status = GameStatus.PLAYING;

@@ -25,6 +25,7 @@ public class GameService {
     private final com.bingo.game.engine.NumberRushEngine numberRushEngine;
     private final com.bingo.game.engine.WordScrambleEngine wordScrambleEngine;
     private final com.bingo.game.engine.QuizBattleEngine quizBattleEngine;
+    private final com.bingo.game.engine.ShipBattleEngine shipBattleEngine;
     private final TurnService turnService;
     private final WinnerService winnerService;
     private final GameEventService gameEventService;
@@ -161,7 +162,7 @@ public class GameService {
                 ));
             }
         }
-        return game;
+        return sanitizeGameForPlayer(game, userId);
     }
 
     public Game handlePlayerReconnect(String gameId, String userId) {
@@ -175,7 +176,7 @@ public class GameService {
                     "userId", userId
             ));
         }
-        return game;
+        return sanitizeGameForPlayer(game, userId);
     }
 
     public void handlePlayerDisconnect(String gameId, String userId) {
@@ -795,5 +796,252 @@ public class GameService {
         }
 
         return game;
+    }
+
+    public Game sanitizeGameForPlayer(Game game, String userId) {
+        if (game == null) return null;
+        if (game.getGameType() != GameType.SHIP_BATTLE) {
+            return game;
+        }
+        if (game.getStatus() == GameStatus.FINISHED) {
+            // Match finished: reveal all ship positions
+            return game;
+        }
+
+        // Mask opponent's fleet coordinates during active setup and battle
+        Map<String, List<com.bingo.game.engine.ShipBattleEngine.ShipPlacement>> sanitizedFleets = new HashMap<>();
+        if (game.getShipFleets() != null && userId != null && game.getShipFleets().containsKey(userId)) {
+            sanitizedFleets.put(userId, game.getShipFleets().get(userId));
+        }
+
+        return Game.builder()
+                .id(game.getId())
+                .roomCode(game.getRoomCode())
+                .gameType(game.getGameType())
+                .boardSize(game.getBoardSize())
+                .winningLines(game.getWinningLines())
+                .bingoMode(game.getBingoMode())
+                .status(game.getStatus())
+                .players(game.getPlayers())
+                .currentTurnUserId(game.getCurrentTurnUserId())
+                .currentPlayerIndex(game.getCurrentPlayerIndex())
+                .moveNumber(game.getMoveNumber())
+                .version(game.getVersion())
+                .processedMoveIds(game.getProcessedMoveIds())
+                .winnerId(game.getWinnerId())
+                .startedAt(game.getStartedAt())
+                .finishedAt(game.getFinishedAt())
+                .shipPhase(game.getShipPhase())
+                .shipFleets(sanitizedFleets)
+                .shipFleetsLocked(game.getShipFleetsLocked())
+                .shipAttacks(game.getShipAttacks())
+                .shipSunkTypes(game.getShipSunkTypes())
+                .shipLastAttackResult(game.getShipLastAttackResult())
+                .build();
+    }
+
+    public synchronized Game processShipLockFleet(String senderUserId, String gameId, List<com.bingo.game.engine.ShipBattleEngine.ShipPlacement> fleet, String clientMoveId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found: " + gameId));
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate ship lock fleet ignored for clientMoveId: {}", clientMoveId);
+                return sanitizeGameForPlayer(game, senderUserId);
+            }
+        }
+
+        if (game.getStatus() != GameStatus.PLAYING) {
+            throw new IllegalStateException("Game is not in PLAYING state (current: " + game.getStatus() + ")");
+        }
+
+        GamePlayer player = game.findPlayer(senderUserId);
+        if (player == null) {
+            throw new IllegalArgumentException("Player not in this game: " + senderUserId);
+        }
+
+        if (!"SETUP".equalsIgnoreCase(game.getShipPhase())) {
+            throw new IllegalStateException("Fleet setup is already complete");
+        }
+
+        if (Boolean.TRUE.equals(game.getShipFleetsLocked().get(senderUserId))) {
+            throw new IllegalStateException("Fleet is already locked and cannot be modified");
+        }
+
+        // Validate complete fleet placement
+        shipBattleEngine.validateFleet(fleet);
+
+        if (game.getShipFleets() == null) {
+            game.setShipFleets(new HashMap<>());
+        }
+        if (game.getShipFleetsLocked() == null) {
+            game.setShipFleetsLocked(new HashMap<>());
+        }
+
+        game.getShipFleets().put(senderUserId, fleet);
+        game.getShipFleetsLocked().put(senderUserId, true);
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
+        Map<String, Boolean> lockedMap = game.getShipFleetsLocked();
+        boolean allLocked = game.getPlayers().size() >= 2;
+        for (GamePlayer p : game.getPlayers()) {
+            if (!Boolean.TRUE.equals(lockedMap.get(p.getUserId()))) {
+                allLocked = false;
+                break;
+            }
+        }
+
+        if (allLocked) {
+            game.setShipPhase("BATTLE");
+            game.setCurrentPlayerIndex(0);
+            game.setCurrentTurnUserId(game.getPlayers().get(0).getUserId());
+            game.setVersion(game.getVersion() + 1);
+            game = gameRepository.save(game);
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "SHIP_BATTLE_STARTED", Map.of(
+                    "gameId", game.getId(),
+                    "shipPhase", "BATTLE",
+                    "currentTurnUserId", game.getCurrentTurnUserId(),
+                    "version", game.getVersion()
+            ));
+        } else {
+            game.setVersion(game.getVersion() + 1);
+            game = gameRepository.save(game);
+
+            // Notify room that player has locked their fleet (never leak fleet coordinates!)
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "SHIP_FLEET_LOCKED", Map.of(
+                    "gameId", game.getId(),
+                    "userId", senderUserId,
+                    "locked", true,
+                    "version", game.getVersion()
+            ));
+        }
+
+        return sanitizeGameForPlayer(game, senderUserId);
+    }
+
+    public synchronized Game processShipAttack(String senderUserId, String gameId, int row, int col, String clientMoveId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found: " + gameId));
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate ship attack ignored for clientMoveId: {}", clientMoveId);
+                return sanitizeGameForPlayer(game, senderUserId);
+            }
+        }
+
+        if (game.getStatus() != GameStatus.PLAYING) {
+            throw new IllegalStateException("Game is not in PLAYING state (current: " + game.getStatus() + ")");
+        }
+
+        if (!"BATTLE".equalsIgnoreCase(game.getShipPhase())) {
+            throw new IllegalStateException("Game is not in BATTLE phase (current: " + game.getShipPhase() + ")");
+        }
+
+        GamePlayer attacker = game.findPlayer(senderUserId);
+        if (attacker == null) {
+            throw new IllegalArgumentException("Player not in this game: " + senderUserId);
+        }
+
+        if (!senderUserId.equals(game.getCurrentTurnUserId())) {
+            throw new IllegalStateException("Not your turn! Current turn belongs to: " + game.getCurrentTurnUserId());
+        }
+
+        GamePlayer defender = game.getPlayers().stream()
+                .filter(p -> !p.getUserId().equals(senderUserId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No opponent player found"));
+
+        List<com.bingo.game.engine.ShipBattleEngine.ShipPlacement> defenderFleet = game.getShipFleets().get(defender.getUserId());
+        if (defenderFleet == null || defenderFleet.isEmpty()) {
+            throw new IllegalStateException("Defender fleet has not been placed");
+        }
+
+        if (game.getShipAttacks() == null) {
+            game.setShipAttacks(new HashMap<>());
+        }
+        List<com.bingo.game.engine.ShipBattleEngine.ShipAttack> attackerAttacks =
+                game.getShipAttacks().computeIfAbsent(senderUserId, k -> new ArrayList<>());
+
+        // Process attack
+        com.bingo.game.engine.ShipBattleEngine.AttackOutcome outcome =
+                shipBattleEngine.processAttack(defenderFleet, attackerAttacks, row, col);
+
+        com.bingo.game.engine.ShipBattleEngine.ShipAttack newAttack = com.bingo.game.engine.ShipBattleEngine.ShipAttack.builder()
+                .attackerUserId(senderUserId)
+                .row(row)
+                .col(col)
+                .result(outcome.getResult())
+                .sunkShipType(outcome.getSunkShipType())
+                .timestamp(System.currentTimeMillis())
+                .build();
+        attackerAttacks.add(newAttack);
+
+        if (outcome.getResult() == com.bingo.game.engine.ShipBattleEngine.AttackResultType.SUNK && outcome.getSunkShipType() != null) {
+            if (game.getShipSunkTypes() == null) {
+                game.setShipSunkTypes(new HashMap<>());
+            }
+            List<String> sunkList = game.getShipSunkTypes().computeIfAbsent(defender.getUserId(), k -> new ArrayList<>());
+            if (!sunkList.contains(outcome.getSunkShipType())) {
+                sunkList.add(outcome.getSunkShipType());
+            }
+        }
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
+        Map<String, Object> attackDetails = new HashMap<>();
+        attackDetails.put("attackerUserId", senderUserId);
+        attackDetails.put("defenderUserId", defender.getUserId());
+        attackDetails.put("row", row);
+        attackDetails.put("col", col);
+        attackDetails.put("result", outcome.getResult().name());
+        attackDetails.put("sunkShipType", outcome.getSunkShipType() != null ? outcome.getSunkShipType() : "");
+        game.setShipLastAttackResult(attackDetails);
+
+        if (outcome.isAllShipsSunk()) {
+            // Victory condition: All segments of defender's fleet sunk! Authoritative win
+            winnerService.handleGameFinished(game, attacker);
+            game = gameRepository.save(game);
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "SHIP_ATTACK_RESULT", Map.of(
+                    "gameId", game.getId(),
+                    "attackerUserId", senderUserId,
+                    "defenderUserId", defender.getUserId(),
+                    "row", row,
+                    "col", col,
+                    "result", outcome.getResult().name(),
+                    "sunkShipType", outcome.getSunkShipType() != null ? outcome.getSunkShipType() : "",
+                    "nextTurnUserId", "",
+                    "allShipsSunk", true,
+                    "version", game.getVersion()
+            ));
+        } else {
+            // Alternating turn
+            game.setCurrentTurnUserId(defender.getUserId());
+            game = gameRepository.save(game);
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "SHIP_ATTACK_RESULT", Map.of(
+                    "gameId", game.getId(),
+                    "attackerUserId", senderUserId,
+                    "defenderUserId", defender.getUserId(),
+                    "row", row,
+                    "col", col,
+                    "result", outcome.getResult().name(),
+                    "sunkShipType", outcome.getSunkShipType() != null ? outcome.getSunkShipType() : "",
+                    "nextTurnUserId", defender.getUserId(),
+                    "allShipsSunk", false,
+                    "version", game.getVersion()
+            ));
+        }
+
+        return sanitizeGameForPlayer(game, senderUserId);
     }
 }

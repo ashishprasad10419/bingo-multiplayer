@@ -23,8 +23,11 @@ import { RockPaperScissorsArena } from '../components/games/RockPaperScissorsAre
 import { MemoryArena } from '../components/games/MemoryArena';
 import { NumberRushArena } from '../components/games/NumberRushArena';
 import { WordScrambleArena } from '../components/games/WordScrambleArena';
+import { ShipBattleArena } from '../components/games/ShipBattleArena';
 import { BoardGrid } from '../components/BoardGrid';
 import { CalledNumbersTicker } from '../components/CalledNumbersTicker';
+import { getShipBattleBotDelay, chooseShipBattleTarget } from '../lib/bot/botEngine';
+import { ShipPlacement } from '../lib/types';
 import { ArrowLeft, RotateCcw, WifiOff } from 'lucide-react';
 
 export const BotGame: React.FC = () => {
@@ -929,6 +932,166 @@ export const BotGame: React.FC = () => {
     calledByMap[m.number] = m.calledByUserId;
   });
 
+  // --- SHIP BATTLE OFFLINE ---
+  const handleShipLockFleet = (fleet: ShipPlacement[]) => {
+    soundService.playCountdownGo();
+    setGame((prev) => ({
+      ...prev,
+      shipPhase: 'BATTLE',
+      shipFleets: {
+        ...(prev.shipFleets || {}),
+        [playerId]: fleet,
+      },
+      shipFleetsLocked: {
+        ...(prev.shipFleetsLocked || {}),
+        [playerId]: true,
+      },
+      currentTurnUserId: playerId,
+    }));
+  };
+
+  const handleShipAttack = (r: number, c: number) => {
+    if (game.status !== 'PLAYING' || game.shipPhase !== 'BATTLE' || game.currentTurnUserId !== playerId) return;
+
+    const botFleet = game.shipFleets?.[botId] || [];
+    const myAttacks = [...(game.shipAttacks?.[playerId] || [])];
+
+    // Check hit against bot fleet
+    let hitShip: ShipPlacement | null = null;
+    for (const ship of botFleet) {
+      for (const cell of ship.cells) {
+        if (cell.row === r && cell.col === c) {
+          hitShip = ship;
+          break;
+        }
+      }
+      if (hitShip) break;
+    }
+
+    const isHit = !!hitShip;
+    let isSunk = false;
+    let sunkType: string | undefined;
+
+    if (isHit && hitShip) {
+      const allHits = new Set(myAttacks.filter((a) => a.result === 'HIT' || a.result === 'SUNK').map((a) => `${a.row}-${a.col}`));
+      allHits.add(`${r}-${c}`);
+      isSunk = hitShip.cells.every((sc) => allHits.has(`${sc.row}-${sc.col}`));
+      if (isSunk) sunkType = hitShip.shipType;
+    }
+
+    const result = isSunk ? 'SUNK' : isHit ? 'HIT' : 'MISS';
+    myAttacks.push({
+      attackerUserId: playerId,
+      row: r,
+      col: c,
+      result,
+      sunkShipType: sunkType,
+      timestamp: Date.now(),
+    });
+
+    const botSunkList = [...(game.shipSunkTypes?.[botId] || [])];
+    if (isSunk && sunkType && !botSunkList.includes(sunkType)) {
+      botSunkList.push(sunkType);
+    }
+
+    const allBotShipsSunk = botSunkList.length >= 5;
+
+    if (allBotShipsSunk) {
+      soundService.playWinFanfare();
+      setGame((prev) => ({
+        ...prev,
+        status: 'FINISHED',
+        winnerId: playerId,
+        shipAttacks: { ...(prev.shipAttacks || {}), [playerId]: myAttacks },
+        shipSunkTypes: { ...(prev.shipSunkTypes || {}), [botId]: botSunkList },
+        shipLastAttackResult: { attackerUserId: playerId, defenderUserId: botId, row: r, col: c, result, sunkShipType: sunkType },
+      }));
+      setShowResultModal(true);
+      return;
+    }
+
+    // Switch turn to bot
+    setGame((prev) => ({
+      ...prev,
+      shipAttacks: { ...(prev.shipAttacks || {}), [playerId]: myAttacks },
+      shipSunkTypes: { ...(prev.shipSunkTypes || {}), [botId]: botSunkList },
+      shipLastAttackResult: { attackerUserId: playerId, defenderUserId: botId, row: r, col: c, result, sunkShipType: sunkType },
+      currentTurnUserId: botId,
+    }));
+    setIsBotThinking(true);
+
+    const delay = getShipBattleBotDelay(difficulty);
+    setTimeout(() => {
+      setGame((current) => {
+        if (current.status !== 'PLAYING') return current;
+        const botAttacks = [...(current.shipAttacks?.[botId] || [])];
+        const target = chooseShipBattleTarget(botAttacks, difficulty);
+
+        const playerFleet = current.shipFleets?.[playerId] || [];
+        let botHitShip: ShipPlacement | null = null;
+        for (const ship of playerFleet) {
+          for (const cell of ship.cells) {
+            if (cell.row === target.row && cell.col === target.col) {
+              botHitShip = ship;
+              break;
+            }
+          }
+          if (botHitShip) break;
+        }
+
+        const botIsHit = !!botHitShip;
+        let botIsSunk = false;
+        let botSunkType: string | undefined;
+
+        if (botIsHit && botHitShip) {
+          const allHits = new Set(botAttacks.filter((a) => a.result === 'HIT' || a.result === 'SUNK').map((a) => `${a.row}-${a.col}`));
+          allHits.add(`${target.row}-${target.col}`);
+          botIsSunk = botHitShip.cells.every((sc) => allHits.has(`${sc.row}-${sc.col}`));
+          if (botIsSunk) botSunkType = botHitShip.shipType;
+        }
+
+        const botResult = botIsSunk ? 'SUNK' : botIsHit ? 'HIT' : 'MISS';
+        botAttacks.push({
+          attackerUserId: botId,
+          row: target.row,
+          col: target.col,
+          result: botResult,
+          sunkShipType: botSunkType,
+          timestamp: Date.now(),
+        });
+
+        const playerSunkList = [...(current.shipSunkTypes?.[playerId] || [])];
+        if (botIsSunk && botSunkType && !playerSunkList.includes(botSunkType)) {
+          playerSunkList.push(botSunkType);
+        }
+
+        const allPlayerShipsSunk = playerSunkList.length >= 5;
+        setIsBotThinking(false);
+
+        if (allPlayerShipsSunk) {
+          soundService.playLineComplete();
+          setShowResultModal(true);
+          return {
+            ...current,
+            status: 'FINISHED',
+            winnerId: botId,
+            shipAttacks: { ...(current.shipAttacks || {}), [botId]: botAttacks },
+            shipSunkTypes: { ...(current.shipSunkTypes || {}), [playerId]: playerSunkList },
+            shipLastAttackResult: { attackerUserId: botId, defenderUserId: playerId, row: target.row, col: target.col, result: botResult, sunkShipType: botSunkType },
+          };
+        }
+
+        return {
+          ...current,
+          currentTurnUserId: playerId,
+          shipAttacks: { ...(current.shipAttacks || {}), [botId]: botAttacks },
+          shipSunkTypes: { ...(current.shipSunkTypes || {}), [playerId]: playerSunkList },
+          shipLastAttackResult: { attackerUserId: botId, defenderUserId: playerId, row: target.row, col: target.col, result: botResult, sunkShipType: botSunkType },
+        };
+      });
+    }, delay);
+  };
+
   const isPlayerWinner = game.winnerId === playerId;
   const isBotWinner = game.winnerId === botId;
 
@@ -1056,6 +1219,17 @@ export const BotGame: React.FC = () => {
             game={game}
             currentUserId={playerId}
             onSubmitGuess={handleWordScrambleGuess}
+            disabled={game.status !== 'PLAYING'}
+          />
+        )}
+
+        {game.gameType === 'SHIP_BATTLE' && (
+          <ShipBattleArena
+            game={game}
+            currentUserId={playerId}
+            onLockFleet={handleShipLockFleet}
+            onAttack={handleShipAttack}
+            isMyTurn={isMyTurn}
             disabled={game.status !== 'PLAYING'}
           />
         )}

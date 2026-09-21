@@ -128,6 +128,26 @@ public class GameController {
         return ResponseEntity.ok(gameService.processQuizAnswer(userId, id, request.getAnswerIndex(), request.getClientMoveId()));
     }
 
+    @PostMapping("/games/{id}/ship/lock-fleet")
+    @Operation(summary = "Lock fleet placement in Ship Battle (REST fallback)")
+    public ResponseEntity<Game> lockShipFleet(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.ShipLockFleetRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processShipLockFleet(userId, id, request.getFleet(), request.getClientMoveId()));
+    }
+
+    @PostMapping("/games/{id}/ship/attack")
+    @Operation(summary = "Fire attack against opponent board in Ship Battle (REST fallback)")
+    public ResponseEntity<Game> makeShipAttack(
+            @PathVariable String id,
+            @RequestBody com.bingo.game.dto.GenericMoveRequest request,
+            @AuthenticationPrincipal String userId
+    ) {
+        return ResponseEntity.ok(gameService.processShipAttack(userId, id, request.getRow(), request.getCol(), request.getClientMoveId()));
+    }
+
     @PostMapping("/games/{id}/emote")
     @Operation(summary = "Send an in-game reaction emote (REST fallback)")
     public ResponseEntity<Void> sendEmote(

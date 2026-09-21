@@ -218,6 +218,67 @@ export const GameVisualIcon: React.FC<GameVisualIconProps> = ({
     );
   }
 
+  if (type === 'SHIP_BATTLE') {
+    return (
+      <div className={`relative flex items-center justify-center ${dim} ${className}`}>
+        <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-md">
+          <defs>
+            <linearGradient id="ship-hull" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#38bdf8" />
+              <stop offset="50%" stopColor="#0284c7" />
+              <stop offset="100%" stopColor="#0f172a" />
+            </linearGradient>
+            <linearGradient id="ocean-wave" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#0284c7" />
+              <stop offset="50%" stopColor="#38bdf8" />
+              <stop offset="100%" stopColor="#0369a1" />
+            </linearGradient>
+            <linearGradient id="cannon-blast" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#fde047" />
+              <stop offset="100%" stopColor="#f97316" />
+            </linearGradient>
+          </defs>
+
+          {/* Radar circle background */}
+          <circle cx="32" cy="32" r="26" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.35" />
+          <circle cx="32" cy="32" r="16" stroke="#38bdf8" strokeWidth="1" strokeDasharray="2 2" opacity="0.25" />
+          <line x1="32" y1="6" x2="32" y2="58" stroke="#38bdf8" strokeWidth="1" opacity="0.2" />
+          <line x1="6" y1="32" x2="58" y2="32" stroke="#38bdf8" strokeWidth="1" opacity="0.2" />
+
+          {/* Ocean waves */}
+          <path
+            d="M 6 48 Q 16 44 26 48 T 46 48 T 60 48 L 60 56 L 6 56 Z"
+            fill="url(#ocean-wave)"
+            opacity="0.8"
+          />
+
+          {/* Warship Hull */}
+          <path
+            d="M 8 44 L 14 36 L 50 36 L 56 44 Z"
+            fill="url(#ship-hull)"
+            filter="drop-shadow(0 2px 3px rgba(0,0,0,0.3))"
+          />
+          {/* Hull Highlight */}
+          <line x1="15" y1="38" x2="49" y2="38" stroke="#7dd3fc" strokeWidth="1" opacity="0.6" strokeLinecap="round" />
+
+          {/* Bridge & Cabin */}
+          <rect x="24" y="26" width="16" height="10" rx="2" fill="#0369a1" />
+          <rect x="28" y="20" width="8" height="6" rx="1.5" fill="#0284c7" />
+          {/* Radar mast */}
+          <line x1="32" y1="20" x2="32" y2="13" stroke="#f8fafc" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="32" cy="13" r="2" fill="#fde047" />
+
+          {/* Gun Turret & Cannon */}
+          <rect x="42" y="32" width="7" height="4" rx="1" fill="#0f172a" />
+          <line x1="47" y1="33" x2="57" y2="30" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" />
+          {/* Cannon Muzzle Flash */}
+          <circle cx="58" cy="29" r="3.5" fill="url(#cannon-blast)" className="animate-pulse" />
+          <circle cx="58" cy="29" r="1.5" fill="#ffffff" />
+        </svg>
+      </div>
+    );
+  }
+
   // Default: BINGO
   return (
     <div className={`relative flex items-center justify-center ${dim} ${className}`}>

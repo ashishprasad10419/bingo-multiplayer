@@ -172,6 +172,14 @@ export const gameApi = {
     const res = await apiClient.post<Game>(`/games/${gameId}/quiz/answer`, { gameId, answerIndex, clientMoveId });
     return res.data;
   },
+  lockShipFleet: async (gameId: string, fleet: any[], clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/ship/lock-fleet`, { gameId, fleet, clientMoveId });
+    return res.data;
+  },
+  makeShipAttack: async (gameId: string, row: number, col: number, clientMoveId?: string): Promise<Game> => {
+    const res = await apiClient.post<Game>(`/games/${gameId}/ship/attack`, { gameId, row, col, clientMoveId });
+    return res.data;
+  },
   sendEmote: async (gameId: string, emote: string): Promise<void> => {
     await apiClient.post(`/games/${gameId}/emote?emote=${encodeURIComponent(emote)}`);
   },

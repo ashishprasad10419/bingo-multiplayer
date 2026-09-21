@@ -165,4 +165,24 @@ public class GameWebSocketController {
             log.warn("Quiz answer error: {}", ex.getMessage());
         }
     }
+
+    @MessageMapping("/game/ship/lock-fleet")
+    public void handleShipLockFleet(@Payload com.bingo.game.dto.ShipLockFleetRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processShipLockFleet(principal.getName(), request.getGameId(), request.getFleet(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("Ship lock fleet error: {}", ex.getMessage());
+        }
+    }
+
+    @MessageMapping("/game/ship/attack")
+    public void handleShipAttack(@Payload com.bingo.game.dto.GenericMoveRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processShipAttack(principal.getName(), request.getGameId(), request.getRow(), request.getCol(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("Ship attack error: {}", ex.getMessage());
+        }
+    }
 }

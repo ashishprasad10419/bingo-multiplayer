@@ -172,6 +172,14 @@ export const Lobby: React.FC = () => {
           rule: '5 Word Rounds',
           readyDesc: 'Race to solve scrambled anagrams. First correct guess claims the round!',
         };
+      case 'SHIP_BATTLE':
+        return {
+          icon: '⚓',
+          readyTitle: 'Ship Battle Ready',
+          gameName: 'Ship Battle',
+          rule: '10x10 Fleet Duel',
+          readyDesc: '1v1 naval warfare. Enter combat arena to deploy and sink enemy ships!',
+        };
       case 'BINGO':
       default:
         return {

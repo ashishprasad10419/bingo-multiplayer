@@ -257,6 +257,34 @@ class SocketService {
     }
   }
 
+  public sendShipLockFleet(gameId: string, fleet: any[], clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/ship/lock-fleet',
+        body: JSON.stringify({ gameId, fleet, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendShipLockFleet failed:', e);
+      return false;
+    }
+  }
+
+  public sendShipAttack(gameId: string, row: number, col: number, clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/ship/attack',
+        body: JSON.stringify({ gameId, row, col, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendShipAttack failed:', e);
+      return false;
+    }
+  }
+
   public sendEmote(gameId: string, roomCode: string, emote: string): boolean {
     if (!this.client || !this.client.connected) {
       return false;

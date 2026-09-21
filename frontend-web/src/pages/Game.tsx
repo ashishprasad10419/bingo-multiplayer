@@ -18,6 +18,7 @@ import { RockPaperScissorsArena } from '../components/games/RockPaperScissorsAre
 import { MemoryArena } from '../components/games/MemoryArena';
 import { NumberRushArena } from '../components/games/NumberRushArena';
 import { WordScrambleArena } from '../components/games/WordScrambleArena';
+import { ShipBattleArena } from '../components/games/ShipBattleArena';
 import { ConnectionStatusPill } from '../components/ConnectionStatusPill';
 import { CountdownOverlay } from '../components/CountdownOverlay';
 import { LastCalledCallout } from '../components/LastCalledCallout';
@@ -57,6 +58,7 @@ export const Game: React.FC = () => {
   const isMemory = game?.gameType === 'MEMORY';
   const isNumberRush = game?.gameType === 'NUMBER_RUSH';
   const isWordScramble = game?.gameType === 'WORD_SCRAMBLE';
+  const isShipBattle = game?.gameType === 'SHIP_BATTLE';
 
   // Audio Cue: Alert player when it becomes their turn
   useEffect(() => {
@@ -412,6 +414,43 @@ export const Game: React.FC = () => {
     }
   };
 
+  // --- SHIP BATTLE Move Handlers ---
+  const handleShipLockFleet = async (fleet: any[], clientMoveId: string) => {
+    if (!game) return;
+    setError(null);
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendShipLockFleet(game.id, fleet, clientMoveId);
+    } catch (_) {
+      socketSent = false;
+    }
+    if (!socketSent) {
+      try {
+        await gameApi.lockShipFleet(game.id, fleet, clientMoveId);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to lock fleet');
+      }
+    }
+  };
+
+  const handleShipAttack = async (row: number, col: number, clientMoveId: string) => {
+    if (!game) return;
+    setError(null);
+    let socketSent = false;
+    try {
+      socketSent = socketService.sendShipAttack(game.id, row, col, clientMoveId);
+    } catch (_) {
+      socketSent = false;
+    }
+    if (!socketSent) {
+      try {
+        await gameApi.makeShipAttack(game.id, row, col, clientMoveId);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to attack coordinate');
+      }
+    }
+  };
+
   const theme = getGameTheme(game?.gameType);
 
   const getGameTitle = () => {
@@ -422,6 +461,7 @@ export const Game: React.FC = () => {
     if (isMemory) return 'Memory Match';
     if (isNumberRush) return 'Number Rush';
     if (isWordScramble) return 'Word Scramble';
+    if (isShipBattle) return 'Ship Battle';
     return 'Bingo';
   };
 
@@ -663,6 +703,19 @@ export const Game: React.FC = () => {
             </div>
           )}
 
+          {isShipBattle && (
+            <div className="w-full flex justify-center">
+              <ShipBattleArena
+                game={game}
+                currentUserId={user.id}
+                onLockFleet={handleShipLockFleet}
+                onAttack={handleShipAttack}
+                isMyTurn={isMyTurn}
+                disabled={game.status !== 'PLAYING'}
+              />
+            </div>
+          )}
+
           {/* In-Game Emote Reactions Bar */}
           <div className="w-full pt-1 flex justify-center">
             <EmoteBar gameId={game.id} roomCode={game.roomCode} />
@@ -722,6 +775,11 @@ export const Game: React.FC = () => {
             {isWordScramble && (
               <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
                 Solve the anagram from the jumbled letters and hint. First player to submit the correct word scores 100 points. Highest score after 5 rounds wins!
+              </p>
+            )}
+            {isShipBattle && (
+              <p className="text-[11px] leading-relaxed text-[#7e749c] font-medium">
+                Secretly deploy your 5 warships on your 10x10 ocean grid. Take turns launching missile strikes at enemy radar coordinates. Sink all 5 enemy ships before they destroy yours to win the naval battle!
               </p>
             )}
           </div>

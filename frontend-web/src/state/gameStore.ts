@@ -523,6 +523,66 @@ export const useGameStore = create<GameState>((set, get) => ({
           }
           break;
 
+        case 'SHIP_FLEET_LOCKED':
+          if (game) {
+            const lockedMap = { ...(game.shipFleetsLocked || {}) };
+            lockedMap[event.data.userId] = true;
+            set({
+              game: {
+                ...game,
+                shipFleetsLocked: lockedMap,
+              },
+            });
+          }
+          break;
+
+        case 'SHIP_BATTLE_STARTED':
+          if (game) {
+            set({
+              game: {
+                ...game,
+                shipPhase: 'BATTLE',
+                currentTurnUserId: event.data.currentTurnUserId || game.currentTurnUserId,
+              },
+            });
+          }
+          break;
+
+        case 'SHIP_ATTACK_RESULT':
+          if (game) {
+            const attacksMap = { ...(game.shipAttacks || {}) };
+            const attackerList = [...(attacksMap[event.data.attackerUserId] || [])];
+            attackerList.push({
+              attackerUserId: event.data.attackerUserId,
+              row: event.data.row,
+              col: event.data.col,
+              result: event.data.result,
+              sunkShipType: event.data.sunkShipType,
+              timestamp: Date.now(),
+            });
+            attacksMap[event.data.attackerUserId] = attackerList;
+
+            const sunkMap = { ...(game.shipSunkTypes || {}) };
+            if (event.data.sunkShipType) {
+              const defSunk = [...(sunkMap[event.data.defenderUserId] || [])];
+              if (!defSunk.includes(event.data.sunkShipType)) {
+                defSunk.push(event.data.sunkShipType);
+              }
+              sunkMap[event.data.defenderUserId] = defSunk;
+            }
+
+            set({
+              game: {
+                ...game,
+                shipAttacks: attacksMap,
+                shipSunkTypes: sunkMap,
+                currentTurnUserId: event.data.nextTurnUserId || game.currentTurnUserId,
+                shipLastAttackResult: event.data,
+              },
+            });
+          }
+          break;
+
         case 'EMOTE_SENT':
           if (event.data?.emote) {
             const emoteItem: ActiveEmote = {

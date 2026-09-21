@@ -28,6 +28,7 @@ public class RoomService {
     private final GameRepository gameRepository;
     private final GameEventService gameEventService;
     private final BoardService boardService;
+    private final com.bingo.game.WinnerService winnerService;
     private final com.bingo.game.engine.MemoryEngine memoryEngine;
     private final com.bingo.game.engine.NumberRushEngine numberRushEngine;
     private final com.bingo.game.engine.WordScrambleEngine wordScrambleEngine;
@@ -68,7 +69,10 @@ public class RoomService {
         } else if (gameType == com.bingo.game.GameType.DOTS_AND_BOXES) {
             maxPlayers = (request.getMaxPlayers() != null && request.getMaxPlayers() >= 2 && request.getMaxPlayers() <= 4) ? request.getMaxPlayers() : 4;
             boardSize = (request.getGridSize() != null && request.getGridSize() >= 3 && request.getGridSize() <= 5) ? request.getGridSize() : 4;
-            winningLines = (boardSize - 1) * (boardSize - 1); // total boxes to claim
+        } else if (gameType == com.bingo.game.GameType.SHIP_BATTLE) {
+            maxPlayers = 2;
+            boardSize = 10;
+            winningLines = 5;
         } else {
             // BINGO
             String bingoMode = request.getBingoMode() != null ? request.getBingoMode().toUpperCase() : "CLASSIC";
@@ -182,8 +186,25 @@ public class RoomService {
         if (room.getPlayers().isEmpty()) {
             room.setStatus(RoomStatus.CANCELLED);
             roomRepository.save(room);
+            gameRepository.findByRoomCodeAndStatus(roomCode, com.bingo.game.GameStatus.PLAYING).ifPresent(game -> {
+                game.setStatus(com.bingo.game.GameStatus.ABANDONED);
+                gameRepository.save(game);
+            });
             return;
         }
+
+        // Check if game is currently in progress: remaining player wins by forfeit
+        gameRepository.findByRoomCodeAndStatus(roomCode, com.bingo.game.GameStatus.PLAYING).ifPresent(game -> {
+            if (room.getPlayers().size() == 1) {
+                RoomPlayer remaining = room.getPlayers().get(0);
+                com.bingo.game.GamePlayer winner = game.findPlayer(remaining.getUserId());
+                if (winner != null) {
+                    log.info("Player {} forfeited room {}. Winner: {}", userId, roomCode, winner.getUsername());
+                    winnerService.handleGameFinished(game, winner);
+                    gameRepository.save(game);
+                }
+            }
+        });
 
         // Host transfer logic if host leaves
         if (room.getHostId().equals(userId)) {
@@ -360,6 +381,22 @@ public class RoomService {
                 initialScores.put(gp.getUserId(), 0);
             }
             gameBuilder.playerScores(initialScores);
+        } else if (room.getGameType() == com.bingo.game.GameType.SHIP_BATTLE) {
+            gameBuilder.boardSize(10);
+            gameBuilder.shipPhase("SETUP");
+            gameBuilder.shipFleets(new HashMap<>());
+            Map<String, Boolean> lockedMap = new HashMap<>();
+            Map<String, List<com.bingo.game.engine.ShipBattleEngine.ShipAttack>> attacksMap = new HashMap<>();
+            Map<String, List<String>> sunkMap = new HashMap<>();
+            for (GamePlayer gp : gamePlayers) {
+                lockedMap.put(gp.getUserId(), false);
+                attacksMap.put(gp.getUserId(), new ArrayList<>());
+                sunkMap.put(gp.getUserId(), new ArrayList<>());
+            }
+            gameBuilder.shipFleetsLocked(lockedMap);
+            gameBuilder.shipAttacks(attacksMap);
+            gameBuilder.shipSunkTypes(sunkMap);
+            gameBuilder.shipLastAttackResult(new HashMap<>());
         } else {
             gameBuilder.calledNumbers(new ArrayList<>());
         }
@@ -465,6 +502,10 @@ public class RoomService {
         } else if (gameType == com.bingo.game.GameType.DOTS_AND_BOXES) {
             createReq.setMaxPlayers(2);
             createReq.setGridSize(4);
+        } else if (gameType == com.bingo.game.GameType.SHIP_BATTLE) {
+            createReq.setMaxPlayers(2);
+            createReq.setBoardSize(10);
+            createReq.setWinningLines(5);
         } else {
             createReq.setMaxPlayers(4);
             createReq.setBoardSize(5);

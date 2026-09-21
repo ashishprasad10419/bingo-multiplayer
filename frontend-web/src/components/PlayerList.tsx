@@ -94,6 +94,25 @@ export const PlayerList: React.FC<PlayerListProps> = ({
           </div>
         );
       }
+      case 'SHIP_BATTLE': {
+        const sunkCount = game.shipSunkTypes?.[player.userId]?.length || 0;
+        const afloat = 5 - sunkCount;
+        const isLocked = game.shipFleetsLocked?.[player.userId];
+        if (game.shipPhase === 'SETUP') {
+          return (
+            <div className={`text-xs font-black px-2.5 py-1 rounded-full shadow-2xs ${
+              isLocked ? 'bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0]' : 'bg-[#fffbeb] text-[#b45309] border border-[#fde68a]'
+            }`}>
+              {isLocked ? 'Fleet Locked ⚓' : 'Deploying...'}
+            </div>
+          );
+        }
+        return (
+          <div className="text-xs font-black text-[#0369a1] bg-[#e0f2fe] border border-[#bae6fd] px-2.5 py-1 rounded-full shadow-2xs">
+            ⚓ {afloat} / 5 Afloat
+          </div>
+        );
+      }
       default:
         return null;
     }

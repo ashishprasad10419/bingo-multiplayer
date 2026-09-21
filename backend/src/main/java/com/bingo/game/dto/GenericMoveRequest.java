@@ -13,7 +13,8 @@ public class GenericMoveRequest {
     private String gameId;
     private String clientMoveId;
 
-    // Connect Four
+    // Connect Four / Grid Coordinates
+    private Integer row;
     private Integer col;
 
     // Rock Paper Scissors

@@ -22,6 +22,7 @@ export const CreateRoom: React.FC = () => {
     'MEMORY',
     'NUMBER_RUSH',
     'WORD_SCRAMBLE',
+    'SHIP_BATTLE',
   ];
 
   const [gameType, setGameType] = useState<GameType>(
@@ -124,6 +125,15 @@ export const CreateRoom: React.FC = () => {
           buttonLabel: 'Create Word Scramble Room',
           iconGradient: 'from-[#0d9488] via-[#14b8a6] to-[#f59e0b]',
         };
+      case 'SHIP_BATTLE':
+        return {
+          title: 'Create Ship Battle Room',
+          subtitle: 'Secretly deploy your fleet on 10x10 radar grid & sink enemy ships',
+          badge: '⚓ 1v1 Naval Duel',
+          badgeStyle: 'bg-[#e0f2fe] border-[#bae6fd] text-[#0369a1]',
+          buttonLabel: 'Create Ship Battle Room',
+          iconGradient: 'from-[#0284c7] via-[#0369a1] to-[#1e3a8a]',
+        };
       case 'BINGO':
       default:
         return {
@@ -174,6 +184,10 @@ export const CreateRoom: React.FC = () => {
       } else if (gameType === 'WORD_SCRAMBLE') {
         payload.boardSize = 5;
         payload.maxPlayers = 6;
+      } else if (gameType === 'SHIP_BATTLE') {
+        payload.boardSize = 10;
+        payload.winningLines = 5;
+        payload.maxPlayers = 2;
       }
 
       const room = await roomApi.createRoom(payload);

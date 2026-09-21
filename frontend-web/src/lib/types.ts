@@ -35,7 +35,8 @@ export type GameType =
   | 'ROCK_PAPER_SCISSORS'
   | 'MEMORY'
   | 'NUMBER_RUSH'
-  | 'WORD_SCRAMBLE';
+  | 'WORD_SCRAMBLE'
+  | 'SHIP_BATTLE';
 
 export type RoomStatus = 'WAITING' | 'BOARD_SETUP' | 'READY' | 'PLAYING' | 'FINISHED' | 'CANCELLED';
 
@@ -143,6 +144,38 @@ export interface Game {
   quizAnswers?: Record<string, number>;
   quizLastRoundResult?: { questionIndex: number; correctIndex: number };
   scrambleLastIncorrectGuess?: { userId: string; guess: string; timestamp: number };
+
+  // Ship Battle State
+  shipPhase?: 'SETUP' | 'BATTLE';
+  shipFleets?: Record<string, ShipPlacement[]>;
+  shipFleetsLocked?: Record<string, boolean>;
+  shipAttacks?: Record<string, ShipAttack[]>;
+  shipSunkTypes?: Record<string, string[]>;
+  shipLastAttackResult?: any;
+}
+
+export type ShipType = 'CARRIER' | 'BATTLESHIP' | 'CRUISER' | 'SUBMARINE' | 'DESTROYER';
+
+export interface ShipCoordinate {
+  row: number;
+  col: number;
+}
+
+export interface ShipPlacement {
+  shipType: string;
+  row: number;
+  col: number;
+  orientation: 'HORIZONTAL' | 'VERTICAL';
+  cells: ShipCoordinate[];
+}
+
+export interface ShipAttack {
+  attackerUserId: string;
+  row: number;
+  col: number;
+  result: 'MISS' | 'HIT' | 'SUNK';
+  sunkShipType?: string;
+  timestamp?: number;
 }
 
 export interface ScrambleSolveRecord {

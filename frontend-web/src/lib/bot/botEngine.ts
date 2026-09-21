@@ -222,6 +222,28 @@ export function createOfflineGame(
       baseGame.winningLines = 5;
       break;
     }
+
+    case 'SHIP_BATTLE': {
+      baseGame.boardSize = 10;
+      baseGame.winningLines = 5;
+      baseGame.shipPhase = 'SETUP';
+      baseGame.shipFleets = {
+        [botId]: generateOfflineBotFleet(),
+      };
+      baseGame.shipFleetsLocked = {
+        [botId]: true,
+        [playerId]: false,
+      };
+      baseGame.shipAttacks = {
+        [playerId]: [],
+        [botId]: [],
+      };
+      baseGame.shipSunkTypes = {
+        [playerId]: [],
+        [botId]: [],
+      };
+      break;
+    }
   }
 
   return { game: baseGame, bot };
@@ -766,4 +788,128 @@ export function getWordScrambleBotParams(difficulty: BotDifficulty): { delayMs: 
         willSolve: Math.random() < 0.95,
       };
   }
+}
+
+// --- 9. SHIP BATTLE BOT AI ---
+export function getShipBattleBotDelay(difficulty: BotDifficulty): number {
+  switch (difficulty) {
+    case 'EASY':
+      return Math.floor(1200 + Math.random() * 800);
+    case 'MEDIUM':
+      return Math.floor(700 + Math.random() * 500);
+    case 'HARD':
+      return Math.floor(400 + Math.random() * 300);
+  }
+}
+
+export function chooseShipBattleTarget(
+  previousAttacks: { row: number; col: number; result: 'MISS' | 'HIT' | 'SUNK' }[],
+  difficulty: BotDifficulty
+): { row: number; col: number } {
+  const attackedSet = new Set(previousAttacks.map((a) => `${a.row}-${a.col}`));
+
+  // Check for unsunk hits
+  const hitCells = previousAttacks.filter((a) => a.result === 'HIT');
+
+  if (difficulty !== 'EASY' && hitCells.length > 0) {
+    // Hunt mode: check adjacent orthogonal neighbors of unsunk hits
+    const candidates: { row: number; col: number }[] = [];
+    const deltas = [
+      { r: -1, c: 0 },
+      { r: 1, c: 0 },
+      { r: 0, c: -1 },
+      { r: 0, c: 1 },
+    ];
+
+    for (const h of hitCells) {
+      for (const d of deltas) {
+        const nr = h.row + d.r;
+        const nc = h.col + d.c;
+        if (nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && !attackedSet.has(`${nr}-${nc}`)) {
+          candidates.push({ row: nr, col: nc });
+        }
+      }
+    }
+
+    if (candidates.length > 0) {
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+  }
+
+  if (difficulty === 'HARD') {
+    // Parity search: only check even parity squares (checkerboard)
+    const parityCandidates: { row: number; col: number }[] = [];
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        if ((r + c) % 2 === 0 && !attackedSet.has(`${r}-${c}`)) {
+          parityCandidates.push({ row: r, col: c });
+        }
+      }
+    }
+    if (parityCandidates.length > 0) {
+      return parityCandidates[Math.floor(Math.random() * parityCandidates.length)];
+    }
+  }
+
+  // Fallback: any unattacked cell
+  const unattacked: { row: number; col: number }[] = [];
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      if (!attackedSet.has(`${r}-${c}`)) {
+        unattacked.push({ row: r, col: c });
+      }
+    }
+  }
+
+  if (unattacked.length === 0) return { row: 0, col: 0 };
+  return unattacked[Math.floor(Math.random() * unattacked.length)];
+}
+
+export function generateOfflineBotFleet(): any[] {
+  const defs = [
+    { type: 'CARRIER', size: 5 },
+    { type: 'BATTLESHIP', size: 4 },
+    { type: 'CRUISER', size: 3 },
+    { type: 'SUBMARINE', size: 3 },
+    { type: 'DESTROYER', size: 2 },
+  ];
+  const fleet: any[] = [];
+  const occupied = new Set<string>();
+
+  for (const def of defs) {
+    let placed = false;
+    let attempts = 0;
+    while (!placed && attempts < 500) {
+      attempts++;
+      const horizontal = Math.random() > 0.5;
+      const orientation = horizontal ? 'HORIZONTAL' : 'VERTICAL';
+      const startR = horizontal ? Math.floor(Math.random() * 10) : Math.floor(Math.random() * (10 - def.size + 1));
+      const startC = horizontal ? Math.floor(Math.random() * (10 - def.size + 1)) : Math.floor(Math.random() * 10);
+
+      const cells: { row: number; col: number }[] = [];
+      let collision = false;
+      for (let i = 0; i < def.size; i++) {
+        const r = horizontal ? startR : startR + i;
+        const c = horizontal ? startC + i : startC;
+        if (occupied.has(`${r}-${c}`)) {
+          collision = true;
+          break;
+        }
+        cells.push({ row: r, col: c });
+      }
+
+      if (!collision) {
+        cells.forEach((c) => occupied.add(`${c.row}-${c.col}`));
+        fleet.push({
+          shipType: def.type,
+          row: startR,
+          col: startC,
+          orientation,
+          cells,
+        });
+        placed = true;
+      }
+    }
+  }
+  return fleet;
 }

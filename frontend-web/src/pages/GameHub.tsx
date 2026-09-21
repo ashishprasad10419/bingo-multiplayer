@@ -134,6 +134,18 @@ export const GameHub: React.FC = () => {
       btnQuick: 'bg-[#f97316] hover:bg-[#ea580c] text-white shadow-[0_4px_0_#9a3412]',
       btnCustom: 'bg-white dark:bg-slate-800 text-[#c2410c] dark:text-[#ffedd5] border-2 border-[#fed7aa] hover:bg-[#ffedd5]',
     },
+    {
+      type: 'SHIP_BATTLE',
+      title: 'Ship Battle',
+      badge: '⚓ 1v1 Naval Duel',
+      cardBg: 'bg-[#f0f9ff] dark:bg-[#081b2e]',
+      cardBorder: 'border-[#0284c7]',
+      cardShadow: 'shadow-[0_8px_0_#0369a1]',
+      bannerGrad: 'from-[#38bdf8] via-[#0284c7] to-[#1e3a8a]',
+      titleColor: 'text-[#0c4a6e] dark:text-[#bae6fd]',
+      btnQuick: 'bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-[0_4px_0_#075985]',
+      btnCustom: 'bg-white dark:bg-slate-800 text-[#0369a1] dark:text-[#bae6fd] border-2 border-[#7dd3fc] hover:bg-[#e0f2fe]',
+    },
   ];
 
   const handleSelectGame = (gameType: GameType) => {

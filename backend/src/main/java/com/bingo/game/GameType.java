@@ -9,5 +9,6 @@ public enum GameType {
     MEMORY,
     NUMBER_RUSH,
     WORD_SCRAMBLE,
-    QUIZ_BATTLE
+    QUIZ_BATTLE,
+    SHIP_BATTLE
 }
