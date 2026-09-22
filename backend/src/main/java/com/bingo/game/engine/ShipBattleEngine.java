@@ -11,7 +11,7 @@ import java.util.*;
 @Component
 public class ShipBattleEngine {
 
-    public static final int BOARD_SIZE = 8;
+    public static final int BOARD_SIZE = 7;
     public static final int TOTAL_SHIP_CELLS = 17; // 5 + 4 + 3 + 3 + 2
 
     public enum ShipType {

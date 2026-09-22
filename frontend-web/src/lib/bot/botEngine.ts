@@ -224,7 +224,7 @@ export function createOfflineGame(
     }
 
     case 'SHIP_BATTLE': {
-      baseGame.boardSize = 8;
+      baseGame.boardSize = 7;
       baseGame.winningLines = 5;
       baseGame.shipPhase = 'SETUP';
       baseGame.shipFleets = {
@@ -806,7 +806,7 @@ export function chooseShipBattleTarget(
   previousAttacks: { row: number; col: number; result: 'MISS' | 'HIT' | 'SUNK' }[],
   difficulty: BotDifficulty
 ): { row: number; col: number } {
-  const BOARD_SIZE = 8;
+  const BOARD_SIZE = 7;
   const attackedSet = new Set(previousAttacks.map((a) => `${a.row}-${a.col}`));
 
   // Check for unsunk hits
@@ -867,7 +867,7 @@ export function chooseShipBattleTarget(
 }
 
 export function generateOfflineBotFleet(): any[] {
-  const BOARD_SIZE = 8;
+  const BOARD_SIZE = 7;
   const defs = [
     { type: 'CARRIER', size: 5 },
     { type: 'BATTLESHIP', size: 4 },

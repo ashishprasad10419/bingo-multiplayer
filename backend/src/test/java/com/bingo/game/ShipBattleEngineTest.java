@@ -39,17 +39,17 @@ public class ShipBattleEngineTest {
                 .row(4).col(0).orientation("HORIZONTAL")
                 .cells(engine.computeShipCells("CRUISER", 4, 0, "HORIZONTAL"))
                 .build());
-        // Submarine (3): (6,0) to (6,2)
+        // Submarine (3): (5,0) to (5,2)
         fleet.add(ShipPlacement.builder()
                 .shipType("SUBMARINE")
-                .row(6).col(0).orientation("HORIZONTAL")
-                .cells(engine.computeShipCells("SUBMARINE", 6, 0, "HORIZONTAL"))
+                .row(5).col(0).orientation("HORIZONTAL")
+                .cells(engine.computeShipCells("SUBMARINE", 5, 0, "HORIZONTAL"))
                 .build());
-        // Destroyer (2): (7,0) to (7,1)
+        // Destroyer (2): (6,0) to (6,1)
         fleet.add(ShipPlacement.builder()
                 .shipType("DESTROYER")
-                .row(7).col(0).orientation("HORIZONTAL")
-                .cells(engine.computeShipCells("DESTROYER", 7, 0, "HORIZONTAL"))
+                .row(6).col(0).orientation("HORIZONTAL")
+                .cells(engine.computeShipCells("DESTROYER", 6, 0, "HORIZONTAL"))
                 .build());
         return fleet;
     }
@@ -80,7 +80,7 @@ public class ShipBattleEngineTest {
         fleet.get(0).setCells(engine.computeShipCells("CARRIER", 0, 7, "HORIZONTAL"));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> engine.validateFleet(fleet));
-        assertTrue(ex.getMessage().contains("outside the 8x8 board"));
+        assertTrue(ex.getMessage().contains("outside the 7x7 board"));
     }
 
     @Test
@@ -122,17 +122,17 @@ public class ShipBattleEngineTest {
         List<ShipPlacement> fleet = createStandardFleet();
         List<ShipAttack> pastAttacks = new ArrayList<>();
 
-        // Destroyer is at (7,0) and (7,1)
+        // Destroyer is at (6,0) and (6,1)
         // Hit first segment
-        AttackOutcome outcome1 = engine.processAttack(fleet, pastAttacks, 7, 0);
+        AttackOutcome outcome1 = engine.processAttack(fleet, pastAttacks, 6, 0);
         assertEquals(AttackResultType.HIT, outcome1.getResult());
         assertNull(outcome1.getSunkShipType());
         assertFalse(outcome1.isAllShipsSunk());
 
-        pastAttacks.add(ShipAttack.builder().attackerUserId("user1").row(7).col(0).result(AttackResultType.HIT).build());
+        pastAttacks.add(ShipAttack.builder().attackerUserId("user1").row(6).col(0).result(AttackResultType.HIT).build());
 
         // Hit second segment -> Sunk!
-        AttackOutcome outcome2 = engine.processAttack(fleet, pastAttacks, 7, 1);
+        AttackOutcome outcome2 = engine.processAttack(fleet, pastAttacks, 6, 1);
         assertEquals(AttackResultType.SUNK, outcome2.getResult());
         assertEquals("DESTROYER", outcome2.getSunkShipType());
         assertFalse(outcome2.isAllShipsSunk());
@@ -142,10 +142,10 @@ public class ShipBattleEngineTest {
     void testDuplicateAttackRejection() {
         List<ShipPlacement> fleet = createStandardFleet();
         List<ShipAttack> pastAttacks = new ArrayList<>();
-        pastAttacks.add(ShipAttack.builder().attackerUserId("user1").row(7).col(0).result(AttackResultType.HIT).build());
+        pastAttacks.add(ShipAttack.builder().attackerUserId("user1").row(6).col(0).result(AttackResultType.HIT).build());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                engine.processAttack(fleet, pastAttacks, 7, 0));
+                engine.processAttack(fleet, pastAttacks, 6, 0));
         assertTrue(ex.getMessage().contains("already been attacked"));
     }
 

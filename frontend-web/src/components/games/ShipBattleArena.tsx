@@ -19,9 +19,9 @@ interface ShipDefinition {
   label: string;
 }
 
-// 8x8 Grid Configuration as requested by user
-export const GRID_SIZE = 8;
-export const CELL_PCT = 100 / GRID_SIZE; // 12.5%
+// 7x7 Grid Configuration as requested by user
+export const GRID_SIZE = 7;
+export const CELL_PCT = 100 / GRID_SIZE; // ~14.28%
 
 const SHIP_DEFS: ShipDefinition[] = [
   { type: 'CARRIER', size: 5, label: 'Carrier' },
@@ -739,15 +739,15 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
             )}
           </div>
 
-          {/* Bottom Panel (Terracotta Coral 8x8 Grid with Large Comfortable Blocks) */}
+          {/* Bottom Panel (Terracotta Coral 7x7 Grid with Large Comfortable Blocks) */}
           <div className="bg-[#e08b73] p-3 sm:p-4 flex flex-col items-center justify-center relative">
-            {/* 8x8 Terracotta Grid Container */}
+            {/* 7x7 Terracotta Grid Container */}
             <div
               ref={setupBoardRef}
-              className="w-full aspect-square max-w-[370px] bg-[#e08b73] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-8 grid-rows-8 gap-1.5 relative shadow-inner touch-none"
+              className="w-full aspect-square max-w-[370px] bg-[#e08b73] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner touch-none"
             >
-              {/* 64 Grid Cells */}
-              {Array.from({ length: 64 }).map((_, idx) => (
+              {/* 49 Grid Cells */}
+              {Array.from({ length: 49 }).map((_, idx) => (
                 <div
                   key={idx}
                   className="w-full h-full bg-[#9c5240] rounded-[6px] relative shadow-inner"
@@ -865,9 +865,9 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               EXIT
             </button>
 
-            {/* 8x8 Enemy Grid */}
-            <div className="w-full aspect-square max-w-[340px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-8 grid-rows-8 gap-1.5 relative shadow-inner">
-              {Array.from({ length: 64 }).map((_, idx) => (
+            {/* 7x7 Enemy Grid */}
+            <div className="w-full aspect-square max-w-[340px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner">
+              {Array.from({ length: 49 }).map((_, idx) => (
                 <div key={idx} className="w-full h-full bg-[#34495e] rounded-[5px]" />
               ))}
             </div>
@@ -968,9 +968,9 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               <CartoonCannon isFiring={isEnemyFiring} isEnemy={true} />
             </div>
 
-            {/* 8x8 Enemy Grid with Large, Readable Blocks */}
-            <div className="w-full aspect-square max-w-[350px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-8 grid-rows-8 gap-1.5 relative shadow-inner">
-              {Array.from({ length: 64 }).map((_, idx) => {
+            {/* 7x7 Enemy Grid with Large, Readable Blocks */}
+            <div className="w-full aspect-square max-w-[350px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner">
+              {Array.from({ length: 49 }).map((_, idx) => {
                 const r = Math.floor(idx / GRID_SIZE);
                 const c = idx % GRID_SIZE;
                 const key = `${r}-${c}`;
@@ -1121,9 +1121,9 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
             ref={bottomBoardRef}
             className="bg-[#e08b73] p-3 sm:p-4 flex flex-col items-center justify-center relative pb-16 sm:pb-20"
           >
-            {/* 8x8 Player Grid with Large Blocks */}
-            <div className="w-full aspect-square max-w-[350px] bg-[#d37861] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-8 grid-rows-8 gap-1.5 relative shadow-inner">
-              {Array.from({ length: 64 }).map((_, idx) => {
+            {/* 7x7 Player Grid with Large Blocks */}
+            <div className="w-full aspect-square max-w-[350px] bg-[#d37861] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner">
+              {Array.from({ length: 49 }).map((_, idx) => {
                 const r = Math.floor(idx / GRID_SIZE);
                 const c = idx % GRID_SIZE;
                 const key = `${r}-${c}`;
@@ -1198,7 +1198,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
             >
               <CartoonCannon
                 isFiring={isPlayerFiring}
-                aimAngle={aimTarget ? (aimTarget.col - 3.5) * 8 : 0}
+                aimAngle={aimTarget ? (aimTarget.col - 3) * 9 : 0}
                 isEnemy={false}
               />
             </div>
