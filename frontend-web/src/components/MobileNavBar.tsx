@@ -6,7 +6,11 @@ export const MobileNavBar: React.FC = () => {
   const location = useLocation();
 
   // Hide mobile nav during active gameplay to maximize arena viewport
-  if (location.pathname.startsWith('/game/') || location.pathname.startsWith('/winner/')) {
+  if (
+    location.pathname.startsWith('/game/') ||
+    location.pathname.startsWith('/winner/') ||
+    location.pathname.startsWith('/play-bot')
+  ) {
     return null;
   }
 

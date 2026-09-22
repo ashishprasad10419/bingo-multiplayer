@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Game, ShipPlacement, ShipCoordinate, ShipType } from '../../lib/types';
 import { soundService } from '../../lib/sound';
-import { Zap, AlertTriangle } from 'lucide-react';
+import { Zap, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 interface ShipBattleArenaProps {
   game: Game;
@@ -49,11 +49,6 @@ const CartoonShipGraphic: React.FC<{
   const def = SHIP_DEFS.find((d) => d.type === type)!;
   const size = def.size;
 
-  // ViewBox dimensions:
-  // When Horizontal: width = size * 40, height = 40
-  // When Vertical: width = 40, height = size * 40
-  // Rotating around center of first cell (20, 20) by 90deg maps:
-  // (x, y) -> (40 - y, x), strictly bounded by [0, 40] x [0, size * 40]
   const vbW = isHoriz ? size * 40 : 40;
   const vbH = isHoriz ? 40 : size * 40;
   const transform = isHoriz ? undefined : 'rotate(90 20 20)';
@@ -71,7 +66,6 @@ const CartoonShipGraphic: React.FC<{
           preserveAspectRatio="none"
         >
           <g transform={transform}>
-            {/* Carrier Hull */}
             <path
               d="M 6 22 L 20 6 L 180 6 L 194 14 L 194 28 L 182 34 L 16 34 Z"
               fill={color}
@@ -79,20 +73,15 @@ const CartoonShipGraphic: React.FC<{
               strokeWidth="3.5"
               strokeLinejoin="round"
             />
-            {/* Flight Deck Runway Line */}
             <line x1="28" y1="20" x2="165" y2="20" stroke="#ffffff" strokeWidth="2" strokeDasharray="8 6" opacity="0.8" />
-            {/* Catapult Stripe */}
             <line x1="170" y1="12" x2="188" y2="12" stroke="#ffffff" strokeWidth="2.5" opacity="0.8" />
-            {/* 3 Fighter Jet Silhouettes on Deck */}
             <g fill="#1e272e" opacity="0.9">
               <path d="M 46 20 L 52 14 L 56 16 L 54 20 L 56 24 L 52 26 Z" />
               <path d="M 64 20 L 70 14 L 74 16 L 72 20 L 74 24 L 70 26 Z" />
               <path d="M 82 20 L 88 14 L 92 16 L 90 20 L 92 24 L 88 26 Z" />
             </g>
-            {/* Island Bridge Tower */}
             <rect x="110" y="7" width="26" height="7" rx="2" fill="#1e272e" opacity="0.85" />
             <rect x="122" y="3" width="10" height="5" rx="1.5" fill="#f5f6fa" />
-            {/* Vents */}
             <line x1="145" y1="12" x2="145" y2="28" stroke="#1e272e" strokeWidth="2.5" strokeLinecap="round" />
             <line x1="151" y1="12" x2="151" y2="28" stroke="#1e272e" strokeWidth="2.5" strokeLinecap="round" />
             <line x1="157" y1="12" x2="157" y2="28" stroke="#1e272e" strokeWidth="2.5" strokeLinecap="round" />
@@ -207,12 +196,12 @@ const MiniShipSilhouette: React.FC<{
   return (
     <div
       style={{ width: `${widthPx}px` }}
-      className={`h-3.5 rounded-full flex items-center justify-center transition-all duration-300 relative ${
+      className={`h-3 rounded-full flex items-center justify-center transition-all duration-300 relative ${
         isSunk ? 'opacity-30 line-through grayscale' : 'opacity-100 shadow-xs'
       }`}
     >
       <div
-        className="w-full h-2.5 rounded-full border border-black/40"
+        className="w-full h-2 rounded-full border border-black/40"
         style={{ backgroundColor: isSunk ? '#7f8c8d' : color }}
       />
       {isSunk && (
@@ -238,7 +227,6 @@ const CartoonCannon: React.FC<{
         isEnemy ? 'rotate-180' : ''
       }`}
     >
-      {/* Muzzle Flash & Smoke Puffs when firing */}
       {isFiring && (
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex items-center justify-center">
           <div className="w-16 h-16 rounded-full bg-white/95 animate-ping absolute" />
@@ -250,14 +238,12 @@ const CartoonCannon: React.FC<{
 
       {/* 3D Round Base Ring */}
       <div
-        className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-[6px] border-[#1e272e] shadow-[0_8px_16px_rgba(0,0,0,0.45)] flex items-center justify-center relative"
+        className="w-22 h-22 sm:w-26 sm:h-26 rounded-full border-[5px] border-[#1e272e] shadow-[0_8px_16px_rgba(0,0,0,0.45)] flex items-center justify-center relative"
         style={{ backgroundColor: baseColor }}
       >
-        {/* Inner Swivel Socket */}
-        <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-[#1e272e] flex items-center justify-center shadow-inner">
-          {/* Swiveling Cannon Barrel Tube */}
+        <div className="w-15 h-15 sm:w-18 sm:h-18 rounded-full bg-[#1e272e] flex items-center justify-center shadow-inner">
           <div
-            className={`w-10 sm:w-12 h-16 sm:h-20 bg-gradient-to-r from-[#2d3436] via-[#485460] to-[#1e272e] rounded-t-full rounded-b-xl border-[3.5px] border-[#1e272e] shadow-2xl relative transition-transform duration-150 ${
+            className={`w-9 sm:w-11 h-15 sm:h-18 bg-gradient-to-r from-[#2d3436] via-[#485460] to-[#1e272e] rounded-t-full rounded-b-xl border-[3.5px] border-[#1e272e] shadow-2xl relative transition-transform duration-150 ${
               isFiring ? '-translate-y-3 scale-95' : ''
             }`}
             style={{
@@ -265,10 +251,8 @@ const CartoonCannon: React.FC<{
               transformOrigin: 'center 75%',
             }}
           >
-            {/* White Specular Highlight on Barrel */}
-            <div className="w-1.5 h-10 bg-white/40 rounded-full absolute left-2 top-3 blur-[0.5px]" />
-            {/* Cannon Muzzle Opening */}
-            <div className="w-7 sm:w-8 h-4 bg-[#0a0c0e] rounded-full border border-black/80 absolute top-1 left-1/2 -translate-x-1/2 shadow-inner" />
+            <div className="w-1.5 h-8 bg-white/40 rounded-full absolute left-2 top-2 blur-[0.5px]" />
+            <div className="w-6 sm:w-7 h-3.5 bg-[#0a0c0e] rounded-full border border-black/80 absolute top-1 left-1/2 -translate-x-1/2 shadow-inner" />
           </div>
         </div>
       </div>
@@ -292,6 +276,9 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
   const opponent = game.players.find((p) => p.userId !== currentUserId);
   const opponentUserId = opponent?.userId || '';
   const isOpponentLocked = !!game.shipFleetsLocked?.[opponentUserId];
+
+  // --- Exit Confirmation Modal State ---
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // --- Fleet Setup State ---
   const [placedShips, setPlacedShips] = useState<ShipPlacement[]>([]);
@@ -325,7 +312,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
   const playerCannonRef = useRef<HTMLDivElement>(null);
   const enemyCannonRef = useRef<HTMLDivElement>(null);
 
-  // Helper: compute ship cells on 8x8 grid
+  // Helper: compute ship cells on 7x7 grid
   const computeCells = (type: ShipType, r: number, c: number, orient: 'HORIZONTAL' | 'VERTICAL'): ShipCoordinate[] => {
     const size = SHIP_DEFS.find((d) => d.type === type)?.size || 2;
     const cells: ShipCoordinate[] = [];
@@ -338,7 +325,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     return cells;
   };
 
-  // Helper: check placement validity on 8x8 grid
+  // Helper: check placement validity on 7x7 grid
   const isValidPlacement = useCallback(
     (newCells: ShipCoordinate[], currentList: ShipPlacement[], excludeType?: string) => {
       for (const cell of newCells) {
@@ -359,7 +346,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     []
   );
 
-  // Setup: Randomize Fleet on 8x8 grid
+  // Setup: Randomize Fleet on 7x7 grid
   const handleRandomize = useCallback(() => {
     if (isLocked) return;
     setPlacementError(null);
@@ -404,7 +391,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     }
   }, [game.shipFleets, currentUserId, isLocked, handleRandomize]);
 
-  // Setup: Rotate ship by index on 8x8 grid
+  // Setup: Rotate ship by index on 7x7 grid
   const handleRotateShip = (index: number) => {
     if (isLocked) return;
     const targetShip = placedShips[index];
@@ -414,7 +401,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     let newCells = computeCells(targetShip.shipType, targetShip.row, targetShip.col, newOrient);
 
     if (!isValidPlacement(newCells, placedShips, targetShip.shipType)) {
-      // Try shifting if it goes out of 8x8 bounds
       let shiftedR = targetShip.row;
       let shiftedC = targetShip.col;
       const size = SHIP_DEFS.find((d) => d.type === targetShip.shipType)?.size || 2;
@@ -473,7 +459,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     const ship = placedShips[index];
     if (!ship) return;
 
-    // Offset from ship origin
     setDragOffset({
       row: Math.max(0, clickRow - ship.row),
       col: Math.max(0, clickCol - ship.col),
@@ -534,10 +519,8 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     } catch (_) {}
 
     if (!hasPointerMoved) {
-      // It was a tap! Rotate immediately!
       handleRotateShip(index);
     } else if (dragPreview && dragPreview.isValid) {
-      // It was dragged to a valid new cell!
       const ship = placedShips[index];
       const newCells = computeCells(ship.shipType, dragPreview.row, dragPreview.col, ship.orientation);
       const updated = [...placedShips];
@@ -578,7 +561,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
   const opponentAttacksOnMe = (opponentUserId && game.shipAttacks?.[opponentUserId]) || [];
   const myAttacksOnOpponent = game.shipAttacks?.[currentUserId] || [];
 
-  // Attacks on Opponent Map (Top 8x8 Grid)
   const myAttackResultsMap = new Map<string, { result: 'MISS' | 'HIT' | 'SUNK'; sunkShipType?: string }>();
   myAttacksOnOpponent.forEach((att) => {
     myAttackResultsMap.set(`${att.row}-${att.col}`, {
@@ -587,7 +569,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     });
   });
 
-  // Attacks on Player Map (Bottom 8x8 Grid)
   const opponentAttackResultsMap = new Map<string, { result: 'MISS' | 'HIT' | 'SUNK'; sunkShipType?: string }>();
   opponentAttacksOnMe.forEach((att) => {
     opponentAttackResultsMap.set(`${att.row}-${att.col}`, {
@@ -596,11 +577,10 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     });
   });
 
-  // Calculate Sunk Ships
   const opponentSunkShips = game.shipSunkTypes?.[opponentUserId] || [];
   const mySunkShips = game.shipSunkTypes?.[currentUserId] || [];
 
-  // Firing at enemy cell on 8x8 grid
+  // Firing at enemy cell on 7x7 grid
   const handleFireAttack = (r: number, c: number) => {
     if (!isBattle || !isMyTurn || disabled || game.status !== 'PLAYING') return;
     const key = `${r}-${c}`;
@@ -610,7 +590,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
     setIsPlayerFiring(true);
     soundService.playCannonFire();
 
-    // Compute start and target positions for flying projectile
     if (topBoardRef.current && playerCannonRef.current && arenaContainerRef.current) {
       const arenaRect = arenaContainerRef.current.getBoundingClientRect();
       const cannonRect = playerCannonRef.current.getBoundingClientRect();
@@ -633,7 +612,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
       });
     }
 
-    // Trigger cannon recoil & cannonball projectile animation
     setTimeout(() => {
       setIsPlayerFiring(false);
       setFlyingCannonball(null);
@@ -687,27 +665,72 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
   return (
     <div
       ref={arenaContainerRef}
-      className="w-full flex flex-col items-center justify-center select-none font-sans relative"
+      className="fixed inset-0 z-50 w-full h-[100dvh] bg-[#1a202c] flex flex-col items-center justify-between select-none font-sans overflow-hidden touch-none"
     >
       {/* ========================================================================= */}
-      {/* 1. DEPLOYMENT SCREEN (Exact recreation of Screenshot 5 on 8x8 Grid)      */}
+      {/* LEAVE GAME CONFIRMATION MODAL                                             */}
+      {/* ========================================================================= */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 select-none">
+          <div className="w-full max-w-xs bg-[#242b3d] text-white rounded-[28px] p-6 border-2 border-slate-600 shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95">
+            <div className="w-14 h-14 mx-auto rounded-full bg-rose-500/20 text-rose-400 border-2 border-rose-500/40 flex items-center justify-center text-2xl font-black">
+              ⚓
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xl font-black tracking-tight">Leave Game?</h3>
+              <p className="text-xs text-slate-300">
+                Are you sure you want to leave? Your match progress will be lost.
+              </p>
+            </div>
+            <div className="flex flex-col space-y-2 pt-2">
+              <button
+                onClick={() => setShowExitModal(false)}
+                className="w-full py-3 rounded-full bg-[#27ae60] hover:bg-[#2ecc71] text-white font-black text-sm uppercase tracking-wider shadow-md active:scale-95 transition cursor-pointer"
+              >
+                Continue Playing
+              </button>
+              <button
+                onClick={() => {
+                  setShowExitModal(false);
+                  navigate('/hub');
+                }}
+                className="w-full py-2.5 rounded-full bg-slate-700/60 hover:bg-rose-900/60 text-rose-300 font-bold text-xs uppercase tracking-wider border border-slate-600 hover:border-rose-700 active:scale-95 transition cursor-pointer"
+              >
+                Leave Match
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 1. DEPLOYMENT SCREEN (Full Screen 7x7 View, No Header/Footer)             */}
       {/* ========================================================================= */}
       {isSetup && !isLocked && (
-        <div className="w-full max-w-[420px] rounded-[32px] overflow-hidden shadow-2xl border-4 border-[#1e272e] flex flex-col relative bg-[#e08b73]">
-          {/* Top Panel (Dark Navy Header) */}
-          <div className="bg-[#242b3d] pt-6 pb-5 px-5 text-center flex flex-col items-center space-y-3 relative">
+        <div className="w-full max-w-[420px] h-full flex flex-col justify-between overflow-hidden relative bg-[#e08b73]">
+          {/* Top Panel (Dark Navy Header with Back Button) */}
+          <div className="bg-[#242b3d] pt-3 pb-3 px-4 text-center flex flex-col items-center space-y-2 relative shrink-0">
+            {/* Dedicated Top-Left Back Button */}
+            <button
+              onClick={() => setShowExitModal(true)}
+              className="absolute left-3 top-3 p-1.5 rounded-full bg-slate-800 text-white hover:bg-slate-700 active:scale-95 transition cursor-pointer border border-slate-600"
+              title="Leave Game"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+
             {/* White EXIT Pill Button on Top-Right Edge */}
             <button
-              onClick={() => navigate('/hub')}
-              className="absolute right-0 top-6 px-3 py-1 bg-white text-[#242b3d] font-black text-xs uppercase tracking-wider rounded-l-full shadow-md border-l-2 border-y-2 border-slate-300 hover:bg-slate-100 active:scale-95 transition cursor-pointer z-30"
+              onClick={() => setShowExitModal(true)}
+              className="absolute right-0 top-3 px-3 py-1 bg-white text-[#242b3d] font-black text-xs uppercase tracking-wider rounded-l-full shadow-md border-l-2 border-y-2 border-slate-300 hover:bg-slate-100 active:scale-95 transition cursor-pointer z-30"
             >
               EXIT
             </button>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight pt-1">
               Deploy your ships
             </h2>
-            <p className="text-xs font-semibold text-[#8fa0b5] max-w-xs leading-snug">
+            <p className="text-[11px] font-semibold text-[#8fa0b5] max-w-xs leading-snug">
               Drag to move and tap to rotate or try random placement
             </p>
 
@@ -716,7 +739,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               <button
                 onClick={handleRandomize}
                 disabled={isLocked}
-                className="px-6 py-2.5 rounded-full bg-[#2980b9] hover:bg-[#3498db] text-white font-black text-xs uppercase tracking-wider shadow-[0_4px_0_#1a5276] active:translate-y-1 active:shadow-none transition-all cursor-pointer disabled:opacity-50"
+                className="px-6 py-2 rounded-full bg-[#2980b9] hover:bg-[#3498db] text-white font-black text-xs uppercase tracking-wider shadow-[0_4px_0_#1a5276] active:translate-y-1 active:shadow-none transition-all cursor-pointer disabled:opacity-50"
               >
                 RANDOM
               </button>
@@ -724,7 +747,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               <button
                 onClick={handleLockFleet}
                 disabled={isLocked || isLocking || placedShips.length !== 5}
-                className="px-8 py-3 rounded-full bg-[#27ae60] hover:bg-[#2ecc71] text-white font-black text-sm uppercase tracking-wider shadow-[0_4px_0_#1e8449] active:translate-y-1 active:shadow-none transition-all cursor-pointer flex items-center space-x-1.5 disabled:opacity-50"
+                className="px-7 py-2.5 rounded-full bg-[#27ae60] hover:bg-[#2ecc71] text-white font-black text-xs uppercase tracking-wider shadow-[0_4px_0_#1e8449] active:translate-y-1 active:shadow-none transition-all cursor-pointer flex items-center space-x-1.5 disabled:opacity-50"
               >
                 <Zap className="w-4 h-4 fill-white" />
                 <span>SAVE</span>
@@ -732,21 +755,23 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
             </div>
 
             {placementError && (
-              <div className="text-[11px] font-bold text-rose-300 bg-rose-950/60 px-3 py-1 rounded-full border border-rose-800 animate-in fade-in flex items-center space-x-1">
+              <div className="text-[10px] font-bold text-rose-300 bg-rose-950/60 px-3 py-0.5 rounded-full border border-rose-800 animate-in fade-in flex items-center space-x-1">
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>{placementError}</span>
               </div>
             )}
           </div>
 
-          {/* Bottom Panel (Terracotta Coral 7x7 Grid with Large Comfortable Blocks) */}
-          <div className="bg-[#e08b73] p-3 sm:p-4 flex flex-col items-center justify-center relative">
-            {/* 7x7 Terracotta Grid Container */}
+          {/* Bottom Panel (Terracotta Coral 7x7 Grid Filling Viewport) */}
+          <div className="flex-1 min-h-0 bg-[#e08b73] p-2 flex flex-col items-center justify-center relative overflow-hidden">
             <div
               ref={setupBoardRef}
-              className="w-full aspect-square max-w-[370px] bg-[#e08b73] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner touch-none"
+              style={{
+                maxHeight: 'min(72dvh, 72vw, 380px)',
+                maxWidth: 'min(72dvh, 72vw, 380px)',
+              }}
+              className="w-full aspect-square bg-[#e08b73] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner touch-none"
             >
-              {/* 49 Grid Cells */}
               {Array.from({ length: 49 }).map((_, idx) => (
                 <div
                   key={idx}
@@ -754,7 +779,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                 />
               ))}
 
-              {/* Drag Preview Ghost */}
               {dragPreview && draggingShipIndex !== null && (
                 <div
                   style={{
@@ -779,13 +803,11 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                 />
               )}
 
-              {/* Placed Cartoon Ships with Rotation Arrows on each ship (Exact from Screenshot 5) */}
               {placedShips.map((ship, index) => {
                 const isHoriz = ship.orientation === 'HORIZONTAL';
                 const def = SHIP_DEFS.find((d) => d.type === ship.shipType)!;
                 const isBeingDragged = draggingShipIndex === index;
 
-                // Exact coordinate layout in 8x8 grid percent
                 const leftPct = (isBeingDragged && dragPreview ? dragPreview.col : ship.col) * CELL_PCT;
                 const topPct = (isBeingDragged && dragPreview ? dragPreview.row : ship.row) * CELL_PCT;
                 const widthPct = isHoriz ? def.size * CELL_PCT : CELL_PCT;
@@ -815,10 +837,8 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                       isSelected={isBeingDragged}
                     />
 
-                    {/* Rotation Arrows (Curved arrows above and below, matching Screenshot 5) */}
                     {!isBeingDragged && (
                       <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        {/* Top Curved Arrow ↶ */}
                         <button
                           type="button"
                           onClick={(e) => {
@@ -829,7 +849,6 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                         >
                           ↺
                         </button>
-                        {/* Bottom Curved Arrow ↷ */}
                         <button
                           type="button"
                           onClick={(e) => {
@@ -851,37 +870,48 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 2. WAITING FOR OPPONENT / BOT IS PLACING SHIPS (Screenshot 4)             */}
+      {/* 2. WAITING FOR OPPONENT / BOT IS PLACING SHIPS                            */}
       {/* ========================================================================= */}
       {isSetup && isLocked && !isOpponentLocked && (
-        <div className="w-full max-w-[420px] rounded-[32px] overflow-hidden shadow-2xl border-4 border-[#1e272e] flex flex-col bg-[#2e64b6]">
-          {/* Top Half: Sea-blue 8x8 Grid & Silhouettes */}
-          <div className="bg-[#5dade2] p-4 flex flex-col items-center justify-center relative border-b-4 border-[#1e272e]">
-            {/* White EXIT Pill Button */}
+        <div className="w-full max-w-[420px] h-full flex flex-col justify-between overflow-hidden bg-[#2e64b6]">
+          {/* Top Half: Sea-blue 7x7 Grid */}
+          <div className="flex-1 min-h-0 bg-[#5dade2] p-3 flex flex-col items-center justify-center relative border-b-4 border-[#1e272e]">
             <button
-              onClick={() => navigate('/hub')}
-              className="absolute right-0 top-4 px-3 py-1 bg-white text-[#242b3d] font-black text-xs uppercase tracking-wider rounded-l-full shadow-md border-l-2 border-y-2 border-slate-300 hover:bg-slate-100 active:scale-95 transition cursor-pointer z-30"
+              onClick={() => setShowExitModal(true)}
+              className="absolute left-3 top-3 p-1.5 rounded-full bg-slate-800 text-white hover:bg-slate-700 active:scale-95 transition cursor-pointer border border-slate-600"
+              title="Leave Game"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={() => setShowExitModal(true)}
+              className="absolute right-0 top-3 px-3 py-1 bg-white text-[#242b3d] font-black text-xs uppercase tracking-wider rounded-l-full shadow-md border-l-2 border-y-2 border-slate-300 hover:bg-slate-100 active:scale-95 transition cursor-pointer z-30"
             >
               EXIT
             </button>
 
-            {/* 7x7 Enemy Grid */}
-            <div className="w-full aspect-square max-w-[340px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner">
+            <div
+              style={{
+                maxHeight: 'min(40dvh, 75vw, 290px)',
+                maxWidth: 'min(40dvh, 75vw, 290px)',
+              }}
+              className="w-full aspect-square bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner"
+            >
               {Array.from({ length: 49 }).map((_, idx) => (
                 <div key={idx} className="w-full h-full bg-[#34495e] rounded-[5px]" />
               ))}
             </div>
 
-            {/* Ship silhouettes row */}
-            <div className="w-full max-w-[340px] mt-3 flex items-center justify-between px-2">
+            <div className="w-full max-w-[300px] mt-2 flex items-center justify-between px-2">
               {SHIP_DEFS.map((def) => (
                 <MiniShipSilhouette key={def.type} type={def.type} color="#00bcd4" />
               ))}
             </div>
           </div>
 
-          {/* Bottom Half: Solid Blue Banner with "Bot is placing ships" */}
-          <div className="bg-[#2980b9] p-10 flex flex-col items-center justify-center min-h-[220px] space-y-4 text-center">
+          {/* Bottom Half: Solid Blue Banner */}
+          <div className="flex-1 min-h-0 bg-[#2980b9] p-6 flex flex-col items-center justify-center space-y-4 text-center">
             <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {opponent?.username || 'Bot'} is placing ships
             </h3>
@@ -895,17 +925,17 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 3. DUAL BATTLE ARENA (Exact recreation of Screenshots 1, 2, 3 on 8x8 Grid) */}
+      {/* 3. DUAL BATTLE ARENA (Pure Full Screen, Both Boards Visible Simulataneously) */}
       {/* ========================================================================= */}
       {isBattle && (
         <div
-          className={`w-full max-w-[420px] rounded-[32px] overflow-hidden shadow-2xl border-4 border-[#1e272e] flex flex-col relative transition-all duration-300 ${
+          className={`w-full max-w-[420px] h-full flex flex-col justify-between overflow-hidden relative transition-all duration-300 ${
             !isMyTurn
-              ? 'ring-8 ring-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.7)]'
+              ? 'ring-6 ring-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.7)]'
               : ''
           }`}
         >
-          {/* Flying Cannonball Projectile Animation (Screenshots 1 & 3) */}
+          {/* Flying Cannonball Projectile Animation */}
           {flyingCannonball && (
             <div
               style={{
@@ -939,37 +969,51 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
           `}</style>
 
           {/* ===================================================================== */}
-          {/* TOP FIELD: OPPONENT WATERS (Blue Ocean Theme, Screenshots 1, 2, 3)    */}
+          {/* TOP FIELD: OPPONENT WATERS (Fits strictly within top half)            */}
           {/* ===================================================================== */}
           <div
             ref={topBoardRef}
-            className="bg-[#5dade2] p-3 sm:p-4 flex flex-col items-center justify-center relative border-b-2 border-[#1e272e]"
+            className="flex-1 min-h-0 w-full bg-[#5dade2] p-1.5 sm:p-2 flex flex-col items-center justify-center relative border-b-2 border-[#1e272e] overflow-hidden"
           >
-            {/* Opponent Turn Banner & Glow Header (Screenshot 3) */}
-            {!isMyTurn ? (
-              <div className="w-full pt-1 pb-2 text-center">
-                <h3 className="text-2xl sm:text-3xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] tracking-tight">
-                  {opponent?.username || 'Bot'}'s Turn
-                </h3>
-              </div>
-            ) : (
-              <div className="h-4" />
-            )}
+            {/* Top Bar with Back Button and Turn Indicator */}
+            <div className="w-full flex items-center justify-between px-2 mb-0.5 shrink-0 z-30">
+              <button
+                onClick={() => setShowExitModal(true)}
+                className="p-1 rounded-full bg-slate-800/80 text-white hover:bg-slate-700 active:scale-95 transition cursor-pointer border border-slate-600 shadow-sm"
+                title="Leave Game"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
 
-            {/* Opponent Top-Down Cannon (ONLY visible when opponent is firing or on opponent turn, Screenshot 3) */}
+              <span className={`text-xs sm:text-sm font-black uppercase tracking-wider ${
+                !isMyTurn ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] animate-pulse' : 'text-[#1e272e]'
+              }`}>
+                {!isMyTurn ? `${opponent?.username || 'Bot'}'s Turn` : 'Your Turn'}
+              </span>
+
+              <div className="w-6" />
+            </div>
+
+            {/* Enemy Top-Down Cannon */}
             <div
               ref={enemyCannonRef}
-              className={`transition-all duration-300 ${
+              className={`absolute top-1 left-1/2 -translate-x-1/2 z-25 pointer-events-none scale-75 sm:scale-85 transition-all duration-300 ${
                 !isMyTurn || isEnemyFiring
-                  ? 'opacity-100 translate-y-0 h-16 sm:h-20 mb-1'
-                  : 'opacity-0 -translate-y-6 h-0 overflow-hidden pointer-events-none'
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 -translate-y-4 pointer-events-none'
               }`}
             >
               <CartoonCannon isFiring={isEnemyFiring} isEnemy={true} />
             </div>
 
-            {/* 7x7 Enemy Grid with Large, Readable Blocks */}
-            <div className="w-full aspect-square max-w-[350px] bg-[#4a90e2] p-1.5 rounded-2xl border-2 border-[#2c3e50] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner">
+            {/* 7x7 Enemy Grid - Scaled to fit top half without scrolling */}
+            <div
+              style={{
+                maxHeight: 'min(37dvh, 85vw, 290px)',
+                maxWidth: 'min(37dvh, 85vw, 290px)',
+              }}
+              className="w-full aspect-square bg-[#4a90e2] p-1 rounded-xl border-2 border-[#2c3e50] grid grid-cols-7 grid-rows-7 gap-1 relative shadow-inner shrink-0"
+            >
               {Array.from({ length: 49 }).map((_, idx) => {
                 const r = Math.floor(idx / GRID_SIZE);
                 const c = idx % GRID_SIZE;
@@ -983,45 +1027,41 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                   <div
                     key={idx}
                     onClick={() => handleFireAttack(r, c)}
-                    className={`w-full h-full rounded-[5px] relative flex items-center justify-center transition-all ${
+                    className={`w-full h-full rounded-[4px] relative flex items-center justify-center transition-all ${
                       isHit
-                        ? 'bg-[#1e272e] z-10 shadow-inner' // Charred hit square
+                        ? 'bg-[#1e272e] z-10 shadow-inner'
                         : isMiss
-                        ? 'bg-[#34495e]' // Miss cell
+                        ? 'bg-[#34495e]'
                         : isMyTurn && !disabled && game.status === 'PLAYING'
                         ? 'bg-[#34495e] hover:bg-[#415b76] cursor-crosshair active:scale-95'
                         : 'bg-[#34495e] cursor-default'
                     }`}
                   >
-                    {/* Aiming Reticle Crosshair (Exact from Screenshot 1) */}
                     {isTargetHover && isPlayerFiring && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                        <div className="w-8 h-8 rounded-full border-2 border-white relative flex items-center justify-center animate-pulse">
-                          <div className="w-10 h-0.5 bg-white absolute" />
-                          <div className="h-10 w-0.5 bg-white absolute" />
+                        <div className="w-7 h-7 rounded-full border-2 border-white relative flex items-center justify-center animate-pulse">
+                          <div className="w-9 h-0.5 bg-white absolute" />
+                          <div className="h-9 w-0.5 bg-white absolute" />
                         </div>
                       </div>
                     )}
 
-                    {/* Miss Marker: Subtle Grey ✖ (Screenshot 1) */}
                     {isMiss && (
-                      <span className="text-[#95a5a6] font-black text-base sm:text-lg select-none leading-none">
+                      <span className="text-[#95a5a6] font-black text-sm sm:text-base select-none leading-none">
                         ✖
                       </span>
                     )}
 
-                    {/* Hit Marker: Two Overlapping 45-deg Orange & Yellow Diamonds (Screenshot 1 & 3) */}
                     {isHit && (
                       <div className="relative flex items-center justify-center select-none">
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#f39c12] rotate-45 rounded-[2px] shadow-[0_0_8px_#f1c40f] animate-pulse" />
-                        <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-[#e74c3c] rotate-45 rounded-[1px] absolute" />
+                        <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#f39c12] rotate-45 rounded-[2px] shadow-[0_0_8px_#f1c40f] animate-pulse" />
+                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#e74c3c] rotate-45 rounded-[1px] absolute" />
                       </div>
                     )}
                   </div>
                 );
               })}
 
-              {/* End-Game: Opponent Fleet Reveal on 8x8 Grid */}
               {game.status === 'FINISHED' &&
                 game.shipFleets?.[opponentUserId]?.map((ship) => {
                   const isHoriz = ship.orientation === 'HORIZONTAL';
@@ -1043,7 +1083,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                         zIndex: 15,
                         opacity: 0.75,
                       }}
-                      className="p-1 pointer-events-none"
+                      className="p-0.5 pointer-events-none"
                     >
                       <CartoonShipGraphic
                         type={ship.shipType}
@@ -1058,24 +1098,23 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
           </div>
 
           {/* ===================================================================== */}
-          {/* CENTER DIVIDER BAR (Fleet Silhouettes & Score Indicator, Image 1, 2)  */}
+          {/* CENTER DIVIDER BAR (Height ~38px, strictly fixed)                     */}
           {/* ===================================================================== */}
-          <div className="bg-[#ecf0f1] py-1.5 px-0 flex items-center justify-between border-y-2 border-[#1e272e] shadow-xs relative z-20">
-            {/* Left Semi-Circular Score Tab (Screenshot 1 & 2) */}
-            <div className="px-3 py-1 bg-white rounded-r-full border-r-2 border-y-2 border-slate-300 shadow-md flex items-center space-x-1">
-              <span className="font-black text-sm text-[#2980b9] leading-none">
+          <div className="h-9.5 w-full bg-[#ecf0f1] py-1 px-0 flex items-center justify-between border-y-2 border-[#1e272e] shadow-xs shrink-0 relative z-20">
+            {/* Left Semi-Circular Score Tab */}
+            <div className="px-2.5 py-0.5 bg-white rounded-r-full border-r-2 border-y-2 border-slate-300 shadow-md flex items-center space-x-1">
+              <span className="font-black text-xs sm:text-sm text-[#2980b9] leading-none">
                 {opponentSunkShips.length}
               </span>
-              <span className="text-slate-400 font-black text-xs leading-none">•</span>
-              <span className="font-black text-sm text-[#c0392b] leading-none">
+              <span className="text-slate-400 font-black text-[10px] leading-none">•</span>
+              <span className="font-black text-xs sm:text-sm text-[#c0392b] leading-none">
                 {mySunkShips.length}
               </span>
             </div>
 
-            {/* Central Two-Row Fleet Silhouette Matrix (Exact match of Screenshots 1, 2, 3) */}
-            <div className="flex flex-col items-center space-y-1">
-              {/* Row 1: Opponent 5 Ships (Blue) */}
-              <div className="flex items-center space-x-1.5">
+            {/* Central Two-Row Fleet Silhouette Matrix */}
+            <div className="flex flex-col items-center space-y-0.5">
+              <div className="flex items-center space-x-1">
                 {SHIP_DEFS.map((def) => {
                   const isSunk = opponentSunkShips.includes(def.type);
                   return (
@@ -1089,8 +1128,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                 })}
               </div>
 
-              {/* Row 2: Player 5 Ships (Red) */}
-              <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-1">
                 {SHIP_DEFS.slice().reverse().map((def) => {
                   const isSunk = mySunkShips.includes(def.type);
                   return (
@@ -1105,24 +1143,30 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               </div>
             </div>
 
-            {/* Right Semi-Circular EXIT Pill Tab (Screenshot 1 & 2) */}
+            {/* Right Semi-Circular EXIT Pill Tab (Triggers Confirmation Modal) */}
             <button
-              onClick={() => navigate('/hub')}
-              className="px-3 py-1 bg-white hover:bg-slate-100 text-[#1e272e] font-black text-xs uppercase tracking-wider rounded-l-full border-l-2 border-y-2 border-slate-300 shadow-md active:scale-95 transition cursor-pointer"
+              onClick={() => setShowExitModal(true)}
+              className="px-2.5 py-0.5 bg-white hover:bg-slate-100 text-[#1e272e] font-black text-[11px] uppercase tracking-wider rounded-l-full border-l-2 border-y-2 border-slate-300 shadow-md active:scale-95 transition cursor-pointer"
             >
               EXIT
             </button>
           </div>
 
           {/* ===================================================================== */}
-          {/* BOTTOM FIELD: PLAYER WATERS (Coral / Terracotta 8x8 Grid Theme)       */}
+          {/* BOTTOM FIELD: PLAYER WATERS (Fits strictly within bottom half)        */}
           {/* ===================================================================== */}
           <div
             ref={bottomBoardRef}
-            className="bg-[#e08b73] p-3 sm:p-4 flex flex-col items-center justify-center relative pb-16 sm:pb-20"
+            className="flex-1 min-h-0 w-full bg-[#e08b73] p-1.5 sm:p-2 flex flex-col items-center justify-center relative pb-10 sm:pb-12 overflow-hidden"
           >
-            {/* 7x7 Player Grid with Large Blocks */}
-            <div className="w-full aspect-square max-w-[350px] bg-[#d37861] p-1.5 rounded-2xl border-2 border-[#8d4d3d] grid grid-cols-7 grid-rows-7 gap-1.5 relative shadow-inner">
+            {/* 7x7 Player Grid - Scaled to fit bottom half without scrolling */}
+            <div
+              style={{
+                maxHeight: 'min(37dvh, 85vw, 290px)',
+                maxWidth: 'min(37dvh, 85vw, 290px)',
+              }}
+              className="w-full aspect-square bg-[#d37861] p-1 rounded-xl border-2 border-[#8d4d3d] grid grid-cols-7 grid-rows-7 gap-1 relative shadow-inner shrink-0"
+            >
               {Array.from({ length: 49 }).map((_, idx) => {
                 const r = Math.floor(idx / GRID_SIZE);
                 const c = idx % GRID_SIZE;
@@ -1134,31 +1178,30 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                 return (
                   <div
                     key={idx}
-                    className={`w-full h-full rounded-[5px] relative flex items-center justify-center select-none ${
+                    className={`w-full h-full rounded-[4px] relative flex items-center justify-center select-none ${
                       isHit
-                        ? 'bg-[#111827] z-20 shadow-inner' // Charred square on player ship
+                        ? 'bg-[#111827] z-20 shadow-inner'
                         : isMiss
                         ? 'bg-[#7a3b2e]'
                         : 'bg-[#9c5240]'
                     }`}
                   >
                     {isMiss && (
-                      <span className="text-[#d5b0a8] font-black text-base sm:text-lg leading-none">
+                      <span className="text-[#d5b0a8] font-black text-sm sm:text-base leading-none">
                         ✖
                       </span>
                     )}
 
                     {isHit && (
                       <div className="relative flex items-center justify-center">
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#f39c12] rotate-45 rounded-[2px] shadow-[0_0_8px_#f1c40f] animate-pulse" />
-                        <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-[#e74c3c] rotate-45 rounded-[1px] absolute" />
+                        <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#f39c12] rotate-45 rounded-[2px] shadow-[0_0_8px_#f1c40f] animate-pulse" />
+                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#e74c3c] rotate-45 rounded-[1px] absolute" />
                       </div>
                     )}
                   </div>
                 );
               })}
 
-              {/* Player Placed Ships (Drawn over 8x8 grid) */}
               {myFleet.map((ship) => {
                 const isHoriz = ship.orientation === 'HORIZONTAL';
                 const def = SHIP_DEFS.find((d) => d.type === ship.shipType)!;
@@ -1178,7 +1221,7 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
                       height: `${heightPct}%`,
                       zIndex: 10,
                     }}
-                    className="p-1 pointer-events-none"
+                    className="p-0.5 pointer-events-none"
                   >
                     <CartoonShipGraphic
                       type={ship.shipType}
@@ -1191,10 +1234,10 @@ export const ShipBattleArena: React.FC<ShipBattleArenaProps> = ({
               })}
             </div>
 
-            {/* Giant 3D Cartoon Cannon at Bottom (Overlapping bottom board, Screenshots 1 & 2) */}
+            {/* Giant 3D Cartoon Cannon at Bottom (Positioned at bottom center, overlapping grid) */}
             <div
               ref={playerCannonRef}
-              className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-25 pointer-events-none"
+              className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-25 pointer-events-none scale-75 sm:scale-85"
             >
               <CartoonCannon
                 isFiring={isPlayerFiring}

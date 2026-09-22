@@ -470,6 +470,19 @@ export const Game: React.FC = () => {
   const lastCallerUsername = lastCallerPlayer?.username;
   const isMyPick = lastCallerUserId === user.id;
 
+  if (isShipBattle && game) {
+    return (
+      <ShipBattleArena
+        game={game}
+        currentUserId={user.id}
+        onLockFleet={handleShipLockFleet}
+        onAttack={handleShipAttack}
+        isMyTurn={isMyTurn}
+        disabled={game.status !== 'PLAYING'}
+      />
+    );
+  }
+
   return (
     <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-4 font-sans relative">
       {/* 3... 2... 1... GO! Pre-Game Countdown */}
@@ -703,18 +716,6 @@ export const Game: React.FC = () => {
             </div>
           )}
 
-          {isShipBattle && (
-            <div className="w-full flex justify-center">
-              <ShipBattleArena
-                game={game}
-                currentUserId={user.id}
-                onLockFleet={handleShipLockFleet}
-                onAttack={handleShipAttack}
-                isMyTurn={isMyTurn}
-                disabled={game.status !== 'PLAYING'}
-              />
-            </div>
-          )}
 
           {/* In-Game Emote Reactions Bar */}
           <div className="w-full pt-1 flex justify-center">

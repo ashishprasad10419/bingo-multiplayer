@@ -1110,6 +1110,60 @@ export const BotGame: React.FC = () => {
   const isPlayerWinner = game.winnerId === playerId;
   const isBotWinner = game.winnerId === botId;
 
+  if (game.gameType === 'SHIP_BATTLE') {
+    return (
+      <>
+        <ShipBattleArena
+          game={game}
+          currentUserId={playerId}
+          onLockFleet={handleShipLockFleet}
+          onAttack={handleShipAttack}
+          isMyTurn={isMyTurn}
+          disabled={game.status !== 'PLAYING'}
+        />
+
+        {/* Fullscreen Result Modal */}
+        {showResultModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
+            <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[32px] p-6 sm:p-7 shadow-2xl border-2 border-indigo-200 dark:border-slate-800 text-center space-y-4 animate-in zoom-in-95">
+              <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-md bg-gradient-to-tr from-amber-400 to-yellow-500">
+                {isPlayerWinner ? '🏆' : isBotWinner ? '🤖' : '🤝'}
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                  {isPlayerWinner ? 'Victory! 🎉' : isBotWinner ? 'Fleet Defeated! 💥' : "It's a Draw! 🤝"}
+                </h3>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {isPlayerWinner
+                    ? `You sank all enemy warships against ${botProfile.username}!`
+                    : isBotWinner
+                    ? `${botProfile.username} sank all your warships. Try again!`
+                    : 'A hard-fought tie match! Rematch to break the tie.'}
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-col space-y-2">
+                <button
+                  onClick={() => startNewGame()}
+                  className="btn-gradient w-full py-3 rounded-2xl text-xs font-black text-white shadow-md cursor-pointer hover:brightness-105 active:scale-95 transition"
+                >
+                  Play Again (Rematch) 🔄
+                </button>
+                <button
+                  onClick={() => navigate('/hub')}
+                  className="w-full py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition"
+                >
+                  Back to Game Hub
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-4 font-sans">
       {/* Top Navigation & Status Bar */}
@@ -1238,16 +1292,6 @@ export const BotGame: React.FC = () => {
           />
         )}
 
-        {game.gameType === 'SHIP_BATTLE' && (
-          <ShipBattleArena
-            game={game}
-            currentUserId={playerId}
-            onLockFleet={handleShipLockFleet}
-            onAttack={handleShipAttack}
-            isMyTurn={isMyTurn}
-            disabled={game.status !== 'PLAYING'}
-          />
-        )}
 
         {game.gameType === 'BINGO' && (
           <div className="flex flex-col items-center w-full max-w-[560px] space-y-4">
