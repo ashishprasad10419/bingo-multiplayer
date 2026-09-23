@@ -74,14 +74,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const theme = useGameTheme();
   const searchParams = new URLSearchParams(location.search);
   const isShipBattleBot = location.pathname.startsWith('/play-bot') && searchParams.get('game') === 'SHIP_BATTLE';
-  const hideNavbar = isShipBattleBot || ['/splash', '/login', '/winner'].some((p) =>
+  const isMastermindBot = location.pathname.startsWith('/play-bot') && searchParams.get('game') === 'MASTERMIND';
+  const isFullScreenGame = isShipBattleBot || isMastermindBot;
+  const hideNavbar = isFullScreenGame || ['/splash', '/login', '/winner'].some((p) =>
     location.pathname.startsWith(p)
   );
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${theme.bgGradient} dark:from-[#0d0f17] dark:via-[#131623] dark:to-[#181a2b] text-[#2a2050] dark:text-[#f3f4f6] flex flex-col font-sans selection:bg-[#8b7fe8]/20 transition-colors duration-500`}>
       {!hideNavbar && <Navbar />}
-      <main className={isShipBattleBot ? "flex-1" : "flex-1 pb-24 md:pb-10"}>{children}</main>
+      <main className={isFullScreenGame ? "flex-1" : "flex-1 pb-24 md:pb-10"}>{children}</main>
       {!hideNavbar && <MobileNavBar />}
     </div>
   );

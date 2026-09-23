@@ -285,6 +285,34 @@ class SocketService {
     }
   }
 
+  public sendMastermindLockSecret(gameId: string, colors: string[], clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/mastermind/lock-secret',
+        body: JSON.stringify({ gameId, colors, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendMastermindLockSecret failed:', e);
+      return false;
+    }
+  }
+
+  public sendMastermindGuess(gameId: string, colors: string[], clientMoveId?: string): boolean {
+    if (!this.client || !this.client.connected) return false;
+    try {
+      this.client.publish({
+        destination: '/app/game/mastermind/guess',
+        body: JSON.stringify({ gameId, colors, clientMoveId }),
+      });
+      return true;
+    } catch (e) {
+      console.warn('STOMP sendMastermindGuess failed:', e);
+      return false;
+    }
+  }
+
   public sendEmote(gameId: string, roomCode: string, emote: string): boolean {
     if (!this.client || !this.client.connected) {
       return false;

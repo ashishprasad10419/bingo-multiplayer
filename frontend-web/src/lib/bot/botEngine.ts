@@ -1,4 +1,4 @@
-import { Game, GameType, GamePlayer } from '../types';
+import { Game, GameType, GamePlayer, MastermindColor } from '../types';
 
 export type BotDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
@@ -239,6 +239,23 @@ export function createOfflineGame(
         [botId]: [],
       };
       baseGame.shipSunkTypes = {
+        [playerId]: [],
+        [botId]: [],
+      };
+      break;
+    }
+
+    case 'MASTERMIND': {
+      baseGame.mastermindPhase = 'SETUP';
+      baseGame.mastermindMaxAttempts = 8;
+      baseGame.mastermindSecrets = {
+        [botId]: generateBotMastermindSecret(),
+      };
+      baseGame.mastermindSecretsLocked = {
+        [botId]: false,
+        [playerId]: false,
+      };
+      baseGame.mastermindGuesses = {
         [playerId]: [],
         [botId]: [],
       };
@@ -915,4 +932,133 @@ export function generateOfflineBotFleet(): any[] {
   }
 
   return fleet;
+}
+
+export const MASTERMIND_COLORS: MastermindColor[] = [
+  'RED',
+  'BLUE',
+  'GREEN',
+  'YELLOW',
+  'PURPLE',
+  'ORANGE',
+];
+
+export function generateBotMastermindSecret(): MastermindColor[] {
+  return Array.from({ length: 4 }, () =>
+    MASTERMIND_COLORS[Math.floor(Math.random() * MASTERMIND_COLORS.length)]
+  );
+}
+
+export function evaluateMastermindGuess(
+  secret: MastermindColor[],
+  guess: MastermindColor[]
+): { exactMatches: number; colorMatches: number; isWin: boolean } {
+  if (!secret || !guess || secret.length !== 4 || guess.length !== 4) {
+    return { exactMatches: 0, colorMatches: 0, isWin: false };
+  }
+
+  let exactMatches = 0;
+  const secretMatched = [false, false, false, false];
+  const guessMatched = [false, false, false, false];
+
+  // Pass 1: exact matches
+  for (let i = 0; i < 4; i++) {
+    if (secret[i] === guess[i]) {
+      exactMatches++;
+      secretMatched[i] = true;
+      guessMatched[i] = true;
+    }
+  }
+
+  // Pass 2: misplaced color matches
+  let colorMatches = 0;
+  for (let g = 0; g < 4; g++) {
+    if (guessMatched[g]) continue;
+    for (let s = 0; s < 4; s++) {
+      if (!secretMatched[s] && guess[g] === secret[s]) {
+        colorMatches++;
+        secretMatched[s] = true;
+        break;
+      }
+    }
+  }
+
+  return {
+    exactMatches,
+    colorMatches,
+    isWin: exactMatches === 4,
+  };
+}
+
+let ALL_MASTERMIND_COMBINATIONS: MastermindColor[][] | null = null;
+function getAllCombinations(): MastermindColor[][] {
+  if (!ALL_MASTERMIND_COMBINATIONS) {
+    const list: MastermindColor[][] = [];
+    for (const c1 of MASTERMIND_COLORS) {
+      for (const c2 of MASTERMIND_COLORS) {
+        for (const c3 of MASTERMIND_COLORS) {
+          for (const c4 of MASTERMIND_COLORS) {
+            list.push([c1, c2, c3, c4]);
+          }
+        }
+      }
+    }
+    ALL_MASTERMIND_COMBINATIONS = list;
+  }
+  return ALL_MASTERMIND_COMBINATIONS;
+}
+
+export function chooseMastermindBotGuess(
+  history: { guess: MastermindColor[]; exactMatches: number; colorMatches: number }[],
+  difficulty: BotDifficulty
+): MastermindColor[] {
+  if (history.length === 0) {
+    if (difficulty === 'HARD') {
+      return ['RED', 'RED', 'BLUE', 'BLUE'];
+    }
+    if (difficulty === 'MEDIUM') {
+      return ['RED', 'BLUE', 'GREEN', 'YELLOW'];
+    }
+    return generateBotMastermindSecret();
+  }
+
+  if (difficulty === 'EASY') {
+    return generateBotMastermindSecret();
+  }
+
+  const allCombos = getAllCombinations();
+  const consistentCandidates = allCombos.filter((candidate) => {
+    return history.every((h) => {
+      const evalResult = evaluateMastermindGuess(candidate, h.guess);
+      return (
+        evalResult.exactMatches === h.exactMatches &&
+        evalResult.colorMatches === h.colorMatches
+      );
+    });
+  });
+
+  if (difficulty === 'HARD' && consistentCandidates.length > 0) {
+    return consistentCandidates[Math.floor(Math.random() * consistentCandidates.length)];
+  }
+
+  if (difficulty === 'MEDIUM') {
+    if (consistentCandidates.length > 0 && Math.random() < 0.7) {
+      return consistentCandidates[Math.floor(Math.random() * consistentCandidates.length)];
+    }
+  }
+
+  return consistentCandidates.length > 0
+    ? consistentCandidates[0]
+    : generateBotMastermindSecret();
+}
+
+export function getMastermindBotDelay(difficulty: BotDifficulty): number {
+  switch (difficulty) {
+    case 'EASY':
+      return Math.floor(650 + Math.random() * 400);
+    case 'MEDIUM':
+      return Math.floor(500 + Math.random() * 300);
+    case 'HARD':
+      return Math.floor(400 + Math.random() * 200);
+  }
 }

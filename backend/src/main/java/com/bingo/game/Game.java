@@ -141,6 +141,20 @@ public class Game {
     @Builder.Default
     private java.util.Map<String, Object> shipLastAttackResult = new java.util.HashMap<>();
 
+    // --- Mastermind State ---
+    @Builder.Default
+    private String mastermindPhase = "SETUP"; // "SETUP" or "BATTLE"
+    @Builder.Default
+    private java.util.Map<String, List<String>> mastermindSecrets = new java.util.HashMap<>(); // userId -> 4-color secret code
+    @Builder.Default
+    private java.util.Map<String, Boolean> mastermindSecretsLocked = new java.util.HashMap<>(); // userId -> locked
+    @Builder.Default
+    private java.util.Map<String, List<com.bingo.game.engine.MastermindEngine.MastermindGuessRecord>> mastermindGuesses = new java.util.HashMap<>(); // userId -> history
+    @Builder.Default
+    private int mastermindMaxAttempts = 8;
+    @Builder.Default
+    private java.util.Map<String, Object> mastermindLastGuessResult = new java.util.HashMap<>();
+
     @Indexed
     @Builder.Default
     private GameStatus status = GameStatus.PLAYING;

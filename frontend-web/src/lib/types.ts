@@ -161,6 +161,24 @@ export interface Game {
   shipAttacks?: Record<string, ShipAttack[]>;
   shipSunkTypes?: Record<string, string[]>;
   shipLastAttackResult?: any;
+
+  // Mastermind State
+  mastermindPhase?: 'SETUP' | 'BATTLE';
+  mastermindSecrets?: Record<string, MastermindColor[]>;
+  mastermindSecretsLocked?: Record<string, boolean>;
+  mastermindGuesses?: Record<string, MastermindGuess[]>;
+  mastermindMaxAttempts?: number;
+  mastermindLastGuessResult?: any;
+}
+
+export type MastermindColor = 'RED' | 'BLUE' | 'GREEN' | 'YELLOW' | 'PURPLE' | 'ORANGE';
+
+export interface MastermindGuess {
+  userId: string;
+  guess: MastermindColor[];
+  exactMatches: number;
+  colorMatches: number;
+  timestamp: number;
 }
 
 export type ShipType = 'CARRIER' | 'BATTLESHIP' | 'CRUISER' | 'SUBMARINE' | 'DESTROYER';

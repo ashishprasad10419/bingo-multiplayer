@@ -185,4 +185,24 @@ public class GameWebSocketController {
             log.warn("Ship attack error: {}", ex.getMessage());
         }
     }
+
+    @MessageMapping("/game/mastermind/lock-secret")
+    public void handleMastermindLockSecret(@Payload com.bingo.game.dto.MastermindMoveRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processMastermindLockSecret(principal.getName(), request.getGameId(), request.getColors(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("Mastermind lock secret error: {}", ex.getMessage());
+        }
+    }
+
+    @MessageMapping("/game/mastermind/guess")
+    public void handleMastermindGuess(@Payload com.bingo.game.dto.MastermindMoveRequest request, Principal principal) {
+        if (principal == null) return;
+        try {
+            gameService.processMastermindGuess(principal.getName(), request.getGameId(), request.getColors(), request.getClientMoveId());
+        } catch (Exception ex) {
+            log.warn("Mastermind guess error: {}", ex.getMessage());
+        }
+    }
 }

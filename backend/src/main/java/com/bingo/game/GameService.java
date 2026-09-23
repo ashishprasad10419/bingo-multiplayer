@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.bingo.game.engine.MastermindEngine;
 import java.util.*;
 
 @Slf4j
@@ -26,6 +27,7 @@ public class GameService {
     private final com.bingo.game.engine.WordScrambleEngine wordScrambleEngine;
     private final com.bingo.game.engine.QuizBattleEngine quizBattleEngine;
     private final com.bingo.game.engine.ShipBattleEngine shipBattleEngine;
+    private final com.bingo.game.engine.MastermindEngine mastermindEngine;
     private final TurnService turnService;
     private final WinnerService winnerService;
     private final GameEventService gameEventService;
@@ -800,11 +802,11 @@ public class GameService {
 
     public Game sanitizeGameForPlayer(Game game, String userId) {
         if (game == null) return null;
-        if (game.getGameType() != GameType.SHIP_BATTLE) {
+        if (game.getGameType() != GameType.SHIP_BATTLE && game.getGameType() != GameType.MASTERMIND) {
             return game;
         }
         if (game.getStatus() == GameStatus.FINISHED) {
-            // Match finished: reveal all ship positions
+            // Match finished: reveal all ship positions and secret codes
             return game;
         }
 
@@ -812,6 +814,12 @@ public class GameService {
         Map<String, List<com.bingo.game.engine.ShipBattleEngine.ShipPlacement>> sanitizedFleets = new HashMap<>();
         if (game.getShipFleets() != null && userId != null && game.getShipFleets().containsKey(userId)) {
             sanitizedFleets.put(userId, game.getShipFleets().get(userId));
+        }
+
+        // Mask opponent's secret code during active setup and battle
+        Map<String, List<String>> sanitizedSecrets = new HashMap<>();
+        if (game.getMastermindSecrets() != null && userId != null && game.getMastermindSecrets().containsKey(userId)) {
+            sanitizedSecrets.put(userId, game.getMastermindSecrets().get(userId));
         }
 
         return Game.builder()
@@ -837,6 +845,12 @@ public class GameService {
                 .shipAttacks(game.getShipAttacks())
                 .shipSunkTypes(game.getShipSunkTypes())
                 .shipLastAttackResult(game.getShipLastAttackResult())
+                .mastermindPhase(game.getMastermindPhase())
+                .mastermindSecrets(sanitizedSecrets)
+                .mastermindSecretsLocked(game.getMastermindSecretsLocked())
+                .mastermindGuesses(game.getMastermindGuesses())
+                .mastermindMaxAttempts(game.getMastermindMaxAttempts())
+                .mastermindLastGuessResult(game.getMastermindLastGuessResult())
                 .build();
     }
 
@@ -1040,6 +1054,210 @@ public class GameService {
                     "allShipsSunk", false,
                     "version", game.getVersion()
             ));
+        }
+
+        return sanitizeGameForPlayer(game, senderUserId);
+    }
+
+    public synchronized Game processMastermindLockSecret(String senderUserId, String gameId, List<String> secretCode, String clientMoveId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found: " + gameId));
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate mastermind lock secret ignored for clientMoveId: {}", clientMoveId);
+                return sanitizeGameForPlayer(game, senderUserId);
+            }
+        }
+
+        if (game.getStatus() != GameStatus.PLAYING) {
+            throw new IllegalStateException("Game is not in PLAYING state (current: " + game.getStatus() + ")");
+        }
+
+        if (!"SETUP".equalsIgnoreCase(game.getMastermindPhase())) {
+            throw new IllegalStateException("Mastermind is not in SETUP phase (current: " + game.getMastermindPhase() + ")");
+        }
+
+        if (!mastermindEngine.isValidCode(secretCode)) {
+            throw new IllegalArgumentException("Invalid secret code. Must have 4 valid colors.");
+        }
+
+        if (game.getMastermindSecrets() == null) {
+            game.setMastermindSecrets(new HashMap<>());
+        }
+        if (game.getMastermindSecretsLocked() == null) {
+            game.setMastermindSecretsLocked(new HashMap<>());
+        }
+
+        List<String> upperSecret = secretCode.stream().map(String::toUpperCase).toList();
+        game.getMastermindSecrets().put(senderUserId, upperSecret);
+        game.getMastermindSecretsLocked().put(senderUserId, true);
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+        game.setVersion(game.getVersion() + 1);
+
+        Map<String, Boolean> lockedMap = game.getMastermindSecretsLocked();
+        boolean allPlayersLocked = game.getPlayers().stream()
+                .allMatch(p -> Boolean.TRUE.equals(lockedMap.get(p.getUserId())));
+
+        if (allPlayersLocked) {
+            game.setMastermindPhase("BATTLE");
+            game.setCurrentPlayerIndex(0);
+            game.setCurrentTurnUserId(game.getPlayers().get(0).getUserId());
+            game = gameRepository.save(game);
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "MASTERMIND_PHASE_CHANGED", Map.of(
+                    "gameId", game.getId(),
+                    "phase", "BATTLE",
+                    "currentTurnUserId", game.getCurrentTurnUserId(),
+                    "version", game.getVersion()
+            ));
+        } else {
+            game = gameRepository.save(game);
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "MASTERMIND_SECRET_LOCKED", Map.of(
+                    "gameId", game.getId(),
+                    "userId", senderUserId,
+                    "version", game.getVersion()
+            ));
+        }
+
+        return sanitizeGameForPlayer(game, senderUserId);
+    }
+
+    public synchronized Game processMastermindGuess(String senderUserId, String gameId, List<String> guess, String clientMoveId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found: " + gameId));
+
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            if (game.getProcessedMoveIds().contains(clientMoveId)) {
+                log.info("Duplicate mastermind guess ignored for clientMoveId: {}", clientMoveId);
+                return sanitizeGameForPlayer(game, senderUserId);
+            }
+        }
+
+        if (game.getStatus() != GameStatus.PLAYING) {
+            throw new IllegalStateException("Game is not in PLAYING state (current: " + game.getStatus() + ")");
+        }
+
+        if (!"BATTLE".equalsIgnoreCase(game.getMastermindPhase())) {
+            throw new IllegalStateException("Mastermind is not in BATTLE phase (current: " + game.getMastermindPhase() + ")");
+        }
+
+        if (!senderUserId.equals(game.getCurrentTurnUserId())) {
+            throw new IllegalStateException("Not player's turn to guess: " + senderUserId);
+        }
+
+        if (!mastermindEngine.isValidCode(guess)) {
+            throw new IllegalArgumentException("Invalid guess. Must have 4 valid colors.");
+        }
+
+        GamePlayer attacker = game.findPlayer(senderUserId);
+        GamePlayer defender = game.getPlayers().stream()
+                .filter(p -> !p.getUserId().equals(senderUserId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Defender not found in game"));
+
+        List<String> defenderSecret = game.getMastermindSecrets().get(defender.getUserId());
+        if (defenderSecret == null) {
+            throw new IllegalStateException("Defender secret code not registered");
+        }
+
+        List<String> upperGuess = guess.stream().map(String::toUpperCase).toList();
+        MastermindEngine.Evaluation eval = mastermindEngine.evaluateGuess(defenderSecret, upperGuess);
+
+        if (game.getMastermindGuesses() == null) {
+            game.setMastermindGuesses(new HashMap<>());
+        }
+        List<MastermindEngine.MastermindGuessRecord> userGuesses =
+                game.getMastermindGuesses().computeIfAbsent(senderUserId, k -> new ArrayList<>());
+
+        MastermindEngine.MastermindGuessRecord record = MastermindEngine.MastermindGuessRecord.builder()
+                .userId(senderUserId)
+                .guess(upperGuess)
+                .exactMatches(eval.getExactMatches())
+                .colorMatches(eval.getColorMatches())
+                .timestamp(System.currentTimeMillis())
+                .build();
+        userGuesses.add(record);
+
+        game.setMoveNumber(game.getMoveNumber() + 1);
+        game.setVersion(game.getVersion() + 1);
+        if (clientMoveId != null && !clientMoveId.isBlank()) {
+            game.getProcessedMoveIds().add(clientMoveId);
+        }
+
+        Map<String, Object> lastResult = new HashMap<>();
+        lastResult.put("userId", senderUserId);
+        lastResult.put("guess", upperGuess);
+        lastResult.put("exactMatches", eval.getExactMatches());
+        lastResult.put("colorMatches", eval.getColorMatches());
+        lastResult.put("isWin", eval.isWin());
+        game.setMastermindLastGuessResult(lastResult);
+
+        if (eval.isWin()) {
+            // Player cracked opponent's code!
+            winnerService.handleGameFinished(game, attacker);
+            game = gameRepository.save(game);
+
+            gameEventService.publishEvent(game.getRoomCode(), game.getId(), "MASTERMIND_GUESS_RESULT", Map.of(
+                    "gameId", game.getId(),
+                    "userId", senderUserId,
+                    "guess", upperGuess,
+                    "exactMatches", eval.getExactMatches(),
+                    "colorMatches", eval.getColorMatches(),
+                    "isWin", true,
+                    "nextTurnUserId", "",
+                    "version", game.getVersion()
+            ));
+        } else {
+            // Check max attempts
+            int maxAttempts = game.getMastermindMaxAttempts() > 0 ? game.getMastermindMaxAttempts() : 8;
+            boolean attackerMaxed = userGuesses.size() >= maxAttempts;
+            List<MastermindEngine.MastermindGuessRecord> defenderGuesses =
+                    game.getMastermindGuesses().getOrDefault(defender.getUserId(), Collections.emptyList());
+            boolean defenderMaxed = defenderGuesses.size() >= maxAttempts;
+
+            if (attackerMaxed && defenderMaxed) {
+                // Both reached limit: resolve draw or best score
+                int attackerBest = userGuesses.stream().mapToInt(MastermindEngine.MastermindGuessRecord::getExactMatches).max().orElse(0);
+                int defenderBest = defenderGuesses.stream().mapToInt(MastermindEngine.MastermindGuessRecord::getExactMatches).max().orElse(0);
+                if (attackerBest > defenderBest) {
+                    winnerService.handleGameFinished(game, attacker);
+                } else if (defenderBest > attackerBest) {
+                    winnerService.handleGameFinished(game, defender);
+                } else {
+                    winnerService.handleGameDraw(game, "Reached maximum attempts with tied score");
+                }
+                game = gameRepository.save(game);
+
+                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "MASTERMIND_GUESS_RESULT", Map.of(
+                        "gameId", game.getId(),
+                        "userId", senderUserId,
+                        "guess", upperGuess,
+                        "exactMatches", eval.getExactMatches(),
+                        "colorMatches", eval.getColorMatches(),
+                        "isWin", false,
+                        "nextTurnUserId", "",
+                        "version", game.getVersion()
+                ));
+            } else {
+                game.setCurrentTurnUserId(defender.getUserId());
+                game = gameRepository.save(game);
+
+                gameEventService.publishEvent(game.getRoomCode(), game.getId(), "MASTERMIND_GUESS_RESULT", Map.of(
+                        "gameId", game.getId(),
+                        "userId", senderUserId,
+                        "guess", upperGuess,
+                        "exactMatches", eval.getExactMatches(),
+                        "colorMatches", eval.getColorMatches(),
+                        "isWin", false,
+                        "nextTurnUserId", defender.getUserId(),
+                        "version", game.getVersion()
+                ));
+            }
         }
 
         return sanitizeGameForPlayer(game, senderUserId);

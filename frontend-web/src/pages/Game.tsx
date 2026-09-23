@@ -19,6 +19,8 @@ import { MemoryArena } from '../components/games/MemoryArena';
 import { NumberRushArena } from '../components/games/NumberRushArena';
 import { WordScrambleArena } from '../components/games/WordScrambleArena';
 import { ShipBattleArena } from '../components/games/ShipBattleArena';
+import { MastermindArena } from '../components/games/MastermindArena';
+import { MastermindColor } from '../lib/types';
 import { ConnectionStatusPill } from '../components/ConnectionStatusPill';
 import { CountdownOverlay } from '../components/CountdownOverlay';
 import { LastCalledCallout } from '../components/LastCalledCallout';
@@ -59,6 +61,7 @@ export const Game: React.FC = () => {
   const isNumberRush = game?.gameType === 'NUMBER_RUSH';
   const isWordScramble = game?.gameType === 'WORD_SCRAMBLE';
   const isShipBattle = game?.gameType === 'SHIP_BATTLE';
+  const isMastermind = game?.gameType === 'MASTERMIND';
 
   // Audio Cue: Alert player when it becomes their turn
   useEffect(() => {
@@ -451,6 +454,18 @@ export const Game: React.FC = () => {
     }
   };
 
+  const handleMastermindLockSecret = (secret: MastermindColor[]) => {
+    if (!game) return;
+    const clientMoveId = `${user?.id}-mastermind-lock-${Date.now()}`;
+    socketService.sendMastermindLockSecret(game.id, secret, clientMoveId);
+  };
+
+  const handleMastermindGuess = (guess: MastermindColor[]) => {
+    if (!game) return;
+    const clientMoveId = `${user?.id}-mastermind-guess-${Date.now()}`;
+    socketService.sendMastermindGuess(game.id, guess, clientMoveId);
+  };
+
   const theme = getGameTheme(game?.gameType);
 
   const getGameTitle = () => {
@@ -462,6 +477,7 @@ export const Game: React.FC = () => {
     if (isNumberRush) return 'Number Rush';
     if (isWordScramble) return 'Word Scramble';
     if (isShipBattle) return 'Ship Battle';
+    if (isMastermind) return 'Mastermind';
     return 'Bingo';
   };
 
@@ -477,6 +493,19 @@ export const Game: React.FC = () => {
         currentUserId={user.id}
         onLockFleet={handleShipLockFleet}
         onAttack={handleShipAttack}
+        isMyTurn={isMyTurn}
+        disabled={game.status !== 'PLAYING'}
+      />
+    );
+  }
+
+  if (isMastermind && game) {
+    return (
+      <MastermindArena
+        game={game}
+        currentUserId={user.id}
+        onLockSecret={handleMastermindLockSecret}
+        onGuess={handleMastermindGuess}
         isMyTurn={isMyTurn}
         disabled={game.status !== 'PLAYING'}
       />

@@ -24,10 +24,18 @@ import { MemoryArena } from '../components/games/MemoryArena';
 import { NumberRushArena } from '../components/games/NumberRushArena';
 import { WordScrambleArena } from '../components/games/WordScrambleArena';
 import { ShipBattleArena } from '../components/games/ShipBattleArena';
+import { MastermindArena } from '../components/games/MastermindArena';
 import { BoardGrid } from '../components/BoardGrid';
 import { CalledNumbersTicker } from '../components/CalledNumbersTicker';
-import { getShipBattleBotDelay, chooseShipBattleTarget } from '../lib/bot/botEngine';
-import { ShipPlacement } from '../lib/types';
+import {
+  getShipBattleBotDelay,
+  chooseShipBattleTarget,
+  generateBotMastermindSecret,
+  evaluateMastermindGuess,
+  chooseMastermindBotGuess,
+  getMastermindBotDelay,
+} from '../lib/bot/botEngine';
+import { ShipPlacement, MastermindColor, MastermindGuess } from '../lib/types';
 import { ArrowLeft, RotateCcw, WifiOff } from 'lucide-react';
 
 export const BotGame: React.FC = () => {
@@ -1107,6 +1115,137 @@ export const BotGame: React.FC = () => {
     }, delay);
   };
 
+  // =========================================================================
+  // MASTERMIND LOGIC
+  // =========================================================================
+  const handleMastermindLockSecret = (secret: MastermindColor[]) => {
+    soundService.playPickSuccess();
+    const botSecret = game.mastermindSecrets?.[botId] || generateBotMastermindSecret();
+    setGame((prev) => ({
+      ...prev,
+      mastermindPhase: 'BATTLE',
+      mastermindSecrets: {
+        [playerId]: secret,
+        [botId]: botSecret,
+      },
+      mastermindSecretsLocked: {
+        [playerId]: true,
+        [botId]: true,
+      },
+      currentTurnUserId: playerId,
+    }));
+  };
+
+  const handleMastermindGuess = (guess: MastermindColor[]) => {
+    if (!isMyTurn || game.status !== 'PLAYING') return;
+
+    const botSecret = game.mastermindSecrets?.[botId] || [];
+    const evalResult = evaluateMastermindGuess(botSecret, guess);
+
+    const playerGuesses: MastermindGuess[] = [
+      ...(game.mastermindGuesses?.[playerId] || []),
+      {
+        userId: playerId,
+        guess,
+        exactMatches: evalResult.exactMatches,
+        colorMatches: evalResult.colorMatches,
+        timestamp: Date.now(),
+      },
+    ];
+
+    if (evalResult.isWin) {
+      soundService.playWinFanfare();
+      setGame((prev) => ({
+        ...prev,
+        status: 'FINISHED',
+        winnerId: playerId,
+        mastermindGuesses: {
+          ...(prev.mastermindGuesses || {}),
+          [playerId]: playerGuesses,
+        },
+      }));
+      setShowResultModal(true);
+      return;
+    }
+
+    const maxAttempts = game.mastermindMaxAttempts || 8;
+
+    // Switch turn to Bot
+    setGame((prev) => ({
+      ...prev,
+      currentTurnUserId: botId,
+      mastermindGuesses: {
+        ...(prev.mastermindGuesses || {}),
+        [playerId]: playerGuesses,
+      },
+    }));
+    setIsBotThinking(true);
+
+    const delay = getMastermindBotDelay(difficulty);
+    setTimeout(() => {
+      setGame((current) => {
+        if (current.status !== 'PLAYING') return current;
+
+        const playerSecret = current.mastermindSecrets?.[playerId] || [];
+        const currentBotGuesses: MastermindGuess[] = [...(current.mastermindGuesses?.[botId] || [])];
+
+        const botGuessColors = chooseMastermindBotGuess(currentBotGuesses, difficulty);
+        const botEval = evaluateMastermindGuess(playerSecret, botGuessColors);
+
+        currentBotGuesses.push({
+          userId: botId,
+          guess: botGuessColors,
+          exactMatches: botEval.exactMatches,
+          colorMatches: botEval.colorMatches,
+          timestamp: Date.now(),
+        });
+
+        setIsBotThinking(false);
+
+        if (botEval.isWin) {
+          soundService.playLineComplete();
+          setShowResultModal(true);
+          return {
+            ...current,
+            status: 'FINISHED',
+            winnerId: botId,
+            mastermindGuesses: {
+              ...(current.mastermindGuesses || {}),
+              [botId]: currentBotGuesses,
+            },
+          };
+        }
+
+        // Check if both reached max attempts
+        if (playerGuesses.length >= maxAttempts && currentBotGuesses.length >= maxAttempts) {
+          soundService.playLineComplete();
+          setShowResultModal(true);
+          const playerBest = Math.max(...playerGuesses.map((g) => g.exactMatches), 0);
+          const botBest = Math.max(...currentBotGuesses.map((g) => g.exactMatches), 0);
+          const winner = playerBest > botBest ? playerId : botBest > playerBest ? botId : undefined;
+          return {
+            ...current,
+            status: 'FINISHED',
+            winnerId: winner,
+            mastermindGuesses: {
+              ...(current.mastermindGuesses || {}),
+              [botId]: currentBotGuesses,
+            },
+          };
+        }
+
+        return {
+          ...current,
+          currentTurnUserId: playerId,
+          mastermindGuesses: {
+            ...(current.mastermindGuesses || {}),
+            [botId]: currentBotGuesses,
+          },
+        };
+      });
+    }, delay);
+  };
+
   const isPlayerWinner = game.winnerId === playerId;
   const isBotWinner = game.winnerId === botId;
 
@@ -1140,6 +1279,60 @@ export const BotGame: React.FC = () => {
                     : isBotWinner
                     ? `${botProfile.username} sank all your warships. Try again!`
                     : 'A hard-fought tie match! Rematch to break the tie.'}
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-col space-y-2">
+                <button
+                  onClick={() => startNewGame()}
+                  className="btn-gradient w-full py-3 rounded-2xl text-xs font-black text-white shadow-md cursor-pointer hover:brightness-105 active:scale-95 transition"
+                >
+                  Play Again (Rematch) 🔄
+                </button>
+                <button
+                  onClick={() => navigate('/hub')}
+                  className="w-full py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition"
+                >
+                  Back to Game Hub
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (game.gameType === 'MASTERMIND') {
+    return (
+      <>
+        <MastermindArena
+          game={game}
+          currentUserId={playerId}
+          onLockSecret={handleMastermindLockSecret}
+          onGuess={handleMastermindGuess}
+          isMyTurn={isMyTurn}
+          disabled={game.status !== 'PLAYING'}
+        />
+
+        {/* Fullscreen Result Modal */}
+        {showResultModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
+            <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[32px] p-6 sm:p-7 shadow-2xl border-2 border-indigo-200 dark:border-slate-800 text-center space-y-4 animate-in zoom-in-95">
+              <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-md bg-gradient-to-tr from-amber-400 to-yellow-500">
+                {isPlayerWinner ? '🏆' : isBotWinner ? '🤖' : '🤝'}
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                  {isPlayerWinner ? 'Code Cracked! 🎉' : isBotWinner ? 'Code Breached! 💥' : "It's a Draw! 🤝"}
+                </h3>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {isPlayerWinner
+                    ? `You cracked ${botProfile.username}'s secret code on ${difficulty.toLowerCase()} difficulty!`
+                    : isBotWinner
+                    ? `${botProfile.username} cracked your secret code first! Practice your defenses!`
+                    : 'A hard-fought tie match! Neither player cracked the code.'}
                 </p>
               </div>
 

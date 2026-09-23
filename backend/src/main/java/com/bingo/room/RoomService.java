@@ -397,6 +397,19 @@ public class RoomService {
             gameBuilder.shipAttacks(attacksMap);
             gameBuilder.shipSunkTypes(sunkMap);
             gameBuilder.shipLastAttackResult(new HashMap<>());
+        } else if (room.getGameType() == com.bingo.game.GameType.MASTERMIND) {
+            gameBuilder.mastermindPhase("SETUP");
+            gameBuilder.mastermindMaxAttempts(8);
+            gameBuilder.mastermindSecrets(new HashMap<>());
+            Map<String, Boolean> lockedMap = new HashMap<>();
+            Map<String, List<com.bingo.game.engine.MastermindEngine.MastermindGuessRecord>> guessesMap = new HashMap<>();
+            for (GamePlayer gp : gamePlayers) {
+                lockedMap.put(gp.getUserId(), false);
+                guessesMap.put(gp.getUserId(), new ArrayList<>());
+            }
+            gameBuilder.mastermindSecretsLocked(lockedMap);
+            gameBuilder.mastermindGuesses(guessesMap);
+            gameBuilder.mastermindLastGuessResult(new HashMap<>());
         } else {
             gameBuilder.calledNumbers(new ArrayList<>());
         }

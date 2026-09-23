@@ -583,6 +583,60 @@ export const useGameStore = create<GameState>((set, get) => ({
           }
           break;
 
+        case 'MASTERMIND_SECRET_LOCKED':
+          if (game) {
+            const lockedMap = { ...(game.mastermindSecretsLocked || {}) };
+            lockedMap[event.data.userId] = true;
+            set({
+              game: {
+                ...game,
+                mastermindSecretsLocked: lockedMap,
+              },
+            });
+          }
+          break;
+
+        case 'MASTERMIND_PHASE_CHANGED':
+          if (game) {
+            const lockedMap = { ...(game.mastermindSecretsLocked || {}) };
+            game.players.forEach((p) => {
+              lockedMap[p.userId] = true;
+            });
+            set({
+              game: {
+                ...game,
+                mastermindPhase: 'BATTLE',
+                mastermindSecretsLocked: lockedMap,
+                currentTurnUserId: event.data.currentTurnUserId || game.currentTurnUserId,
+              },
+            });
+          }
+          break;
+
+        case 'MASTERMIND_GUESS_RESULT':
+          if (game) {
+            const guessesMap = { ...(game.mastermindGuesses || {}) };
+            const userList = [...(guessesMap[event.data.userId] || [])];
+            userList.push({
+              userId: event.data.userId,
+              guess: event.data.guess,
+              exactMatches: event.data.exactMatches,
+              colorMatches: event.data.colorMatches,
+              timestamp: Date.now(),
+            });
+            guessesMap[event.data.userId] = userList;
+
+            set({
+              game: {
+                ...game,
+                mastermindGuesses: guessesMap,
+                currentTurnUserId: event.data.nextTurnUserId || game.currentTurnUserId,
+                mastermindLastGuessResult: event.data,
+              },
+            });
+          }
+          break;
+
         case 'EMOTE_SENT':
           if (event.data?.emote) {
             const emoteItem: ActiveEmote = {
