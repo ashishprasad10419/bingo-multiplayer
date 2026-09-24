@@ -165,9 +165,9 @@ export const GameHub: React.FC = () => {
       titleColor: 'text-[#312e81] dark:text-[#c7d2fe]',
       btnQuick: 'bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-[0_4px_0_#3730a3]',
       btnCustom: 'bg-white dark:bg-slate-800 text-[#4f46e5] dark:text-[#c7d2fe] border-2 border-[#a5b4fc] hover:bg-[#e0e7ff]',
-      isPlayable: false,
+      isPlayable: true,
       sequenceNo: 11,
-      statusBadge: '🔨 Game 11: Next Up',
+      statusBadge: '🟢 Live & Playable',
     },
     {
       type: 'LUDO',
@@ -182,7 +182,7 @@ export const GameHub: React.FC = () => {
       btnCustom: 'bg-white dark:bg-slate-800 text-[#ca8a04] dark:text-[#fef08a] border-2 border-[#fef08a] hover:bg-[#fef9c3]',
       isPlayable: false,
       sequenceNo: 12,
-      statusBadge: '🕒 Game 12: In Queue',
+      statusBadge: '🔨 Game 12: Next Up',
     },
     {
       type: 'DETECTIVE_MYSTERY',

@@ -23,6 +23,7 @@ export const CreateRoom: React.FC = () => {
     'NUMBER_RUSH',
     'WORD_SCRAMBLE',
     'SHIP_BATTLE',
+    'MASTERMIND',
   ];
 
   const [gameType, setGameType] = useState<GameType>(
@@ -134,6 +135,15 @@ export const CreateRoom: React.FC = () => {
           buttonLabel: 'Create Ship Battle Room',
           iconGradient: 'from-[#0284c7] via-[#0369a1] to-[#1e3a8a]',
         };
+      case 'MASTERMIND':
+        return {
+          title: 'Create Mastermind Room',
+          subtitle: 'Secret 4-color code breaker duel. Guess the hidden sequence with precise peg clues!',
+          badge: '🧩 1v1 Codebreaker',
+          badgeStyle: 'bg-[#eef2ff] border-[#c7d2fe] text-[#4f46e5]',
+          buttonLabel: 'Create Mastermind Room',
+          iconGradient: 'from-[#818cf8] via-[#6366f1] to-[#4338ca]',
+        };
       case 'BINGO':
       default:
         return {
@@ -187,6 +197,9 @@ export const CreateRoom: React.FC = () => {
       } else if (gameType === 'SHIP_BATTLE') {
         payload.boardSize = 10;
         payload.winningLines = 5;
+        payload.maxPlayers = 2;
+      } else if (gameType === 'MASTERMIND') {
+        payload.boardSize = 4;
         payload.maxPlayers = 2;
       }
 
@@ -492,6 +505,22 @@ export const CreateRoom: React.FC = () => {
                 </div>
               </div>
             </>
+          )}
+
+          {/* ============ MASTERMIND CONFIG ============ */}
+          {gameType === 'MASTERMIND' && (
+            <div className="bg-[#faf7fe] p-4 sm:p-5 rounded-2xl border border-[#ede8f8] flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Users className="w-5 h-5 text-[#6366f1]" />
+                <div>
+                  <div className="text-xs font-extrabold text-[#2a2050]">Rules & Match Capacity</div>
+                  <div className="text-[11px] text-[#7e749c] font-medium">4 Pegs • 6 Colors • 10 Rounds Max</div>
+                </div>
+              </div>
+              <span className="text-xs font-extrabold px-3 py-1 bg-[#eef2ff] text-[#4f46e5] border border-[#c7d2fe] rounded-full">
+                2 Players (Fixed)
+              </span>
+            </div>
           )}
         </div>
 

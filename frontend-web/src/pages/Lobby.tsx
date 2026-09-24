@@ -180,6 +180,14 @@ export const Lobby: React.FC = () => {
           rule: '10x10 Fleet Duel',
           readyDesc: '1v1 naval warfare. Enter combat arena to deploy and sink enemy ships!',
         };
+      case 'MASTERMIND':
+        return {
+          icon: '🧩',
+          readyTitle: 'Mastermind Ready',
+          gameName: 'Mastermind',
+          rule: '4 Pegs / 10 Rounds',
+          readyDesc: '1v1 code-cracking duel. Decrypt the secret 4-color pattern before your opponent!',
+        };
       case 'BINGO':
       default:
         return {
